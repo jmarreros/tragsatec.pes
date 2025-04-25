@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "role")
 @Data
@@ -18,4 +20,12 @@ public class RoleEntity {
 
     @Column(nullable = false, length = 30)
     private String name;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "role_permission",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<PermissionEntity> permissions;
 }

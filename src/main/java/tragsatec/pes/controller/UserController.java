@@ -3,7 +3,6 @@ package tragsatec.pes.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tragsatec.pes.exception.UserNotFoundException;
 import tragsatec.pes.persistence.entity.UserEntity;
 import tragsatec.pes.service.UserService;
 
