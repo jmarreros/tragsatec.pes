@@ -1,5 +1,7 @@
 package tragsatec.pes.persistence.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import jakarta.persistence.Table;
