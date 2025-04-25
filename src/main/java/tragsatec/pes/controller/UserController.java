@@ -40,15 +40,19 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity user) {
-        System.out.println("Creating user: " + user);
         UserEntity createdUser = userService.saveUser(user);
         return ResponseEntity.status(201).body(createdUser);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserEntity> updateUser(@PathVariable int id, @RequestBody UserEntity user) {
-        user.setId(id);
+    @PutMapping
+    public ResponseEntity<UserEntity> updateUser(@RequestBody UserEntity user) {
         userService.updateUser(user);
         return ResponseEntity.ok(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable int id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }
