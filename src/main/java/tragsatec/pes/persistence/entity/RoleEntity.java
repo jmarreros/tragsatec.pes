@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.Set;
 
 @Entity
-@Table(name = "role")
+@Table(name = "role", uniqueConstraints = @UniqueConstraint(name = "unique_role_name", columnNames = "name"))
 @Data
 public class RoleEntity {
     @Id
@@ -18,7 +18,7 @@ public class RoleEntity {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 30, unique = true)
     private String name;
 
     @ManyToMany(fetch = FetchType.EAGER)
