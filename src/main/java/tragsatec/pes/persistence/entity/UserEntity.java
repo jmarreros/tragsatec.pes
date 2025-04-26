@@ -1,20 +1,23 @@
 package tragsatec.pes.persistence.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import tragsatec.pes.persistence.audit.AuditUserListener;
+import tragsatec.pes.persistence.audit.AuditableEntity;
 
 import java.time.LocalDateTime;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, AuditUserListener.class})
 @Table(name = "user", uniqueConstraints = @UniqueConstraint(name = "unique_username", columnNames = "username"))
-@Data
-public class UserEntity {
+@Setter
+@Getter
+@NoArgsConstructor
+public class UserEntity extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -29,15 +32,6 @@ public class UserEntity {
     @Column(nullable = false, columnDefinition = "TINYINT DEFAULT 0")
     private Boolean locked;
 
-    @Column(name="created_at")
-    @CreatedDate
-    @JsonIgnore
-    private LocalDateTime createdAt;
-
-    @Column(name="updated_at")
-    @LastModifiedDate
-    @JsonIgnore
-    private LocalDateTime updatedAt;
 
     // Relation to role entity
     @ManyToOne(fetch = FetchType.EAGER)
