@@ -1,5 +1,6 @@
 package tragsatec.pes.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+    @Value("${ldap.url}")
+    private String ldapUrl;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -52,7 +55,7 @@ public class SecurityConfig {
                 .userDnPatterns("uid={0},ou=people") // Pattern to find users
                 .groupSearchBase("ou=groups") // Base for group search (optional if not using LDAP roles)
                 .contextSource()
-                .url("ldap://localhost:389/dc=springframework,dc=org") // URL of the embedded LDAP server
+                .url(ldapUrl) // URL of the embedded LDAP server
                 .and()
                 .passwordCompare()
                 .passwordEncoder(passwordEncoder) // Use the BCrypt encoder
