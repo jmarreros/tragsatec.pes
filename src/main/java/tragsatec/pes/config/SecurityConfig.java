@@ -19,9 +19,12 @@ public class SecurityConfig {
     private String ldapUrl;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomUserDetailsContextMapper customUserDetailsContextMapper; // Inject your mapper
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    // Modify the constructor to receive the mapper
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsContextMapper customUserDetailsContextMapper) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.customUserDetailsContextMapper = customUserDetailsContextMapper;
     }
 
     @Bean
@@ -40,10 +43,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Ensure this encoder matches the one used in your LDAP if you store hashed passwords
-        // The example LDIF uses BCrypt for 'ben', but plaintext for others.
-        // If you only use direct LDAP comparison, this is not used directly in LDAP authentication,
-        // but it's good practice to have it defined.
         return new BCryptPasswordEncoder();
     }
 
@@ -58,8 +57,10 @@ public class SecurityConfig {
                 .url(ldapUrl) // URL of the embedded LDAP server
                 .and()
                 .passwordCompare()
-                .passwordEncoder(passwordEncoder) // Use the BCrypt encoder
-                .passwordAttribute("userPassword"); // Password attribute in LDAP
+                .passwordEncoder(passwordEncoder) // Use the Bcrypt encoder
+                .passwordAttribute("userPassword") // Password attribute in LDAP
+                .and() // Add .and() to return to the ldapAuthentication level
+                .userDetailsContextMapper(customUserDetailsContextMapper); // Use your custom mapper
         return authenticationManagerBuilder.build();
     }
 }
