@@ -11,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import tragsatec.pes.config.JwtUtil;
 import tragsatec.pes.dto.LoginRequest;
 
+import java.lang.reflect.Array;
 import java.util.Collection; // Import Collection
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,6 +37,7 @@ public class AccessController {
 
             // If authentication is successful, get username and authorities
             String username = authentication.getName();
+
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities(); // Get authorities
 
             // Generate the JWT token including authorities

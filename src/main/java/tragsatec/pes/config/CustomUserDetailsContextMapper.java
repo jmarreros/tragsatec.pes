@@ -51,6 +51,8 @@ public class CustomUserDetailsContextMapper extends LdapUserDetailsMapper {
 
         // Get the permissions associated with the role
         Set<PermissionEntity> permissions = userRole.getPermissions();
+
+
         if (permissions != null) {
             // Add each permission name as an authority
             permissions.stream()
@@ -62,8 +64,10 @@ public class CustomUserDetailsContextMapper extends LdapUserDetailsMapper {
         // Create a new UserDetails combining information from LDAP and the DB authorities (role + permissions)
         // Use the LDAP password (details.getPassword())
         // Status flags (enabled, accountNonExpired, etc.) can come from LDAP or your DB (userEntity). Here we use the LDAP ones.
-        return new User(details.getUsername(), details.getPassword(), details.isEnabled(),
+        User user = new User(details.getUsername(), details.getPassword(), details.isEnabled(),
                 details.isAccountNonExpired(), details.isCredentialsNonExpired(),
                 details.isAccountNonLocked(), dbAuthorities); // Use the combined authorities from the DB
+
+        return user;
     }
 }
