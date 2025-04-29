@@ -7,8 +7,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.stereotype.Component;
-import tragsatec.pes.persistence.entity.PermissionEntity;
-import tragsatec.pes.persistence.entity.RoleEntity;
 import tragsatec.pes.persistence.entity.UserEntity;
 import tragsatec.pes.persistence.repository.UserRepository;
 
@@ -16,7 +14,6 @@ import tragsatec.pes.persistence.repository.UserRepository;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class CustomUserDetailsContextMapper extends LdapUserDetailsMapper {
@@ -37,37 +34,28 @@ public class CustomUserDetailsContextMapper extends LdapUserDetailsMapper {
                 .orElseThrow(() -> new RuntimeException("User not found in DB: " + username)); // Or handle this as you prefer
 
         // Get the unique role of the user from the database
-        RoleEntity userRole = userEntity.getRole();
-        if (userRole == null) {
-            throw new RuntimeException("User found in DB but has no role assigned: " + username);
-        }
+//        RoleEntity userRole = userEntity.getRole();
+//        if (userRole == null) {
+//            throw new RuntimeException("User found in DB but has no role assigned: " + username);
+//        }
 
         // Initialize the set for authorities from the database
         Set<GrantedAuthority> dbAuthorities = new HashSet<>();
 
+        System.out.println("User Role in DB: " + userEntity.getRole());
+
         // Add the role as an authority.
         // Spring Security often expects the "ROLE_" prefix. Adjust if your configuration is different.
-//        dbAuthorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getName())); // Assume ROLE_ prefix
-
-        // Get the permissions associated with the role
-        Set<PermissionEntity> permissions = userRole.getPermissions();
-
-
-        if (permissions != null) {
-            // Add each permission name as an authority
-            permissions.stream()
-                    .map(permission -> new SimpleGrantedAuthority(permission.getName())) // Use permission name as authority
-                    .forEach(dbAuthorities::add);
-        }
+        dbAuthorities.add(new SimpleGrantedAuthority("ROLE_" + userEntity.getRole())); // Assume ROLE_ prefix
 
 
         // Create a new UserDetails combining information from LDAP and the DB authorities (role + permissions)
         // Use the LDAP password (details.getPassword())
         // Status flags (enabled, accountNonExpired, etc.) can come from LDAP or your DB (userEntity). Here we use the LDAP ones.
-        User user = new User(details.getUsername(), details.getPassword(), details.isEnabled(),
-                details.isAccountNonExpired(), details.isCredentialsNonExpired(),
-                details.isAccountNonLocked(), dbAuthorities); // Use the combined authorities from the DB
+        // Use the combined authorities from the DB
 
-        return user;
+        return new User(details.getUsername(), details.getPassword(), details.isEnabled(),
+                details.isAccountNonExpired(), details.isCredentialsNonExpired(),
+                details.isAccountNonLocked(), dbAuthorities);
     }
 }

@@ -11,18 +11,16 @@ import org.springframework.http.HttpStatus;
 import tragsatec.pes.config.JwtUtil;
 import tragsatec.pes.dto.LoginRequest;
 
-import java.lang.reflect.Array;
 import java.util.Collection; // Import Collection
-import java.util.List;
 import java.util.Map;
 
 @RestController
-public class AccessController {
+public class LoginController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    public AccessController(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public LoginController(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }

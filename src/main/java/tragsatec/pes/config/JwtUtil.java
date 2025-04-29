@@ -51,7 +51,7 @@ public class JwtUtil {
                 .withSubject(username)
                 .withClaim(AUTHORITIES_CLAIM, authoritiesList) // Add authorities claim
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour expiration
+                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 8)) // 8 hour expiration
                 .sign(algorithm); // Use the initialized algorithm
     }
 

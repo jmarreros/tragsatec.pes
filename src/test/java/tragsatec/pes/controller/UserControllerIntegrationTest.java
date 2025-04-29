@@ -1,6 +1,5 @@
 package tragsatec.pes.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +7,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import tragsatec.pes.persistence.entity.RoleEntity;
-import tragsatec.pes.persistence.repository.RoleRepository;
-
-import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -31,22 +26,15 @@ public class UserControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
     private Integer createdUserId;
     private String createdUsername; // Variable para almacenar el username
-    private Integer firstRoleId; // Variable para almacenar el ID del primer rol
+    private String firstRoleId; // Variable para almacenar el ID del primer rol
     private String authToken;
 
     // Este método se ejecuta una vez antes de todas las pruebas de la clase
     @BeforeAll
     void setupClass() throws Exception {
-        // Obtén el primer rol de la base de datos una sola vez
-        List<RoleEntity> roles = (List<RoleEntity>) roleRepository.findAll();
-        assertFalse(roles.isEmpty(), "Setup failed: No roles found in the database.");
-        this.firstRoleId = roles.get(0).getId(); // Almacena el ID del primer rol
-        assertNotNull(this.firstRoleId, "Setup failed: First role ID is null.");
+        this.firstRoleId = "ADMIN";
 
         // Genera el token de autenticación
         String loginJson = "{\"username\":\"ben\", \"password\":\"benspassword\"}";
@@ -72,10 +60,10 @@ public class UserControllerIntegrationTest {
         String newUsername = "newuser_test_" + System.currentTimeMillis();
         boolean newLocked = false;
         // Usa el ID del rol obtenido en setupClass()
-        int roleIdToUse = this.firstRoleId;
+        String roleIdToUse = this.firstRoleId;
 
         String createUserJson = String.format(
-                "{\"username\":\"%s\", \"locked\":%b, \"role\":%d}",
+                "{\"username\":\"%s\", \"locked\":%b, \"role\":%s}",
                 newUsername, newLocked, roleIdToUse
         );
 
@@ -121,14 +109,14 @@ public class UserControllerIntegrationTest {
     void shouldUpdateCreatedUser() throws Exception {
         assertNotNull(createdUserId, "Cannot update user if createdUserId is null");
         // Usa el ID del rol obtenido en setupClass()
-        int roleIdToUse = this.firstRoleId;
+        String roleIdToUse = this.firstRoleId;
 
         // Nuevos datos para la actualización
         String updatedUsername = "updateduser_" + createdUserId;
         boolean updatedLocked = true;
 
         String updateUserJson = String.format(
-                "{\"id\":%d, \"username\":\"%s\", \"locked\":%b, \"role\":%d}",
+                "{\"id\":%d, \"username\":\"%s\", \"locked\":%b, \"role\":%s}",
                 createdUserId, updatedUsername, updatedLocked, roleIdToUse
         );
 

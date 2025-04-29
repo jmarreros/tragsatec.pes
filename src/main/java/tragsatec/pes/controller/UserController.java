@@ -60,22 +60,4 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-
-//    @GetMapping("/info")
-//    public String getUserInfo() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//        if (authentication == null || !authentication.isAuthenticated()) {
-//            return "No user authenticated";
-//        }
-//
-//        String username = authentication.getName();
-//        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-//
-//        String rolesAndPermissions = authorities.stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.joining(", "));
-//
-//        return "User: " + username + " | Authorities: " + rolesAndPermissions;
-//    }
 }
