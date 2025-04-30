@@ -33,16 +33,8 @@ public class CustomUserDetailsContextMapper extends LdapUserDetailsMapper {
         UserEntity userEntity = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found in DB: " + username)); // Or handle this as you prefer
 
-        // Get the unique role of the user from the database
-//        RoleEntity userRole = userEntity.getRole();
-//        if (userRole == null) {
-//            throw new RuntimeException("User found in DB but has no role assigned: " + username);
-//        }
-
         // Initialize the set for authorities from the database
         Set<GrantedAuthority> dbAuthorities = new HashSet<>();
-
-        System.out.println("User Role in DB: " + userEntity.getRole());
 
         // Add the role as an authority.
         // Spring Security often expects the "ROLE_" prefix. Adjust if your configuration is different.
