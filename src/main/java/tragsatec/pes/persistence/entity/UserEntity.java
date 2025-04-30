@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @EntityListeners({AuditingEntityListener.class, AuditUserListener.class})
-@Table(name = "user", uniqueConstraints = @UniqueConstraint(name = "unique_username", columnNames = "username"))
+@Table(name = "[user]", uniqueConstraints = @UniqueConstraint(name = "unique_username", columnNames = "username"))
 @Setter
 @Getter
 @NoArgsConstructor
@@ -29,8 +29,8 @@ public class UserEntity extends AuditableEntity {
     @Column(name = "last_access")
     private LocalDateTime lastLogin;
 
-    @Column(nullable = false, columnDefinition = "TINYINT DEFAULT 0")
-    private Boolean locked;
+    @Column(nullable = false)
+    private Boolean locked = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
