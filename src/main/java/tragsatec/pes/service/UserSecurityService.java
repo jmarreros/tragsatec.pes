@@ -1,4 +1,4 @@
-package tragsatec.pes.config;
+package tragsatec.pes.service;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority; // Importar
 import org.springframework.security.core.userdetails.User;

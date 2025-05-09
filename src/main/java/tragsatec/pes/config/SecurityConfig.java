@@ -3,7 +3,7 @@ package tragsatec.pes.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider; // Importar
+import org.springframework.security.authentication.AuthenticationProvider; // Import
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -17,9 +17,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AuthenticationProvider customAuthenticationProvider; // Inyectar el provider personalizado
+    private final AuthenticationProvider customAuthenticationProvider; // Inject the custom provider
 
-    // Modificar constructor para recibir el provider
+    // Modify constructor to receive the provider
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           AuthenticationProvider customAuthenticationProvider) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -35,8 +35,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Registrar el provider personalizado en HttpSecurity
-                .authenticationProvider(customAuthenticationProvider) // <--- Añadir esta línea
+                // Register the custom provider in HttpSecurity
+                .authenticationProvider(customAuthenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -44,18 +44,18 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Aunque no se use para la comparación en tu provider,
-        // es buena práctica tenerlo definido si otras partes de Spring Security lo esperan.
+        // Although not used for comparison in your provider,
+        // it's good practice to have it defined if other parts of Spring Security expect it.
         return new BCryptPasswordEncoder();
     }
 
-    // Este bean de AuthenticationManager ahora usará el provider configurado en HttpSecurity
+    // This AuthenticationManager bean will now use the provider configured in HttpSecurity
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-        // El provider ya está registrado en http, así que el builder lo recogerá.
-        // Opcionalmente, podrías configurarlo explícitamente aquí también si fuera necesario:
+        // The provider is already registered in http, so the builder will pick it up.
+        // Optionally, you could configure it explicitly here as well if necessary:
         // authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
         return authenticationManagerBuilder.build();
     }
