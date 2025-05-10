@@ -5,19 +5,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import tragsatec.pes.persistence.audit.AuditUserListener;
-import tragsatec.pes.persistence.audit.AuditableEntity;
+import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
 import tragsatec.pes.persistence.enums.UserRole;
 
 import java.time.LocalDateTime;
 
 @Entity
-@EntityListeners({AuditingEntityListener.class, AuditUserListener.class})
+@EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
 @Table(name = "[usuario]", uniqueConstraints = @UniqueConstraint(name = "unique_username", columnNames = "username"))
 @Setter
 @Getter
 @NoArgsConstructor
-public class UserEntity extends AuditableEntity {
+public class UserEntity extends AuditInsertUpdateEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
