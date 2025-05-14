@@ -1,5 +1,6 @@
 package tragsatec.pes.persistence.audit;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
@@ -16,9 +17,11 @@ import java.time.LocalDateTime;
 public class AuditOnlyInsertEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
+    @JsonIgnore
     private LocalDateTime createdAt;
 
     @CreatedBy
+    @JsonIgnore
     @Column(name = "created_by", nullable = false, updatable = false, length = 50)
     private String createdBy;
 }

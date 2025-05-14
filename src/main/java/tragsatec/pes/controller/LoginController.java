@@ -36,6 +36,7 @@ public class LoginController {
             // If authentication is successful, get username and authorities
             String username = authentication.getName();
 
+
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities(); // Get authorities
 
             // Generate the JWT token including authorities
