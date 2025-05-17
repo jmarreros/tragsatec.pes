@@ -9,15 +9,19 @@ import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
 import java.util.Set;
 
 @Entity
-@Table(name = "estacion")
+@Table(name = "estacion", uniqueConstraints = @UniqueConstraint(name = "unique_codigo_estacion", columnNames = "codigo"))
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
 @Getter
 @Setter
 @NoArgsConstructor
 public class EstacionEntity extends AuditInsertUpdateEntity {
     @Id
-    @Column(length = 5)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    private Integer id;
+
+    @Column(nullable = false, length = 5, unique = true)
+    private String codigo;
 
     @Column(length = 100)
     private String nombre;

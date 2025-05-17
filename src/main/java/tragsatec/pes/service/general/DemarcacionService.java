@@ -21,7 +21,7 @@ public class DemarcacionService {
         return (List<DemarcacionEntity>) demarcacionRepository.findAll();
     }
 
-    public Optional<DemarcacionEntity> findById(String id) {
+    public Optional<DemarcacionEntity> findById(Integer id) {
         return demarcacionRepository.findById(id);
     }
 

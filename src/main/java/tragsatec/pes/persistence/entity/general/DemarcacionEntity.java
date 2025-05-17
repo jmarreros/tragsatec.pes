@@ -11,14 +11,18 @@ import java.util.Set;
 
 @Entity
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
-@Table(name = "demarcacion")
+@Table(name = "demarcacion", uniqueConstraints = @UniqueConstraint(name = "unique_codigo_demarcacion", columnNames = "codigo"))
 @Getter
 @Setter
 @NoArgsConstructor
 public class DemarcacionEntity extends AuditInsertUpdateEntity {
     @Id
-    @Column(length = 4)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    private Integer id;
+
+    @Column(nullable = false, length = 4, unique = true)
+    private String codigo;
 
     @Column(length = 100)
     private String nombre;

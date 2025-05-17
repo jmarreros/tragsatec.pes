@@ -11,7 +11,7 @@ import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
 import java.util.Set;
 
 @Entity
-@Table(name = "unidad_territorial")
+@Table(name = "unidad_territorial", uniqueConstraints = @UniqueConstraint(name = "unique_codigo_ut", columnNames = "codigo"))
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
 @Getter
 @Setter
@@ -19,8 +19,12 @@ import java.util.Set;
 @AllArgsConstructor
 public class UnidadTerritorialEntity extends AuditInsertUpdateEntity {
     @Id
-    @Column(length = 20)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    private Integer id;
+
+    @Column(nullable = false, length = 20,  unique = true)
+    private String codigo;
 
     @Column(length = 100)
     private String nombre;

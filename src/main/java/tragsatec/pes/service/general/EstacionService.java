@@ -21,7 +21,7 @@ public class EstacionService {
         return (List<EstacionEntity>) estacionRepository.findAll();
     }
 
-    public Optional<EstacionEntity> findById(String id) {
+    public Optional<EstacionEntity> findById(Integer id) {
         return estacionRepository.findById(id);
     }
 

@@ -24,7 +24,7 @@ public class DemarcacionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DemarcacionEntity> getById(@PathVariable String id) {
+    public ResponseEntity<DemarcacionEntity> getById(@PathVariable Integer id) {
         return demarcacionService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -36,11 +36,11 @@ public class DemarcacionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DemarcacionEntity> update(@PathVariable String id, @RequestBody DemarcacionEntity entity) {
+    public ResponseEntity<DemarcacionEntity> update(@PathVariable Integer id, @RequestBody DemarcacionEntity entity) {
         if (demarcacionService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        entity.setId(id); // Asegura que el ID de la entidad coincida con el ID de la ruta
+        entity.setId(id);
         return ResponseEntity.ok(demarcacionService.save(entity));
     }
 }

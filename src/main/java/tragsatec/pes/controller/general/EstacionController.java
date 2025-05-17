@@ -24,7 +24,7 @@ public class EstacionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EstacionEntity> getById(@PathVariable String id) {
+    public ResponseEntity<EstacionEntity> getById(@PathVariable Integer id) {
         return estacionService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -36,7 +36,7 @@ public class EstacionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EstacionEntity> update(@PathVariable String id, @RequestBody EstacionEntity entity) {
+    public ResponseEntity<EstacionEntity> update(@PathVariable Integer id, @RequestBody EstacionEntity entity) {
         if (estacionService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }

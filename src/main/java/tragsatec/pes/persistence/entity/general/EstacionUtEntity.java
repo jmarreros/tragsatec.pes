@@ -11,6 +11,7 @@ import lombok.Setter;
 public class EstacionUtEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Integer id;
 
     @ManyToOne
