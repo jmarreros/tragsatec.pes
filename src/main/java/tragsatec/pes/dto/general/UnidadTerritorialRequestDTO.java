@@ -1,4 +1,4 @@
-package tragsatec.pes.dto; // O la ubicación de tus DTOs
+package tragsatec.pes.dto.general; // O la ubicación de tus DTOs
 
 import lombok.Getter;
 import lombok.Setter;

@@ -4,7 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tragsatec.pes.dto.*; // Importa todos los DTOs necesarios
+import tragsatec.pes.dto.general.*;
 import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
 import tragsatec.pes.persistence.entity.general.EstacionUtEntity;

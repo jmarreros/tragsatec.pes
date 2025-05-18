@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tragsatec.pes.dto.UnidadTerritorialRequestDTO;
-import tragsatec.pes.dto.UnidadTerritorialResponseDTO; // Cambiado
-import tragsatec.pes.dto.UnidadTerritorialSummaryDTO;
+import tragsatec.pes.dto.general.UnidadTerritorialRequestDTO;
+import tragsatec.pes.dto.general.UnidadTerritorialResponseDTO; // Cambiado
+import tragsatec.pes.dto.general.UnidadTerritorialSummaryDTO;
 import tragsatec.pes.service.general.UnidadTerritorialService;
 
 import java.util.List;

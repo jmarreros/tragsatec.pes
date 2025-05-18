@@ -3,8 +3,8 @@ package tragsatec.pes.controller.general;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tragsatec.pes.dto.DemarcacionResponseDTO;
-import tragsatec.pes.dto.DemarcacionSummaryDTO; // Asegúrate de que está importado
+import tragsatec.pes.dto.general.DemarcacionResponseDTO;
+import tragsatec.pes.dto.general.DemarcacionSummaryDTO; // Asegúrate de que está importado
 import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.service.general.DemarcacionService;
 

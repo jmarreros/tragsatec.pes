@@ -6,8 +6,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tragsatec.pes.dto.EstacionRequestDTO;
-import tragsatec.pes.dto.EstacionResponseDTO;
+import tragsatec.pes.dto.general.EstacionRequestDTO;
+import tragsatec.pes.dto.general.EstacionResponseDTO;
 import tragsatec.pes.service.general.EstacionService;
 
 import java.util.List;

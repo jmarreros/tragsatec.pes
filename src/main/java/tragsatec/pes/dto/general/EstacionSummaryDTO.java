@@ -1,4 +1,4 @@
-package tragsatec.pes.dto;
+package tragsatec.pes.dto.general;
 
 import lombok.Getter;
 import lombok.Setter;
