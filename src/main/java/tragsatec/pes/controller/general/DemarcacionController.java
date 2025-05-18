@@ -3,6 +3,8 @@ package tragsatec.pes.controller.general;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tragsatec.pes.dto.DemarcacionResponseDTO;
+import tragsatec.pes.dto.DemarcacionSummaryDTO; // Asegúrate de que está importado
 import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.service.general.DemarcacionService;
 
@@ -19,29 +21,29 @@ public class DemarcacionController {
     }
 
     @GetMapping
-    public List<DemarcacionEntity> getAll() {
+    public List<DemarcacionSummaryDTO> getAll() {
         return demarcacionService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DemarcacionEntity> getById(@PathVariable Integer id) {
-        return demarcacionService.findById(id)
+    public ResponseEntity<DemarcacionResponseDTO> getById(@PathVariable Integer id) {
+        return demarcacionService.findByIdWithUnidadesTerritoriales(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public DemarcacionEntity create(@RequestBody DemarcacionEntity entity) {
+    public DemarcacionSummaryDTO create(@RequestBody DemarcacionEntity entity) {
         return demarcacionService.save(entity);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DemarcacionEntity> update(@PathVariable Integer id, @RequestBody DemarcacionEntity entity) {
+    public ResponseEntity<DemarcacionSummaryDTO> update(@PathVariable Integer id, @RequestBody DemarcacionEntity entity) { // Tipo de retorno cambiado
         if (demarcacionService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         entity.setId(id);
-        return ResponseEntity.ok(demarcacionService.save(entity));
+        DemarcacionSummaryDTO updatedDto = demarcacionService.save(entity);
+        return ResponseEntity.ok(updatedDto);
     }
 }
-

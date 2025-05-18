@@ -1,8 +1,8 @@
 package tragsatec.pes.persistence.repository.general;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 
-public interface UnidadTerritorialRepository extends CrudRepository<UnidadTerritorialEntity, Integer> {
+public interface UnidadTerritorialRepository extends JpaRepository<UnidadTerritorialEntity, Integer> {
 }
 
