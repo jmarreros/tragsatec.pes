@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UnidadTerritorialRequest {
+public class UnidadTerritorialRequestDTO {
     private Integer id;
     private String codigo;
     private String nombre;

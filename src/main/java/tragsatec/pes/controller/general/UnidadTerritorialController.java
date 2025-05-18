@@ -3,7 +3,7 @@ package tragsatec.pes.controller.general;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
-    import tragsatec.pes.dto.UnidadTerritorialRequest;
+    import tragsatec.pes.dto.UnidadTerritorialRequestDTO;
     import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
     import tragsatec.pes.service.general.UnidadTerritorialService;
 
@@ -32,13 +32,13 @@ package tragsatec.pes.controller.general;
         }
 
         @PostMapping
-        public UnidadTerritorialEntity create(@RequestBody UnidadTerritorialRequest request) {
+        public UnidadTerritorialEntity create(@RequestBody UnidadTerritorialRequestDTO request) {
             return unidadTerritorialService.createUnidadTerritorial(request);
         }
 
 
         @PutMapping("/{id}")
-        public ResponseEntity<UnidadTerritorialEntity> update(@PathVariable Integer id, @RequestBody UnidadTerritorialRequest requestDTO) {
+        public ResponseEntity<UnidadTerritorialEntity> update(@PathVariable Integer id, @RequestBody UnidadTerritorialRequestDTO requestDTO) {
             UnidadTerritorialEntity updatedEntity = unidadTerritorialService.updateUnidadTerritorial(id, requestDTO);
             return ResponseEntity.ok(updatedEntity);
         }

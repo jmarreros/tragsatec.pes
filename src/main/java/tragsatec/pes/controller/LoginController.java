@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import tragsatec.pes.config.JwtUtil;
-import tragsatec.pes.dto.LoginRequest;
+import tragsatec.pes.dto.LoginRequestDTO;
 
 import java.util.Collection; // Import Collection
 import java.util.Map;
@@ -26,11 +26,11 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         try {
             // Attempt authentication using the AuthenticationManager configured with LDAP
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(), loginRequestDTO.getPassword())
             );
 
             // If authentication is successful, get username and authorities

@@ -3,7 +3,7 @@ package tragsatec.pes.service.general;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tragsatec.pes.dto.UnidadTerritorialRequest;
+import tragsatec.pes.dto.UnidadTerritorialRequestDTO;
 import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 import tragsatec.pes.persistence.repository.general.DemarcacionRepository;
@@ -35,7 +35,7 @@ public class UnidadTerritorialService {
         return unidadTerritorialRepository.save(entity);
     }
 
-    public UnidadTerritorialEntity createUnidadTerritorial(UnidadTerritorialRequest dto) {
+    public UnidadTerritorialEntity createUnidadTerritorial(UnidadTerritorialRequestDTO dto) {
         UnidadTerritorialEntity ut = new UnidadTerritorialEntity();
         ut.setCodigo(dto.getCodigo());
         ut.setNombre(dto.getNombre());
@@ -54,7 +54,7 @@ public class UnidadTerritorialService {
         return unidadTerritorialRepository.save(ut);
     }
 
-    public UnidadTerritorialEntity updateUnidadTerritorial(Integer id, UnidadTerritorialRequest dto) {
+    public UnidadTerritorialEntity updateUnidadTerritorial(Integer id, UnidadTerritorialRequestDTO dto) {
         UnidadTerritorialEntity ut = unidadTerritorialRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("UnidadTerritorial no encontrada con id: " + id));
 

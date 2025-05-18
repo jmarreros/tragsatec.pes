@@ -1,5 +1,7 @@
 package tragsatec.pes.persistence.entity.general;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo; // Importar
+import com.fasterxml.jackson.annotation.ObjectIdGenerators; // Importar
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +16,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class EstacionEntity extends AuditInsertUpdateEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,4 +53,3 @@ public class EstacionEntity extends AuditInsertUpdateEntity {
     @OneToMany(mappedBy = "estacion")
     private Set<EstacionUtEntity> estacionesUt;
 }
-
