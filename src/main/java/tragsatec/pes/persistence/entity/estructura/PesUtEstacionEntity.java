@@ -6,11 +6,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
+
 import java.math.BigDecimal;
 
 @Entity
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
-@Table(name = "pes_ut_estacion")
+@Table(name = "pes_ut_estacion",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"unidad_territorial_id", "estacion_id", "pes_id"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,7 +35,6 @@ public class PesUtEstacionEntity extends AuditInsertUpdateEntity {
     private BigDecimal coeficiente;
 
     @ManyToOne
-    @JoinColumn(name = "pes_id",nullable = false)
+    @JoinColumn(name = "pes_id", nullable = false)
     private PesEntity pes;
-
 }
