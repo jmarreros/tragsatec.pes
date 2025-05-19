@@ -7,7 +7,11 @@ import tragsatec.pes.dto.estructura.PesDemarcacionUtRequestDTO;
 import tragsatec.pes.dto.estructura.PesDemarcacionUtResponseDTO;
 import tragsatec.pes.persistence.entity.estructura.PesDemarcacionUtEntity;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;
-import tragsatec.pes.persistence.repository.estructura.PesDemarcacionUtRepository; // Asume que este repositorio existe
+import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
+import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
+import tragsatec.pes.persistence.repository.estructura.PesDemarcacionUtRepository;
+import tragsatec.pes.service.general.UnidadTerritorialService;
+import tragsatec.pes.service.general.DemarcacionService;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +23,8 @@ public class PesDemarcacionUtService {
 
     private final PesDemarcacionUtRepository pesDemarcacionUtRepository;
     private final PesService pesService;
+    private final UnidadTerritorialService unidadTerritorialService;
+    private final DemarcacionService demarcacionService;
 
     // Método helper para mapear Entity a ResponseDTO
     private PesDemarcacionUtResponseDTO mapToPesDemarcacionUtResponseDTO(PesDemarcacionUtEntity entity) {
@@ -27,13 +33,37 @@ public class PesDemarcacionUtService {
         }
         PesDemarcacionUtResponseDTO dto = new PesDemarcacionUtResponseDTO();
         dto.setId(entity.getId());
-        dto.setUnidadTerritorialId(entity.getUnidadTerritorialId());
-        dto.setDemarcacionId(entity.getDemarcacionId());
+        if (entity.getUnidadTerritorial() != null) {
+            dto.setUnidadTerritorialId(entity.getUnidadTerritorial().getId());
+        }
+        if (entity.getDemarcacion() != null) {
+            dto.setDemarcacionId(entity.getDemarcacion().getId());
+        }
         if (entity.getPes() != null) {
             dto.setPesId(entity.getPes().getId());
         }
         dto.setCoeficiente(entity.getCoeficiente());
         return dto;
+    }
+
+    // Método helper para mapear RequestDTO y entidades a Entity (para creación)
+    private PesDemarcacionUtEntity mapToPesDemarcacionUtEntity(PesDemarcacionUtRequestDTO dto) {
+        PesDemarcacionUtEntity entity = new PesDemarcacionUtEntity();
+
+        UnidadTerritorialEntity ut = unidadTerritorialService.findById(dto.getUnidadTerritorialId())
+                .orElseThrow(()  -> new IllegalArgumentException("UnidadTerritorial no encontrada con ID: " + dto.getUnidadTerritorialId())); // Mensaje de error corregido
+        entity.setUnidadTerritorial(ut);
+
+        DemarcacionEntity demarcacion = demarcacionService.findById(dto.getDemarcacionId())
+                .orElseThrow(() -> new IllegalArgumentException("Demarcación no encontrada con ID: " + dto.getDemarcacionId()));
+        entity.setDemarcacion(demarcacion);
+
+        PesEntity pes = pesService.findById(dto.getPesId())
+                .orElseThrow(() -> new IllegalArgumentException("Pes no encontrado con ID: " + dto.getPesId()));
+        entity.setPes(pes);
+
+        entity.setCoeficiente(dto.getCoeficiente());
+        return entity;
     }
 
     @Transactional(readOnly = true)
@@ -45,44 +75,42 @@ public class PesDemarcacionUtService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<PesDemarcacionUtResponseDTO> findById(Integer id) {
+    public Optional<PesDemarcacionUtResponseDTO> findByIdDto(Integer id) {
         return pesDemarcacionUtRepository.findById(id)
                 .map(this::mapToPesDemarcacionUtResponseDTO);
     }
 
     @Transactional
     public PesDemarcacionUtResponseDTO save(PesDemarcacionUtRequestDTO dto) {
-        PesEntity pes = pesService.findById(dto.getPesId())
-                .orElseThrow(() -> new IllegalArgumentException("Pes no encontrado con ID: " + dto.getPesId()));
-
-        PesDemarcacionUtEntity entity = new PesDemarcacionUtEntity();
-        entity.setUnidadTerritorialId(dto.getUnidadTerritorialId());
-        entity.setDemarcacionId(dto.getDemarcacionId());
-        entity.setPes(pes);
-        entity.setCoeficiente(dto.getCoeficiente());
-
+        PesDemarcacionUtEntity entity = mapToPesDemarcacionUtEntity(dto);
         PesDemarcacionUtEntity savedEntity = pesDemarcacionUtRepository.save(entity);
         return mapToPesDemarcacionUtResponseDTO(savedEntity);
     }
 
     @Transactional
-    public Optional<PesDemarcacionUtResponseDTO> update(Integer id, PesDemarcacionUtRequestDTO dto) { // Acepta PesDemarcacionUtDTO
+    public Optional<PesDemarcacionUtResponseDTO> update(Integer id, PesDemarcacionUtRequestDTO dto) {
         return pesDemarcacionUtRepository.findById(id)
                 .map(existingEntity -> {
+                    if (dto.getCoeficiente() != null) {
+                        existingEntity.setCoeficiente(dto.getCoeficiente());
+                    }
+
+                    if (dto.getUnidadTerritorialId() != null) {
+                        UnidadTerritorialEntity ut = unidadTerritorialService.findById(dto.getUnidadTerritorialId())
+                                .orElseThrow(() -> new IllegalArgumentException("UnidadTerritorial no encontrada con ID: " + dto.getUnidadTerritorialId()));
+                        existingEntity.setUnidadTerritorial(ut);
+                    }
+                    if (dto.getDemarcacionId() != null) {
+                        DemarcacionEntity demarcacion = demarcacionService.findById(dto.getDemarcacionId())
+                                .orElseThrow(() -> new IllegalArgumentException("Demarcación no encontrada con ID: " + dto.getDemarcacionId()));
+                        existingEntity.setDemarcacion(demarcacion);
+                    }
                     if (dto.getPesId() != null) {
                         PesEntity pes = pesService.findById(dto.getPesId())
                                 .orElseThrow(() -> new IllegalArgumentException("Pes no encontrado con ID: " + dto.getPesId()));
                         existingEntity.setPes(pes);
                     }
-                    if (dto.getUnidadTerritorialId() != null) {
-                        existingEntity.setUnidadTerritorialId(dto.getUnidadTerritorialId());
-                    }
-                    if (dto.getDemarcacionId() != null) {
-                        existingEntity.setDemarcacionId(dto.getDemarcacionId());
-                    }
-                    if (dto.getCoeficiente() != null) {
-                        existingEntity.setCoeficiente(dto.getCoeficiente());
-                    }
+
                     PesDemarcacionUtEntity updatedEntity = pesDemarcacionUtRepository.save(existingEntity);
                     return mapToPesDemarcacionUtResponseDTO(updatedEntity);
                 });

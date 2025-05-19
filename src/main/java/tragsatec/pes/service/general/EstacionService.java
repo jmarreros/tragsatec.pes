@@ -43,6 +43,11 @@ public class EstacionService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<EstacionEntity> findById(Integer id) {
+        return estacionRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<EstacionResponseDTO> findByIdAsDto(Integer id) {
         return estacionRepository.findById(id).map(this::mapToEstacionResponseDTO);
     }

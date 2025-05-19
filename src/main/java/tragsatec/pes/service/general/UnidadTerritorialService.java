@@ -86,15 +86,13 @@ public class UnidadTerritorialService {
                 .collect(Collectors.toList());
     }
 
-    // Este método findById ya no se usa directamente por el controlador si getById usa findByIdDetailed
     @Transactional(readOnly = true)
-    public Optional<UnidadTerritorialSummaryDTO> findById(Integer id) {
-        return unidadTerritorialRepository.findById(id)
-                .map(this::mapToUnidadTerritorialSummaryDTO);
+    public Optional<UnidadTerritorialEntity> findById(Integer id) {
+        return unidadTerritorialRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
-    public Optional<UnidadTerritorialResponseDTO> findByIdDetailed(Integer id) {
+    public Optional<UnidadTerritorialResponseDTO> findByIdAsDto(Integer id) {
         return unidadTerritorialRepository.findById(id)
                 .map(this::mapToUnidadTerritorialResponseDTO);
     }

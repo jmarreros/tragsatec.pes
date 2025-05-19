@@ -29,7 +29,7 @@ public class UnidadTerritorialController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UnidadTerritorialResponseDTO> getById(@PathVariable Integer id) { // Tipo de respuesta cambiado
-        return unidadTerritorialService.findByIdDetailed(id)
+        return unidadTerritorialService.findByIdAsDto(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

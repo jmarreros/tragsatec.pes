@@ -26,7 +26,7 @@ public class PesDemarcacionUtController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PesDemarcacionUtResponseDTO> getPesDemarcacionUtById(@PathVariable Integer id) {
-        return pesDemarcacionUtService.findById(id)
+        return pesDemarcacionUtService.findByIdDto(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

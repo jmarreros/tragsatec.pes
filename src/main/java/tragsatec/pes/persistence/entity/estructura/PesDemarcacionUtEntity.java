@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
+import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
+import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 
 import java.math.BigDecimal;
 
@@ -25,16 +27,18 @@ public class PesDemarcacionUtEntity extends AuditInsertUpdateEntity {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(name = "unidad_territorial_id", nullable = false)
-    private Integer unidadTerritorialId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "unidad_territorial_id", nullable = false)
+    private UnidadTerritorialEntity unidadTerritorial;
 
-    @Column(name = "demarcacion_id", nullable = false)
-    private Integer demarcacionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "demarcacion_id", nullable = false)
+    private DemarcacionEntity demarcacion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pes_id", nullable = false)
+    private PesEntity pes;
 
     @Column(name = "coeficiente", nullable = false, precision = 5, scale = 2)
     private BigDecimal coeficiente;
-
-    @ManyToOne
-    @JoinColumn(name = "pes_id", nullable = false)
-    private PesEntity pes;
 }

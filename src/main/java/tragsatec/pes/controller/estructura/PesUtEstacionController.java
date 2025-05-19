@@ -25,7 +25,7 @@ public class PesUtEstacionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PesUtEstacionResponseDTO> getPesUtEstacionById(@PathVariable Integer id) {
-        return pesUtEstacionService.findById(id)
+        return pesUtEstacionService.findByIdDto(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
