@@ -124,8 +124,6 @@ public class PesUmbralSequiaService {
                         PesEntity pes = pesService.findById(dto.getPesId())
                             .orElseThrow(() -> new IllegalArgumentException("Pes no encontrado con ID: " + dto.getPesId()));
                         existingEntity.setPes(pes);
-                    } else {
-                        existingEntity.setPes(null); // Opcional: manejar desasociación
                     }
 
                     // Actualizar EstacionEntity
@@ -133,8 +131,6 @@ public class PesUmbralSequiaService {
                         EstacionEntity estacion = estacionService.findById(dto.getEstacionId())
                                 .orElseThrow(() -> new IllegalArgumentException("Estacion no encontrada con ID: " + dto.getEstacionId()));
                         existingEntity.setEstacion(estacion);
-                    } else {
-                        existingEntity.setEstacion(null); // Opcional: manejar desasociación
                     }
 
                     // Actualizar UnidadTerritorialEntity
@@ -142,8 +138,6 @@ public class PesUmbralSequiaService {
                         UnidadTerritorialEntity unidadTerritorial = unidadTerritorialService.findById(dto.getUnidadTerritorialId())
                                 .orElseThrow(() -> new IllegalArgumentException("UnidadTerritorial no encontrada con ID: " + dto.getUnidadTerritorialId()));
                         existingEntity.setUnidadTerritorial(unidadTerritorial);
-                    } else {
-                        existingEntity.setUnidadTerritorial(null); // Opcional: manejar desasociación
                     }
 
                     existingEntity.setMes(dto.getMes());

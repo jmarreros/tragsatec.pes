@@ -133,8 +133,6 @@ public class PesUmbralEscasezService {
                         EstacionEntity estacion = estacionService.findById(dto.getEstacionId())
                                 .orElseThrow(() -> new IllegalArgumentException("Estacion no encontrada con ID: " + dto.getEstacionId()));
                         existingEntity.setEstacion(estacion); // Usar setEstacion
-                    } else {
-                        existingEntity.setEstacion(null); // Opcional: manejar desasociación
                     }
 
                     // Actualizar UnidadTerritorialEntity
@@ -142,8 +140,6 @@ public class PesUmbralEscasezService {
                         UnidadTerritorialEntity unidadTerritorial = unidadTerritorialService.findById(dto.getUnidadTerritorialId())
                                 .orElseThrow(() -> new IllegalArgumentException("UnidadTerritorial no encontrada con ID: " + dto.getUnidadTerritorialId()));
                         existingEntity.setUnidadTerritorial(unidadTerritorial); // Usar setUnidadTerritorial
-                    } else {
-                        existingEntity.setUnidadTerritorial(null);
                     }
 
                     existingEntity.setEscenario(dto.getEscenario());
