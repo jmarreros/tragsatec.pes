@@ -49,7 +49,7 @@ public class MedicionEntity extends AuditInsertUpdateEntity {
     @Column(name = "eliminado")
     private Boolean eliminado = false;
 
-     @OneToMany(mappedBy = "medicion", cascade = CascadeType.ALL, orphanRemoval = true)
-     private java.util.Set<DetalleMedicionEntity> detallesMedicion;
+    @OneToMany(mappedBy = "medicion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.Set<DetalleMedicionEntity> detallesMedicion;
 }
 

@@ -1,0 +1,22 @@
+package tragsatec.pes.dto.medicion;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.Set;
+
+@Data
+@NoArgsConstructor
+public class MedicionDTO {
+    private Integer id;
+    private Integer pesId;
+    private Short anio;
+    private Byte mes;
+    private String fuente;
+    private String comentario;
+    private LocalDateTime fechaAprobacion;
+    private Integer usuarioAprobacion;
+    private Boolean eliminado;
+    private Set<DetalleMedicionDTO> detallesMedicion;
+}
+

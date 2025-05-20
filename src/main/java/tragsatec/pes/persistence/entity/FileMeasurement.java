@@ -8,7 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import tragsatec.pes.persistence.audit.AuditOnlyInsertEntity;
 
 @Entity
-@Table(name = "[archivo_medicion]")
+@Table(name = "[_file_measurement]")
 @EntityListeners({AuditingEntityListener.class, AuditOnlyInsertEntity.class})
 @Setter
 @Getter

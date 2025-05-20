@@ -20,9 +20,11 @@ public class ArchivoMedicionEntity extends AuditOnlyInsertEntity {
     @Column(nullable = false)
     private Integer id;
 
-    private String fileName;
-
+    @Column(nullable = false, length = 512)
     private String filePath;
+
+    @Column(nullable = false, length = 250)
+    private String fileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medicion_id", nullable = false)
