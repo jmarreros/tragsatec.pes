@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class MedicionEntity extends AuditInsertUpdateEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -33,6 +32,9 @@ public class MedicionEntity extends AuditInsertUpdateEntity {
 
     @Column(name = "mes")
     private Byte mes;
+
+    @Column(name = "tipo", nullable = false, length = 1)
+    private Character tipo; // E=Escasez, S=Sequia
 
     @Column(name = "fuente", length = 100)
     private String fuente;

@@ -12,6 +12,7 @@ public class MedicionDTO {
     private Integer pesId;
     private Short anio;
     private Byte mes;
+    private Character tipo; // E=Escasez, S=Sequia
     private String fuente;
     private String comentario;
     private LocalDateTime fechaAprobacion;

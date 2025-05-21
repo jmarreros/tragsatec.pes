@@ -28,6 +28,7 @@ public class ArchivoMedicionService {
         dto.setId(entity.getId());
         dto.setFileName(entity.getFileName());
         dto.setFilePath(entity.getFilePath());
+        dto.setActivo(entity.getActivo());
         if (entity.getMedicion() != null) {
             dto.setMedicionId(entity.getMedicion().getId());
         }
@@ -39,6 +40,7 @@ public class ArchivoMedicionService {
 
         entity.setFileName(dto.getFileName());
         entity.setFilePath(dto.getFilePath());
+        entity.setActivo(dto.getActivo());
         if (dto.getMedicionId() != null) {
             MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
                 .orElseThrow(() -> new IllegalArgumentException("Medicion no encontrada con ID: " + dto.getMedicionId()));
@@ -70,6 +72,7 @@ public class ArchivoMedicionService {
             .map(existingEntity -> {
                 existingEntity.setFileName(dto.getFileName());
                 existingEntity.setFilePath(dto.getFilePath());
+                existingEntity.setActivo(dto.getActivo());
                 if (dto.getMedicionId() != null) {
                     MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
                         .orElseThrow(() -> new IllegalArgumentException("Medicion no encontrada con ID: " + dto.getMedicionId()));

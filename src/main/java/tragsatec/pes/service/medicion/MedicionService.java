@@ -78,6 +78,7 @@ public class MedicionService {
         dto.setId(entity.getId());
         dto.setAnio(entity.getAnio());
         dto.setMes(entity.getMes());
+        dto.setTipo(entity.getTipo());
         dto.setFuente(entity.getFuente());
         dto.setComentario(entity.getComentario());
         dto.setFechaAprobacion(entity.getFechaAprobacion());
@@ -99,6 +100,7 @@ public class MedicionService {
 
         entity.setAnio(dto.getAnio());
         entity.setMes(dto.getMes());
+        entity.setTipo(dto.getTipo());
         entity.setFuente(dto.getFuente());
         entity.setComentario(dto.getComentario());
         entity.setFechaAprobacion(dto.getFechaAprobacion());
@@ -149,6 +151,7 @@ public class MedicionService {
                 .map(existingEntity -> {
                     existingEntity.setAnio(dto.getAnio());
                     existingEntity.setMes(dto.getMes());
+                    existingEntity.setTipo(dto.getTipo());
                     existingEntity.setFuente(dto.getFuente());
                     existingEntity.setComentario(dto.getComentario());
                     existingEntity.setFechaAprobacion(dto.getFechaAprobacion());

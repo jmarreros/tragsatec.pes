@@ -10,5 +10,6 @@ public class ArchivoMedicionDTO {
     private String fileName;
     private String filePath;
     private Integer medicionId;
+    private Boolean activo;
 }
 
