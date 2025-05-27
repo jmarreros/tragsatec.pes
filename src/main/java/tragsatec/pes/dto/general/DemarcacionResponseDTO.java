@@ -11,5 +11,8 @@ public class DemarcacionResponseDTO {
     private Integer id;
     private String codigo;
     private String nombre;
+    private Character tipo;
+    private String imagen;
     private List<UnidadTerritorialSummaryDTO> unidadesTerritoriales;
 }
+

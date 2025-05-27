@@ -1,87 +1,127 @@
 package tragsatec.pes.service.medicion;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import tragsatec.pes.dto.medicion.ArchivoMedicionDTO;
 import tragsatec.pes.persistence.entity.medicion.ArchivoMedicionEntity;
 import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
 import tragsatec.pes.persistence.repository.medicion.ArchivoMedicionRepository;
-import tragsatec.pes.persistence.repository.medicion.MedicionRepository; // Necesario para buscar MedicionEntity por ID
+import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ArchivoMedicionService {
 
     private final ArchivoMedicionRepository archivoMedicionRepository;
     private final MedicionRepository medicionRepository;
+    private final Path fileStorageLocation;
+
+    public static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".xls", ".xlsx", ".csv");
+    public static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/csv"
+    );
+
+    public ArchivoMedicionService(ArchivoMedicionRepository archivoMedicionRepository,
+                                  MedicionRepository medicionRepository,
+                                  @Value("${file.upload-dir}") String uploadDir) {
+        this.archivoMedicionRepository = archivoMedicionRepository;
+        this.medicionRepository = medicionRepository;
+        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(this.fileStorageLocation);
+        } catch (Exception ex) {
+            throw new RuntimeException("No se pudo crear el directorio donde se almacenarán los archivos subidos.", ex);
+        }
+    }
 
     private ArchivoMedicionDTO mapToDTO(ArchivoMedicionEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
         ArchivoMedicionDTO dto = new ArchivoMedicionDTO();
         dto.setId(entity.getId());
-        dto.setFileName(entity.getFileName());
         dto.setFilePath(entity.getFilePath());
-        dto.setActivo(entity.getActivo());
+        dto.setFileName(entity.getFileName());
         if (entity.getMedicion() != null) {
             dto.setMedicionId(entity.getMedicion().getId());
         }
+        dto.setActivo(entity.getActivo());
         return dto;
     }
 
-    private ArchivoMedicionEntity mapToEntity(ArchivoMedicionDTO dto) {
-        ArchivoMedicionEntity entity = new ArchivoMedicionEntity();
-
-        entity.setFileName(dto.getFileName());
-        entity.setFilePath(dto.getFilePath());
+    private void mapToEntity(ArchivoMedicionDTO dto, ArchivoMedicionEntity entity) {
         entity.setActivo(dto.getActivo());
+
         if (dto.getMedicionId() != null) {
             MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
-                .orElseThrow(() -> new IllegalArgumentException("Medicion no encontrada con ID: " + dto.getMedicionId()));
+                    .orElseThrow(() -> new EntityNotFoundException("Medición no encontrada con id: " + dto.getMedicionId()));
             entity.setMedicion(medicion);
+        } else if (entity.getMedicion() == null) {
+            throw new IllegalArgumentException("medicionId no puede ser nulo para ArchivoMedicion si no está ya establecida.");
         }
-        return entity;
     }
 
-    @Transactional(readOnly = true)
     public List<ArchivoMedicionDTO> findAll() {
-        return archivoMedicionRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        return archivoMedicionRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public Optional<ArchivoMedicionDTO> findById(Integer id) {
-        return archivoMedicionRepository.findById(id).map(this::mapToDTO);
-    }
-
-    @Transactional
-    public ArchivoMedicionDTO save(ArchivoMedicionDTO dto) {
-        ArchivoMedicionEntity entity = mapToEntity(dto);
-        ArchivoMedicionEntity savedEntity = archivoMedicionRepository.save(entity);
-        return mapToDTO(savedEntity);
-    }
-
-    @Transactional
-    public Optional<ArchivoMedicionDTO> update(Integer id, ArchivoMedicionDTO dto) {
         return archivoMedicionRepository.findById(id)
-            .map(existingEntity -> {
-                existingEntity.setFileName(dto.getFileName());
-                existingEntity.setFilePath(dto.getFilePath());
-                existingEntity.setActivo(dto.getActivo());
-                if (dto.getMedicionId() != null) {
-                    MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
-                        .orElseThrow(() -> new IllegalArgumentException("Medicion no encontrada con ID: " + dto.getMedicionId()));
-                    existingEntity.setMedicion(medicion);
-                }
-                ArchivoMedicionEntity updatedEntity = archivoMedicionRepository.save(existingEntity);
-                return mapToDTO(updatedEntity);
-            });
+                .map(this::mapToDTO);
     }
 
-}
+    @Transactional
+    public ArchivoMedicionDTO storeFile(MultipartFile file, Integer medicionId, Boolean activo) {
+        String originalFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        String uniqueFileName = generateUniqueFileName(originalFileName);
+        Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
 
+        try {
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            MedicionEntity medicion = medicionRepository.findById(medicionId)
+                    .orElseThrow(() -> new EntityNotFoundException("Medición no encontrada con ID: " + medicionId));
+
+            ArchivoMedicionEntity archivoMedicion = new ArchivoMedicionEntity();
+            archivoMedicion.setFileName(originalFileName);
+            archivoMedicion.setFilePath(targetLocation.toString());
+            archivoMedicion.setMedicion(medicion);
+            archivoMedicion.setActivo(activo);
+
+            ArchivoMedicionEntity savedFile = archivoMedicionRepository.save(archivoMedicion);
+            return mapToDTO(savedFile);
+        } catch (IOException ex) {
+            throw new RuntimeException("No se pudo almacenar el archivo " + originalFileName + ". Por favor, inténtalo de nuevo.", ex);
+        }
+    }
+
+    private String generateUniqueFileName(String originalFileName) {
+        String baseName = StringUtils.stripFilenameExtension(originalFileName);
+        String extension = StringUtils.getFilenameExtension(originalFileName);
+        String uniqueFileName = originalFileName;
+        Path targetPath = this.fileStorageLocation.resolve(uniqueFileName);
+        int count = 0;
+        while (Files.exists(targetPath)) {
+            count++;
+            uniqueFileName = baseName + "_" + count + "." + extension;
+            targetPath = this.fileStorageLocation.resolve(uniqueFileName);
+        }
+        return uniqueFileName;
+    }
+}

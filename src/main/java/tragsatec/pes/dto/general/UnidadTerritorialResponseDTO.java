@@ -12,6 +12,7 @@ public class UnidadTerritorialResponseDTO {
     private String codigo;
     private String nombre;
     private String comentario;
+    private String imagen;
     private DemarcacionSummaryDTO demarcacion;
     private List<EstacionSummaryDTO> estaciones;
 }

@@ -13,7 +13,7 @@ package tragsatec.pes.persistence.entity.general;
     import java.util.Set;
 
     @Entity
-    @Table(name = "unidad_territorial", uniqueConstraints = @UniqueConstraint(name = "unique_codigo_ut", columnNames = "codigo"))
+    @Table(name = "unidad_territorial")
     @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
     @Getter
     @Setter
@@ -26,20 +26,23 @@ package tragsatec.pes.persistence.entity.general;
         @Column(nullable = false)
         private Integer id;
 
-        @Column(nullable = false, length = 20,  unique = true)
+        @Column(nullable = false, length = 20)
         private String codigo;
 
         @Column(length = 100)
         private String nombre;
 
-        @Column(length = 3)
-        private String tipo;
+        @Column(length = 1, nullable = false)
+        private Character tipo; // E=Escasez, S=Sequia
 
         @Column
-        private Boolean activo;
+        private Boolean activo = true;
 
         @Column(length = 500)
         private String comentario;
+
+        @Column(length = 250)
+        private String imagen;
 
         @ManyToOne
         @JoinColumn(name = "demarcacion_id", nullable = false)

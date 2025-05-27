@@ -9,7 +9,7 @@ import java.util.List;
 public class EstacionRequestDTO {
     private String codigo;
     private String nombre;
-    private String tipo;
+    private String tipoMedicion;
     private String fuente;
     private Character calidadDato;
     private String codigoSincronizacion;

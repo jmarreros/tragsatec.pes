@@ -13,7 +13,7 @@ import java.util.Set;
 
 @Entity
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
-@Table(name = "demarcacion", uniqueConstraints = @UniqueConstraint(name = "unique_codigo_demarcacion", columnNames = "codigo"))
+@Table(name = "demarcacion")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,14 +24,20 @@ public class DemarcacionEntity extends AuditInsertUpdateEntity {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(nullable = false, length = 4, unique = true)
+    @Column(nullable = false, length = 5)
     private String codigo;
 
     @Column(length = 100)
     private String nombre;
 
+    @Column(nullable = false, length = 1)
+    private Character tipo;
+
+    @Column(length = 250)
+    private String imagen;
+
     @Column
-    private Boolean activo;
+    private Boolean activo = true;
 
     @Column(length = 500)
     private String comentario;
@@ -39,4 +45,3 @@ public class DemarcacionEntity extends AuditInsertUpdateEntity {
     @OneToMany(mappedBy = "demarcacion")
     private Set<UnidadTerritorialEntity> unidadesTerritoriales;
 }
-

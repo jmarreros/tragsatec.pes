@@ -23,14 +23,14 @@ public class EstacionEntity extends AuditInsertUpdateEntity {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(nullable = false, length = 5, unique = true)
+    @Column(nullable = false, length = 30)
     private String codigo;
 
     @Column(length = 100)
     private String nombre;
 
-    @Column(length = 50)
-    private String tipo;
+    @Column(name = "tipo_medicion",length = 50)
+    private String tipoMedicion;
 
     @Column(length = 100)
     private String fuente;

@@ -44,6 +44,7 @@ public class UnidadTerritorialService {
         dto.setId(entity.getId());
         dto.setCodigo(entity.getCodigo());
         dto.setNombre(entity.getNombre());
+        dto.setImagen(entity.getImagen());
         return dto;
     }
 
@@ -54,6 +55,7 @@ public class UnidadTerritorialService {
         dto.setCodigo(entity.getCodigo());
         dto.setNombre(entity.getNombre());
         dto.setComentario(entity.getComentario());
+        dto.setImagen(entity.getImagen());
 
         if (entity.getDemarcacion() != null) {
             DemarcacionSummaryDTO demDto = new DemarcacionSummaryDTO();
@@ -103,6 +105,12 @@ public class UnidadTerritorialService {
         ut.setCodigo(requestDTO.getCodigo());
         ut.setNombre(requestDTO.getNombre());
         ut.setComentario(requestDTO.getComentario());
+        ut.setImagen(requestDTO.getImagen());
+        // Asignar tipo y activo si se manejan en el requestDTO y la entidad
+        if (requestDTO.getTipo() != null && !requestDTO.getTipo().isEmpty()) {
+            ut.setTipo(requestDTO.getTipo().charAt(0));
+        }
+        ut.setActivo(requestDTO.getActivo());
 
         if (requestDTO.getDemarcacionId() != null) {
             DemarcacionEntity demarcacion = demarcacionRepository.findById(requestDTO.getDemarcacionId())
@@ -136,6 +144,12 @@ public class UnidadTerritorialService {
         ut.setCodigo(requestDTO.getCodigo());
         ut.setNombre(requestDTO.getNombre());
         ut.setComentario(requestDTO.getComentario());
+        ut.setImagen(requestDTO.getImagen());
+        // Actualizar tipo y activo si se manejan en el requestDTO y la entidad
+        if (requestDTO.getTipo() != null && !requestDTO.getTipo().isEmpty()) {
+            ut.setTipo(requestDTO.getTipo().charAt(0));
+        }
+        ut.setActivo(requestDTO.getActivo());
 
         if (requestDTO.getDemarcacionId() != null) {
             DemarcacionEntity demarcacion = demarcacionRepository.findById(requestDTO.getDemarcacionId())

@@ -64,7 +64,7 @@ public class EstacionService {
         EstacionEntity nuevaEstacion = new EstacionEntity();
         nuevaEstacion.setCodigo(dto.getCodigo());
         nuevaEstacion.setNombre(dto.getNombre());
-        nuevaEstacion.setTipo(dto.getTipo());
+        nuevaEstacion.setTipoMedicion(dto.getTipoMedicion());
         nuevaEstacion.setFuente(dto.getFuente());
         nuevaEstacion.setCalidadDato(dto.getCalidadDato());
         nuevaEstacion.setCodigoSincronizacion(dto.getCodigoSincronizacion());
@@ -95,7 +95,7 @@ public class EstacionService {
         dto.setId(estacion.getId());
         dto.setCodigo(estacion.getCodigo());
         dto.setNombre(estacion.getNombre());
-        dto.setTipo(estacion.getTipo());
+        dto.setTipoMedicion(estacion.getTipoMedicion());
         dto.setFuente(estacion.getFuente());
         dto.setCalidadDato(estacion.getCalidadDato());
         dto.setCodigoSincronizacion(estacion.getCodigoSincronizacion());
@@ -129,7 +129,7 @@ public class EstacionService {
         }
         if (dto.getCodigo() != null) estacion.setCodigo(dto.getCodigo());
         if (dto.getNombre() != null) estacion.setNombre(dto.getNombre());
-        if (dto.getTipo() != null) estacion.setTipo(dto.getTipo());
+        if (dto.getTipoMedicion() != null) estacion.setTipoMedicion(dto.getTipoMedicion());
         if (dto.getFuente() != null) estacion.setFuente(dto.getFuente());
         if (dto.getCalidadDato() != null) estacion.setCalidadDato(dto.getCalidadDato());
         if (dto.getCodigoSincronizacion() != null) estacion.setCodigoSincronizacion(dto.getCodigoSincronizacion());

@@ -33,6 +33,8 @@ public class DemarcacionService {
         dto.setId(entity.getId());
         dto.setCodigo(entity.getCodigo());
         dto.setNombre(entity.getNombre());
+        dto.setTipo(entity.getTipo());
+        dto.setImagen(entity.getImagen());
         return dto;
     }
 
@@ -55,6 +57,8 @@ public class DemarcacionService {
         dto.setId(entity.getId());
         dto.setCodigo(entity.getCodigo());
         dto.setNombre(entity.getNombre());
+        dto.setTipo(entity.getTipo());
+        dto.setImagen(entity.getImagen());
 
         if (entity.getUnidadesTerritoriales() != null && !entity.getUnidadesTerritoriales().isEmpty()) {
             List<UnidadTerritorialSummaryDTO> utDtos = entity.getUnidadesTerritoriales().stream()

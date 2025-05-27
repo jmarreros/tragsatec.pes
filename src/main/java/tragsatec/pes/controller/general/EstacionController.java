@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.general.EstacionRequestDTO;
 import tragsatec.pes.dto.general.EstacionResponseDTO;
 import tragsatec.pes.service.general.EstacionService;
-
 import java.util.List;
-// Si getAll() también va a devolver DTOs, necesitarás un mapeo para la lista.
-// import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("estaciones")

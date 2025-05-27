@@ -15,5 +15,6 @@ public class UnidadTerritorialRequestDTO {
     private Boolean activo;
     private Integer demarcacionId;
     private String comentario;
+    private String imagen;
     private List<Integer> estacionesIds;
 }

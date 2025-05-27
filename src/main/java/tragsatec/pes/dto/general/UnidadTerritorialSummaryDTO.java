@@ -9,4 +9,5 @@ public class UnidadTerritorialSummaryDTO {
     private Integer id;
     private String codigo;
     private String nombre;
+    private String imagen;
 }
