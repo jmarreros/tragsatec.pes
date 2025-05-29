@@ -13,9 +13,7 @@ import java.math.BigDecimal;
 
 @Entity
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
-@Table(name = "pes_umbral_sequia", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"unidad_territorial_id", "estacion_id", "pes_id"})
-})
+@Table(name = "pes_umbral_sequia")
 @Getter
 @Setter
 @NoArgsConstructor

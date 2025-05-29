@@ -13,11 +13,7 @@ import java.math.BigDecimal;
 
 @Entity
 @EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
-@Table(name = "pes_demarcacion_ut",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"unidad_territorial_id", "demarcacion_id", "pes_id"})
-        }
-)
+@Table(name = "pes_demarcacion_ut")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,6 +35,9 @@ public class PesDemarcacionUtEntity extends AuditInsertUpdateEntity {
     @JoinColumn(name = "pes_id", nullable = false)
     private PesEntity pes;
 
-    @Column(name = "coeficiente", nullable = false, precision = 5, scale = 2)
+    @Column(length = 1, nullable = false)
+    private Character tipo; // E = Escasez, S = Sequía
+
+    @Column(name = "coeficiente", nullable = false, precision = 12, scale = 8)
     private BigDecimal coeficiente;
 }
