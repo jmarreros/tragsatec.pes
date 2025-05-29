@@ -42,6 +42,7 @@ public class PesDemarcacionUtService {
         if (entity.getPes() != null) {
             dto.setPesId(entity.getPes().getId());
         }
+        dto.setTipo(entity.getTipo());
         dto.setCoeficiente(entity.getCoeficiente());
         return dto;
     }
@@ -62,6 +63,7 @@ public class PesDemarcacionUtService {
                 .orElseThrow(() -> new IllegalArgumentException("Pes no encontrado con ID: " + dto.getPesId()));
         entity.setPes(pes);
 
+        entity.setTipo(dto.getTipo());
         entity.setCoeficiente(dto.getCoeficiente());
         return entity;
     }
@@ -83,6 +85,11 @@ public class PesDemarcacionUtService {
     @Transactional
     public PesDemarcacionUtResponseDTO save(PesDemarcacionUtRequestDTO dto) {
         PesDemarcacionUtEntity entity = mapToPesDemarcacionUtEntity(dto);
+        // Validar tipo
+        if (dto.getTipo() == null || (dto.getTipo() != 'E' && dto.getTipo() != 'S')) {
+            throw new IllegalArgumentException("El campo 'tipo' es obligatorio y debe ser 'E' (Escasez) o 'S' (Sequía).");
+        }
+        entity.setTipo(dto.getTipo());
         PesDemarcacionUtEntity savedEntity = pesDemarcacionUtRepository.save(entity);
         return mapToPesDemarcacionUtResponseDTO(savedEntity);
     }
@@ -93,6 +100,12 @@ public class PesDemarcacionUtService {
                 .map(existingEntity -> {
                     if (dto.getCoeficiente() != null) {
                         existingEntity.setCoeficiente(dto.getCoeficiente());
+                    }
+                    if (dto.getTipo() != null) {
+                        if (dto.getTipo() != 'E' && dto.getTipo() != 'S') {
+                            throw new IllegalArgumentException("El campo 'tipo' debe ser 'E' (Escasez) o 'S' (Sequía).");
+                        }
+                        existingEntity.setTipo(dto.getTipo());
                     }
 
                     if (dto.getUnidadTerritorialId() != null) {

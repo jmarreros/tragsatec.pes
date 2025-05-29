@@ -11,5 +11,6 @@ public class PesDemarcacionUtRequestDTO {
     private Integer unidadTerritorialId;
     private Integer demarcacionId;
     private Integer pesId;
+    private Character tipo; // E = Escasez, S = Sequía
     private BigDecimal coeficiente;
 }
