@@ -20,7 +20,6 @@ import tragsatec.pes.service.medicion.ValidacionArchivoService;
 public class ProcesarMedicionController {
 
     private final ProcesarMedicionService procesarMedicionService;
-    private final ValidacionArchivoService validacionArchivoService; // Inyectar el servicio
 
     @PostMapping("/upload")
     public ResponseEntity<String> procesarArchivoMedicion(
@@ -43,9 +42,6 @@ public class ProcesarMedicionController {
         }
 
         try {
-            // Validar el archivo
-            validacionArchivoService.validarArchivo(file);
-
             // Procesar el archivo
             procesarMedicionService.procesarArchivoMedicion(tipo, anio, mes, file);
 

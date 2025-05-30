@@ -18,9 +18,8 @@ public class ValidacionArchivoService {
     private String maxFileSizeConfig;
 
 
-    public static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(".xlsx", ".xls", ".csv"));
+    public static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(".xlsx", ".csv"));
     public static final Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList(
-            "application/vnd.ms-excel", // .xls
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
             "text/csv" // .csv
     ));

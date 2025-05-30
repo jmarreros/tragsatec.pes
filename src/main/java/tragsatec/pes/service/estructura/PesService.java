@@ -52,6 +52,7 @@ public class PesService {
 
     @Transactional(readOnly = true)
     public Optional<Integer> findActiveAndApprovedPesId() {
-        return pesRepository.findActiveAndApprovedPesId();
+        return pesRepository.findTopByActivoTrueAndAprobadoTrueOrderByCreatedAtDesc()
+                .map(PesEntity::getId);
     }
 }
