@@ -29,19 +29,25 @@ public class ProcesarMedicionController {
             @RequestParam("mes") Byte mes,
             @RequestParam("file") MultipartFile file) {
 
-        // Validaciones de parámetros específicos del endpoint
+        // Validaciones de parámetros
         if (tipo != 'E' && tipo != 'S') {
             return ResponseEntity.badRequest().body("El campo 'tipo' debe ser 'E' o 'S'.");
         }
-        // Aquí podrías añadir más validaciones para año y mes si es necesario
+
+        if (anio < 1970 || anio > 2100) {
+            return ResponseEntity.badRequest().body("El campo 'anio' debe estar entre 1970 y 2100.");
+        }
+
+        if (mes < 1 || mes > 12) {
+            return ResponseEntity.badRequest().body("El campo 'mes' debe estar entre 1 y 12.");
+        }
 
         try {
-            // 1. Validar el archivo
+            // Validar el archivo
             validacionArchivoService.validarArchivo(file);
 
-            // 2. Llama al servicio para procesar el archivo
-            // Este método debe ser implementado en ProcesarMedicionService
-//            procesarMedicionService.procesarArchivoMedicion(tipo, anio, mes, file);
+            // Procesar el archivo
+            procesarMedicionService.procesarArchivoMedicion(tipo, anio, mes, file);
 
             return ResponseEntity.ok("Archivo procesado exitosamente.");
 

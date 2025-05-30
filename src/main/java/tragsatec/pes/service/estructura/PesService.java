@@ -50,4 +50,8 @@ public class PesService {
                 });
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Integer> findActiveAndApprovedPesId() {
+        return pesRepository.findActiveAndApprovedPesId();
+    }
 }
