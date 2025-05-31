@@ -1,10 +1,17 @@
 package tragsatec.pes.persistence.repository.estructura;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import tragsatec.pes.dto.estructura.EstacionProjection;
 import tragsatec.pes.persistence.entity.estructura.PesUtEstacionEntity;
+
+import java.util.List;
 
 @Repository
 public interface PesUtEstacionRepository extends JpaRepository<PesUtEstacionEntity, Integer> {
+    @Query("SELECT e.id AS id, e.codigo AS codigo FROM PesUtEstacionEntity pute JOIN pute.estacion e WHERE pute.pes.id = :pesId")
+    List<EstacionProjection> findEstacionesByPesId(@Param("pesId") Integer pesId);
 }
 
