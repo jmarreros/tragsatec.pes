@@ -11,7 +11,10 @@ import java.util.List;
 
 @Repository
 public interface PesUtEstacionRepository extends JpaRepository<PesUtEstacionEntity, Integer> {
-    @Query("SELECT e.id AS id, e.codigo AS codigo FROM PesUtEstacionEntity pute JOIN pute.estacion e WHERE pute.pes.id = :pesId")
-    List<EstacionProjection> findEstacionesByPesId(@Param("pesId") Integer pesId);
+    @Query("SELECT DISTINCT e.id AS id, e.codigo AS codigo " +
+            "FROM PesUtEstacionEntity pute JOIN pute.estacion e " +
+            "WHERE pute.pes.id = :pesId AND pute.tipo = :tipo")
+    List<EstacionProjection> getAllEstacionesByPesId(@Param("pesId") Integer pesId,
+                                                     @Param("tipo") Character tipo);
 }
 

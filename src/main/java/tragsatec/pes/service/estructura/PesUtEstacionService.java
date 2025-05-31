@@ -3,6 +3,7 @@ package tragsatec.pes.service.estructura; // O el paquete donde residiría este 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tragsatec.pes.dto.estructura.EstacionProjection;
 import tragsatec.pes.dto.estructura.PesUtEstacionRequestDTO;
 import tragsatec.pes.dto.estructura.PesUtEstacionResponseDTO;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;
@@ -123,6 +124,11 @@ public class PesUtEstacionService {
                     PesUtEstacionEntity updatedEntity = pesUtEstacionRepository.save(existingEntity);
                     return mapToPesUtEstacionResponseDTO(updatedEntity);
                 });
+    }
+
+    @Transactional(readOnly = true)
+    public List<EstacionProjection> getEstacionesByPesId(Integer pesId, Character tipo) {
+        return pesUtEstacionRepository.getAllEstacionesByPesId(pesId, tipo);
     }
 
 }

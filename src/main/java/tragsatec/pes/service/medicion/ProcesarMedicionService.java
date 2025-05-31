@@ -5,24 +5,28 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import tragsatec.pes.dto.estructura.EstacionProjection;
 import tragsatec.pes.dto.medicion.MedicionDatoDTO;
 import tragsatec.pes.exception.ArchivoValidationException;
 import tragsatec.pes.exception.PesNoValidoException;
 import tragsatec.pes.service.estructura.PesService;
+import tragsatec.pes.service.estructura.PesUtEstacionService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProcesarMedicionService {
     private final PesService pesService;
-    private final ValidacionArchivoService validacionArchivoService; // Inyectar el servicio
+    private final ValidacionArchivoService validacionArchivoService;
+    private final PesUtEstacionService pesUtEstacionService;
 
     public void procesarArchivoMedicion(Character tipo, Short anio, Byte mes, MultipartFile file) {
 
@@ -40,13 +44,23 @@ public class ProcesarMedicionService {
             throw new ArchivoValidationException("El archivo de medición está vacío o no contiene datos válidos.");
         }
 
-        // 4 - Obtener los nombres de las estaciones del PES actual desde la base de datos, entidad
+        // 4- Obtener estaciones del PES actual desde la BD
+        Map<String, Integer> estacionesPorCodigo = pesUtEstacionService.getEstacionesByPesId(pesId, tipo)
+                .stream()
+                .collect(Collectors.toMap(
+                        EstacionProjection::getCodigo,
+                        EstacionProjection::getId
+                ));
 
-        // 5- Validar que tenga datos de estaciones válidos para el PES actual
+        // 5- Validar que las estaciones del archivo de medición existan en el PES actual
         for (MedicionDatoDTO dato : datosMedicion) {
-            String nombreEstacion = dato.getNombreEstacion();
-
+            String codigoEstacion = dato.getNombreEstacion();
+            if (!estacionesPorCodigo.containsKey(codigoEstacion)) {
+                throw new ArchivoValidationException("La estación '" + codigoEstacion + "' no está registrada en el PES actual.");
+            }
         }
+
+
         System.out.println("Archivo " + file.getOriginalFilename() + " procesado con " + datosMedicion.size() + " registros.");
     }
 
