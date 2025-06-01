@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
-import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
-import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 
 import java.math.BigDecimal;
 
@@ -33,18 +31,9 @@ public class DetalleMedicionEntity extends AuditInsertUpdateEntity {
     @JoinColumn(name = "estacion_id", nullable = false)
     private EstacionEntity estacion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "unidad_territorial_id", nullable = false)
-    private UnidadTerritorialEntity unidadTerritorial;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "demarcacion_id", nullable = false)
-    private DemarcacionEntity demarcacion;
-
     @Column(name = "valor", precision = 12, scale = 8)
     private BigDecimal valor;
 
     @Column(name = "tipo_dato", length = 20)
     private String tipoDato;
 }
-

@@ -6,14 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;
-import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
-import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
 import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
-import tragsatec.pes.persistence.repository.general.DemarcacionRepository;
 import tragsatec.pes.persistence.repository.general.EstacionRepository;
-import tragsatec.pes.persistence.repository.general.UnidadTerritorialRepository;
 import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
 import tragsatec.pes.service.estructura.PesService;
 
@@ -29,8 +25,7 @@ public class MedicionService {
     private final MedicionRepository medicionRepository;
     private final PesService pesService;
     private final EstacionRepository estacionRepository;
-    private final UnidadTerritorialRepository unidadTerritorialRepository;
-    private final DemarcacionRepository demarcacionRepository;
+    private final DetalleMedicionService detalleMedicionService;
 
     private DetalleMedicionEntity mapDetalleDTOToEntity(DetalleMedicionDTO detalleDTO, MedicionEntity medicion) {
         if (detalleDTO == null) return null;
@@ -41,33 +36,8 @@ public class MedicionService {
         detalleEntity.setMedicion(medicion);
         EstacionEntity estacion = estacionRepository.findById(detalleDTO.getEstacionId()).orElse(null);
         detalleEntity.setEstacion(estacion);
-        UnidadTerritorialEntity ut = unidadTerritorialRepository.findById(detalleDTO.getUnidadTerritorialId()).orElse(null);
-        detalleEntity.setUnidadTerritorial(ut);
-        DemarcacionEntity demarcacion = demarcacionRepository.findById(detalleDTO.getDemarcacionId()).orElse(null);
-        detalleEntity.setDemarcacion(demarcacion);
 
         return detalleEntity;
-    }
-
-    private DetalleMedicionDTO mapDetalleEntityToDTO(DetalleMedicionEntity detalleEntity) {
-        if (detalleEntity == null) return null;
-        DetalleMedicionDTO detalleDTO = new DetalleMedicionDTO();
-        detalleDTO.setId(detalleEntity.getId());
-        detalleDTO.setValor(detalleEntity.getValor());
-        detalleDTO.setTipoDato(detalleEntity.getTipoDato());
-        if (detalleEntity.getMedicion() != null) {
-            detalleDTO.setMedicionId(detalleEntity.getMedicion().getId());
-        }
-        if (detalleEntity.getEstacion() != null) {
-            detalleDTO.setEstacionId(detalleEntity.getEstacion().getId());
-        }
-        if (detalleEntity.getUnidadTerritorial() != null) {
-            detalleDTO.setUnidadTerritorialId(detalleEntity.getUnidadTerritorial().getId());
-        }
-        if (detalleEntity.getDemarcacion() != null) {
-            detalleDTO.setDemarcacionId(detalleEntity.getDemarcacion().getId());
-        }
-        return detalleDTO;
     }
 
     private MedicionDTO mapToDTO(MedicionEntity entity) {
@@ -88,7 +58,7 @@ public class MedicionService {
         }
         if (entity.getDetallesMedicion() != null) {
             dto.setDetallesMedicion(entity.getDetallesMedicion().stream()
-                    .map(this::mapDetalleEntityToDTO)
+                    .map(detalleMedicionService::mapToDTO)
                     .collect(Collectors.toSet()));
         }
         return dto;
@@ -168,12 +138,6 @@ public class MedicionService {
                         existingEntity.getDetallesMedicion().clear();
                         dto.getDetallesMedicion().forEach(detalleDTO -> {
                             DetalleMedicionEntity detalleEntity = mapDetalleDTOToEntity(detalleDTO, existingEntity);
-                            EstacionEntity estacion = estacionRepository.findById(detalleDTO.getEstacionId()).orElse(null);
-                            detalleEntity.setEstacion(estacion);
-                            UnidadTerritorialEntity ut = unidadTerritorialRepository.findById(detalleDTO.getUnidadTerritorialId()).orElse(null);
-                            detalleEntity.setUnidadTerritorial(ut);
-                            DemarcacionEntity demarcacion = demarcacionRepository.findById(detalleDTO.getDemarcacionId()).orElse(null);
-                            detalleEntity.setDemarcacion(demarcacion);
                             existingEntity.getDetallesMedicion().add(detalleEntity);
                         });
                     }
@@ -183,5 +147,12 @@ public class MedicionService {
                 });
     }
 
+    @Transactional
+    public void anularMedicionAnterior(Integer pesId, Character tipo, Short anio, Byte mes){
+        List<MedicionEntity> mediciones = medicionRepository.findByPesIdAndTipoAndAnioAndMesAndEliminadoFalse(pesId, tipo, anio, mes);
+        for (MedicionEntity medicion : mediciones) {
+            medicion.setEliminado(true);
+            medicionRepository.save(medicion);
+        }
+    }
 }
-

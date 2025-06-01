@@ -12,7 +12,4 @@ public class DetalleMedicionDTO {
     private BigDecimal valor;
     private String tipoDato;
     private Integer estacionId;
-    private Integer unidadTerritorialId;
-    private Integer demarcacionId;
 }
-

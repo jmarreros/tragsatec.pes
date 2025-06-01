@@ -6,6 +6,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tragsatec.pes.dto.estructura.EstacionProjection;
+import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
+import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDatoDTO;
 import tragsatec.pes.exception.ArchivoValidationException;
 import tragsatec.pes.exception.PesNoValidoException;
@@ -62,13 +64,33 @@ public class ProcesarMedicionService {
             }
         }
 
-        // 6- Obtener Unidades Territoriales y Demarcaciones por cada estación
-
-
-
-
         // 6- Anular la medición anterior para el PES, tipo, anio y mes
-//        medicionService.anularMedicionAnterior(pesId, tipo, anio, mes);
+        medicionService.anularMedicionAnterior(pesId, tipo, anio, mes);
+
+        // 7- Crear la nueva medición con todos sus detalles
+        MedicionDTO nuevaMedicion = new MedicionDTO();
+        nuevaMedicion.setPesId(pesId);
+        nuevaMedicion.setTipo(tipo);
+        nuevaMedicion.setAnio(anio);
+        nuevaMedicion.setMes(mes);
+        nuevaMedicion.setEliminado(false);
+
+        // Crear los detalles de la medición
+        java.util.Set<DetalleMedicionDTO> detalles = new java.util.HashSet<>();
+        for (MedicionDatoDTO dato : datosMedicion) {
+            DetalleMedicionDTO detalle = new DetalleMedicionDTO();
+
+            detalle.setEstacionId(estacionesPorCodigo.get(dato.getNombreEstacion()));
+            detalle.setValor(dato.getValorMedicion());
+            detalles.add(detalle);
+        }
+        nuevaMedicion.setDetallesMedicion(detalles);
+
+        // Guardar la medición con todos sus detalles en una sola operación
+        MedicionDTO medicionGuardada = medicionService.save(nuevaMedicion);
+
+        System.out.println("Medición guardada con ID: " + medicionGuardada.getId() +
+                " y " + detalles.size() + " detalles.");
 
 
         System.out.println("Archivo " + file.getOriginalFilename() + " procesado con " + datosMedicion.size() + " registros.");

@@ -4,14 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
-import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
-import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
 import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
-import tragsatec.pes.persistence.repository.general.DemarcacionRepository; // Asumiendo existencia
-import tragsatec.pes.persistence.repository.general.EstacionRepository; // Asumiendo existencia
-import tragsatec.pes.persistence.repository.general.UnidadTerritorialRepository; // Asumiendo existencia
+import tragsatec.pes.persistence.repository.general.EstacionRepository;
 import tragsatec.pes.persistence.repository.medicion.DetalleMedicionRepository;
 import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
 
@@ -26,10 +22,8 @@ public class DetalleMedicionService {
     private final DetalleMedicionRepository detalleMedicionRepository;
     private final MedicionRepository medicionRepository;
     private final EstacionRepository estacionRepository;
-    private final UnidadTerritorialRepository unidadTerritorialRepository;
-    private final DemarcacionRepository demarcacionRepository;
 
-    private DetalleMedicionDTO mapToDTO(DetalleMedicionEntity entity) {
+    public DetalleMedicionDTO mapToDTO(DetalleMedicionEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -42,12 +36,6 @@ public class DetalleMedicionService {
         }
         if (entity.getEstacion() != null) {
             dto.setEstacionId(entity.getEstacion().getId());
-        }
-        if (entity.getUnidadTerritorial() != null) {
-            dto.setUnidadTerritorialId(entity.getUnidadTerritorial().getId());
-        }
-        if (entity.getDemarcacion() != null) {
-            dto.setDemarcacionId(entity.getDemarcacion().getId());
         }
         return dto;
     }
@@ -66,16 +54,6 @@ public class DetalleMedicionService {
             EstacionEntity estacion = estacionRepository.findById(dto.getEstacionId())
                 .orElseThrow(() -> new IllegalArgumentException("Estacion no encontrada con ID: " + dto.getEstacionId()));
             entity.setEstacion(estacion);
-        }
-        if (dto.getUnidadTerritorialId() != null) {
-            UnidadTerritorialEntity ut = unidadTerritorialRepository.findById(dto.getUnidadTerritorialId())
-                .orElseThrow(() -> new IllegalArgumentException("Unidad Territorial no encontrada con ID: " + dto.getUnidadTerritorialId()));
-            entity.setUnidadTerritorial(ut);
-        }
-        if (dto.getDemarcacionId() != null) {
-            DemarcacionEntity demarcacion = demarcacionRepository.findById(dto.getDemarcacionId())
-                .orElseThrow(() -> new IllegalArgumentException("Demarcacion no encontrada con ID: " + dto.getDemarcacionId()));
-            entity.setDemarcacion(demarcacion);
         }
         return entity;
     }
@@ -113,20 +91,8 @@ public class DetalleMedicionService {
                         .orElseThrow(() -> new IllegalArgumentException("Estacion no encontrada con ID: " + dto.getEstacionId()));
                     existingEntity.setEstacion(estacion);
                 }
-                if (dto.getUnidadTerritorialId() != null) {
-                    UnidadTerritorialEntity ut = unidadTerritorialRepository.findById(dto.getUnidadTerritorialId())
-                        .orElseThrow(() -> new IllegalArgumentException("Unidad Territorial no encontrada con ID: " + dto.getUnidadTerritorialId()));
-                    existingEntity.setUnidadTerritorial(ut);
-                }
-                if (dto.getDemarcacionId() != null) {
-                    DemarcacionEntity demarcacion = demarcacionRepository.findById(dto.getDemarcacionId())
-                        .orElseThrow(() -> new IllegalArgumentException("Demarcacion no encontrada con ID: " + dto.getDemarcacionId()));
-                    existingEntity.setDemarcacion(demarcacion);
-                }
                 DetalleMedicionEntity updatedEntity = detalleMedicionRepository.save(existingEntity);
                 return mapToDTO(updatedEntity);
             });
     }
-
 }
-
