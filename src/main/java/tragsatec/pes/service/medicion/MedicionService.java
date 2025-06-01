@@ -49,7 +49,6 @@ public class MedicionService {
         return detalleEntity;
     }
 
-
     private DetalleMedicionDTO mapDetalleEntityToDTO(DetalleMedicionEntity detalleEntity) {
         if (detalleEntity == null) return null;
         DetalleMedicionDTO detalleDTO = new DetalleMedicionDTO();

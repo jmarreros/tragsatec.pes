@@ -27,6 +27,8 @@ public class ProcesarMedicionService {
     private final PesService pesService;
     private final ValidacionArchivoService validacionArchivoService;
     private final PesUtEstacionService pesUtEstacionService;
+    private final MedicionService medicionService;
+    private final DetalleMedicionService detalleMedicionService;
 
     public void procesarArchivoMedicion(Character tipo, Short anio, Byte mes, MultipartFile file) {
 
@@ -59,6 +61,14 @@ public class ProcesarMedicionService {
                 throw new ArchivoValidationException("La estación '" + codigoEstacion + "' no está registrada en el PES actual.");
             }
         }
+
+        // 6- Obtener Unidades Territoriales y Demarcaciones por cada estación
+
+
+
+
+        // 6- Anular la medición anterior para el PES, tipo, anio y mes
+//        medicionService.anularMedicionAnterior(pesId, tipo, anio, mes);
 
 
         System.out.println("Archivo " + file.getOriginalFilename() + " procesado con " + datosMedicion.size() + " registros.");
