@@ -59,13 +59,10 @@ public class ArchivoMedicionService {
         if (entity.getMedicion() != null) {
             dto.setMedicionId(entity.getMedicion().getId());
         }
-        dto.setActivo(entity.getActivo());
         return dto;
     }
 
     private void mapToEntity(ArchivoMedicionDTO dto, ArchivoMedicionEntity entity) {
-        entity.setActivo(dto.getActivo());
-
         if (dto.getMedicionId() != null) {
             MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
                     .orElseThrow(() -> new EntityNotFoundException("Medición no encontrada con id: " + dto.getMedicionId()));
@@ -87,7 +84,7 @@ public class ArchivoMedicionService {
     }
 
     @Transactional
-    public ArchivoMedicionDTO storeFile(MultipartFile file, Integer medicionId, Boolean activo) {
+    public ArchivoMedicionDTO storeFile(MultipartFile file, Integer medicionId) {
         String originalFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         String uniqueFileName = generateUniqueFileName(originalFileName);
         Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
@@ -102,7 +99,6 @@ public class ArchivoMedicionService {
             archivoMedicion.setFileName(originalFileName);
             archivoMedicion.setFilePath(targetLocation.toString());
             archivoMedicion.setMedicion(medicion);
-            archivoMedicion.setActivo(activo);
 
             ArchivoMedicionEntity savedFile = archivoMedicionRepository.save(archivoMedicion);
             return mapToDTO(savedFile);

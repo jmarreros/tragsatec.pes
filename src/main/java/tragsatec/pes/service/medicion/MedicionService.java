@@ -53,6 +53,7 @@ public class MedicionService {
         dto.setFechaAprobacion(entity.getFechaAprobacion());
         dto.setUsuarioAprobacion(entity.getUsuarioAprobacion());
         dto.setEliminado(entity.getEliminado());
+        dto.setProcesado(entity.getProcesado());
         if (entity.getPes() != null) {
             dto.setPesId(entity.getPes().getId());
         }
@@ -75,6 +76,7 @@ public class MedicionService {
         entity.setFechaAprobacion(dto.getFechaAprobacion());
         entity.setUsuarioAprobacion(dto.getUsuarioAprobacion());
         entity.setEliminado(dto.getEliminado() != null ? dto.getEliminado() : false);
+        entity.setProcesado(dto.getProcesado() != null ? dto.getProcesado() : false);
 
         if (dto.getPesId() != null) {
             PesEntity pes = pesService.findById(dto.getPesId())
@@ -106,7 +108,7 @@ public class MedicionService {
     @Transactional
     public MedicionDTO save(MedicionDTO dto) {
         MedicionEntity entity = mapToEntity(dto);
-
+        // El campo procesado se inicializa en mapToEntity o en la propia entidad
         if (entity.getDetallesMedicion() != null) {
             entity.getDetallesMedicion().forEach(detalle -> detalle.setMedicion(entity));
         }
@@ -126,6 +128,7 @@ public class MedicionService {
                     existingEntity.setFechaAprobacion(dto.getFechaAprobacion());
                     existingEntity.setUsuarioAprobacion(dto.getUsuarioAprobacion());
                     existingEntity.setEliminado(dto.getEliminado() != null ? dto.getEliminado() : existingEntity.getEliminado());
+                    existingEntity.setProcesado(dto.getProcesado() != null ? dto.getProcesado() : existingEntity.getProcesado());
 
                     if (dto.getPesId() != null) {
                         PesEntity pes = pesService.findById(dto.getPesId())

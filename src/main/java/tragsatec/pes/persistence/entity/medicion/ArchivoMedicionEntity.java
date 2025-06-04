@@ -26,11 +26,7 @@ public class ArchivoMedicionEntity extends AuditOnlyInsertEntity {
     @Column(nullable = false, length = 250)
     private String fileName;
 
-    @Column(name = "activo")
-    private Boolean activo;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medicion_id", nullable = false)
     private MedicionEntity medicion;
 }
-

@@ -34,11 +34,11 @@ public class ArchivoMedicionController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("medicionId") Integer medicionId, @RequestParam(name = "activo", required = false) Boolean activo) {
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("medicionId") Integer medicionId) {
         try {
             validacionArchivoService.validarArchivo(file);
 
-            ArchivoMedicionDTO storedFileDto = archivoMedicionService.storeFile(file, medicionId, activo);
+            ArchivoMedicionDTO storedFileDto = archivoMedicionService.storeFile(file, medicionId);
             return ResponseEntity.status(HttpStatus.CREATED).body(storedFileDto);
 
         } catch (ArchivoMuyGrandeException | TipoArchivoNoSoportadoException e) {

@@ -18,6 +18,6 @@ public class MedicionDTO {
     private LocalDateTime fechaAprobacion;
     private Integer usuarioAprobacion;
     private Boolean eliminado;
+    private Boolean procesado;
     private Set<DetalleMedicionDTO> detallesMedicion;
 }
-

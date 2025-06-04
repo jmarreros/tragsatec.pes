@@ -30,7 +30,7 @@ public class ProcesarMedicionService {
     private final ValidacionArchivoService validacionArchivoService;
     private final PesUtEstacionService pesUtEstacionService;
     private final MedicionService medicionService;
-    private final DetalleMedicionService detalleMedicionService;
+    private final ArchivoMedicionService archivoMedicionService;
 
     public void procesarArchivoMedicion(Character tipo, Short anio, Byte mes, MultipartFile file) {
 
@@ -89,11 +89,8 @@ public class ProcesarMedicionService {
         // Guardar la medición con todos sus detalles en una sola operación
         MedicionDTO medicionGuardada = medicionService.save(nuevaMedicion);
 
-        System.out.println("Medición guardada con ID: " + medicionGuardada.getId() +
-                " y " + detalles.size() + " detalles.");
-
-
-        System.out.println("Archivo " + file.getOriginalFilename() + " procesado con " + datosMedicion.size() + " registros.");
+        // 8- Guardar archivo de medición
+        archivoMedicionService.storeFile(file, medicionGuardada.getId());
     }
 
     private List<MedicionDatoDTO> get_datos_medicion(MultipartFile file) {

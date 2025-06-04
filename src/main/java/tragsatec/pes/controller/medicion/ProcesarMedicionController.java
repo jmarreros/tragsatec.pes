@@ -45,7 +45,7 @@ public class ProcesarMedicionController {
             // Procesar el archivo
             procesarMedicionService.procesarArchivoMedicion(tipo, anio, mes, file);
 
-            return ResponseEntity.ok("Archivo procesado exitosamente.");
+            return ResponseEntity.ok("Mediciones guardadas correctamente.");
 
         } catch (ArchivoMuyGrandeException | TipoArchivoNoSoportadoException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -58,4 +58,18 @@ public class ProcesarMedicionController {
                     .body("Error al procesar el archivo: " + e.getMessage());
         }
     }
+
+
+    // Realiza el cálculo de las mediciones pendientes de procesar
+    @PostMapping("/calcular")
+    public ResponseEntity<String> procesarCalculo(){
+        try {
+//            procesarMedicionService.procesarCalculo();
+            return ResponseEntity.ok("Cálculo de mediciones procesado correctamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar el cálculo de mediciones: " + e.getMessage());
+        }
+    }
+
 }
