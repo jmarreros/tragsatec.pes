@@ -5,6 +5,5 @@ import org.springframework.stereotype.Repository;
 import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
 
 @Repository
-public interface DetalleMedicionRepository extends JpaRepository<DetalleMedicionEntity, Integer> {
+public interface DetalleMedicionRepository extends JpaRepository<DetalleMedicionEntity, Long> {
 }
-

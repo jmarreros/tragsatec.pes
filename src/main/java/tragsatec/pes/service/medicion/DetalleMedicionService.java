@@ -64,7 +64,7 @@ public class DetalleMedicionService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<DetalleMedicionDTO> findById(Integer id) {
+    public Optional<DetalleMedicionDTO> findById(Long id) {
         return detalleMedicionRepository.findById(id).map(this::mapToDTO);
     }
 
@@ -76,7 +76,7 @@ public class DetalleMedicionService {
     }
 
     @Transactional
-    public Optional<DetalleMedicionDTO> update(Integer id, DetalleMedicionDTO dto) {
+    public Optional<DetalleMedicionDTO> update(Long id, DetalleMedicionDTO dto) {
         return detalleMedicionRepository.findById(id)
             .map(existingEntity -> {
                 existingEntity.setValor(dto.getValor());

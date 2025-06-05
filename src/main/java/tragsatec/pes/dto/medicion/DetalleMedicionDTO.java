@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 public class DetalleMedicionDTO {
-    private Integer id;
+    private Long id;
     private Integer medicionId;
     private BigDecimal valor;
     private String tipoDato;

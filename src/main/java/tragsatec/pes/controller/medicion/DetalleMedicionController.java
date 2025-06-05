@@ -23,7 +23,7 @@ public class DetalleMedicionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DetalleMedicionDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<DetalleMedicionDTO> getById(@PathVariable Long id) {
         return detalleMedicionService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -36,11 +36,10 @@ public class DetalleMedicionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DetalleMedicionDTO> update(@PathVariable Integer id, @RequestBody DetalleMedicionDTO dto) {
+    public ResponseEntity<DetalleMedicionDTO> update(@PathVariable Long id, @RequestBody DetalleMedicionDTO dto) {
         return detalleMedicionService.update(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
 }
-

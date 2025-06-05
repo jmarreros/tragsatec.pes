@@ -21,7 +21,7 @@ public class DetalleMedicionEntity extends AuditInsertUpdateEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medicion_id", nullable = false)
