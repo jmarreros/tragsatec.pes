@@ -30,10 +30,10 @@ public class IndicadorSequiaEntity extends AuditOnlyInsertEntity {
     @Column(name = "prep1", precision = 12, scale = 8, nullable = false)
     private BigDecimal prep1;
 
-    @Column(name = "prep3", precision = 12, scale = 8, nullable = false)
+    @Column(name = "prep3", precision = 12, scale = 8)
     private BigDecimal prep3;
 
-    @Column(name = "prep6", precision = 12, scale = 8, nullable = false)
+    @Column(name = "prep6", precision = 12, scale = 8)
     private BigDecimal prep6;
 
     @Column(name = "ie_b1", precision = 12, scale = 8)

@@ -7,14 +7,16 @@ import tragsatec.pes.dto.estructura.PesUmbralSequiaDTO;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.exception.CalculoIndicadorException;
-import tragsatec.pes.persistence.entity.calculo.IndicadorSequiaEntity;
 import tragsatec.pes.persistence.repository.calculo.IndicadorSequiaRepository;
 import tragsatec.pes.service.estructura.PesUmbralSequiaService;
 import tragsatec.pes.service.medicion.DetalleMedicionService;
 import tragsatec.pes.service.medicion.MedicionService;
+import tragsatec.pes.util.IndicadorUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import static tragsatec.pes.util.ConstantUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class IndicadorSequiaService {
     private final PesUmbralSequiaService pesUmbralSequiaService;
 
     @Transactional
-    public void calcularIndicadorSequia() { // Cambiado el tipo de retorno a void
+    public Boolean calcularIndicadorSequia() {
         // 1- Revisar la tabla de mediciones para obtener la medición de sequia pendiente de calcular
         MedicionDTO medicion = medicionService.findFirstNotProcessedMedicionByTipo('S');
         if (medicion == null) {
@@ -34,14 +36,14 @@ public class IndicadorSequiaService {
         }
 
         // 2- Obtener el detalle de la medicion de la tabla de detalles de mediciones por Id
-        Integer medicion_id = medicion.getId();
+        Integer medicionId = medicion.getId();
         Short anio = medicion.getAnio();
         Byte mes = medicion.getMes();
         Integer pes_id = medicion.getPesId();
 
-        List<DetalleMedicionDTO> detalle = detalleMedicionService.findByMedicionId(medicion_id);
+        List<DetalleMedicionDTO> detalle = detalleMedicionService.findByMedicionId(medicionId);
         if (detalle.isEmpty()) {
-            throw new CalculoIndicadorException("No hay detalles de medición para la medición ID: " + medicion_id);
+            throw new CalculoIndicadorException("No hay detalles de medición para la medición ID: " + medicionId);
         }
 
         //3- Obtener todos los umbrales para el PES y mes actual de una vez
@@ -63,27 +65,50 @@ public class IndicadorSequiaService {
                     .orElseThrow(() -> new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + ", estación: " + estacionId + ", mes: " + mes));
 
             // 3.3- Calcular el indicador de sequía para la estación, año y mes específicos
-            calcularIndicadorSequiaEstacion(estacionId, valor, anio, mes, medicion_id);
+            BigDecimal indiceEstacion = calcularIndice(valor, umbralEstacionActual);
+
+            // 3.4- Guardar el resultado del indicador de sequía en la base de datos
+            saveIndicadorSequia(medicionId, estacionId, anio, mes, valor, indiceEstacion);
+
         }
 
         // Marcar la medición como procesada si todo fue exitoso
-        medicion.setProcesado(true);
-        medicionService.update(medicion_id, medicion); // Asumiendo que update actualiza el estado procesado
+//        medicion.setProcesado(true);
+//        medicionService.update(medicionId, medicion); // Asumiendo que update actualiza el estado procesado
 
+        return true;
+    }
+
+    private void saveIndicadorSequia(Integer medicionId, Integer estacionId, Short anio, Byte mes, BigDecimal valor, BigDecimal indiceEstacion) {
+        System.out.println("Guardando indicador de sequía: " +
+                "Medición ID: " + medicionId +
+                ", Estación ID: " + estacionId +
+                ", Año: " + anio +
+                ", Mes: " + mes +
+                ", Valor: " + valor +
+                ", Índice: " + indiceEstacion);
     }
 
     @Transactional
-    public void calcularIndicadorSequiaEstacion(Integer estacionId, BigDecimal valor, Short anio, Byte mes, Integer medicionId) {
-        // Obtener los umbrales de sequía para la estación, año y mes específicos
+    private BigDecimal calcularIndice(BigDecimal valor, PesUmbralSequiaDTO umbral) {
+        // 1- Obtener la media y desviación estándar de los valores de precipitación
+        BigDecimal media = umbral.getPromedioPrep1();
+        BigDecimal desviacion = umbral.getDesvPrep1();
 
+        // 2- Calcular la probabilidad acumulada usando la función inversa de la normal
+        BigDecimal probabilidadPreAlerta = IndicadorUtils.invNormal(FACTOR_PRE_ALERTA, media, desviacion);
+        BigDecimal probabilidadAlerta = IndicadorUtils.invNormal(FACTOR_ALERTA, media, desviacion);
+        BigDecimal probabilidadEmergencia = IndicadorUtils.invNormal(FACTOR_EMERGENCIA, media, desviacion);
 
-        // Crear nueva entidad para almacenar resultados
-        IndicadorSequiaEntity indicador = new IndicadorSequiaEntity();
-        indicador.setAnio(anio);
-        indicador.setMes(mes);
-        indicador.setEstacionId(estacionId);
-
-        repository.save(indicador);
+        // 3- Calcular el índice de sequía lineal multiplicativo
+        return IndicadorUtils.IE_LinealMult(
+                valor,
+                probabilidadPreAlerta, // Umbral de prealerta
+                probabilidadAlerta,    // Umbral de alerta
+                probabilidadEmergencia, // Umbral de emergencia
+                umbral.getMinPrep1(), // Mínimo absoluto
+                umbral.getMaxPrep1()   // Máximo absoluto
+        );
     }
 
 }

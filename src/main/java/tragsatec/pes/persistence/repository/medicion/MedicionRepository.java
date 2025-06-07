@@ -12,7 +12,7 @@ import java.util.List;
 public interface MedicionRepository extends JpaRepository<MedicionEntity, Integer> {
     List<MedicionEntity> findByPesIdAndTipoAndAnioAndMesAndEliminadoFalse(Integer pesId, Character tipo, Short anio, Byte mes);
 
-    @Query(value = "SELECT TOP 1 m.* FROM medicion m WHERE m.eliminado = false AND m.procesado = false AND m.tipo = :tipo ORDER BY m.anio DESC, m.mes DESC", nativeQuery = true)
+    @Query(value = "SELECT TOP 1 m.* FROM medicion m WHERE m.eliminado = 0 AND m.procesado = 0 AND m.tipo = :tipo ORDER BY m.anio DESC, m.mes DESC", nativeQuery = true)
     MedicionEntity findFirstNotProcessedMedicionByTipo(@Param("tipo") Character tipo);
 }
 

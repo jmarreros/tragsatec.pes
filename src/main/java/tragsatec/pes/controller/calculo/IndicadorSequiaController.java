@@ -17,6 +17,11 @@ public class IndicadorSequiaController {
 
     @PostMapping("/calcular")
     public ResponseEntity<IndicadorSequiaEntity> calcularIndicador(){
-        return null;
+        Boolean indicador = service.calcularIndicadorSequia();
+        if (indicador) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
