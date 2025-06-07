@@ -16,12 +16,7 @@ public class IndicadorSequiaController {
     private final IndicadorSequiaService service;
 
     @PostMapping("/calcular")
-    public ResponseEntity<IndicadorSequiaEntity> calcularIndicador(
-            @RequestParam Integer estacionId,
-            @RequestParam Short anio,
-            @RequestParam Byte mes) {
-
-        IndicadorSequiaEntity resultado = service.calcularIndicadorSequia(estacionId, anio, mes);
-        return ResponseEntity.ok(resultado);
+    public ResponseEntity<IndicadorSequiaEntity> calcularIndicador(){
+        return null;
     }
 }

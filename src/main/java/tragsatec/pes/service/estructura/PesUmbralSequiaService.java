@@ -109,6 +109,22 @@ public class PesUmbralSequiaService {
                 .map(this::mapToPesUmbralSequiaDTO);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<PesUmbralSequiaDTO> findByPesIdAndEstacionIdAndMes(Integer pesId, Integer estacionId, Byte mes) {
+        return pesUmbralSequiaRepository.findByPesIdAndEstacionIdAndMes(pesId, estacionId, mes)
+                .map(this::mapToPesUmbralSequiaDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PesUmbralSequiaDTO> findByPesIdAndMes(Integer pesId, Byte mes) {
+        return pesUmbralSequiaRepository.findByPesIdAndMes(pesId, mes)
+                .stream()
+                .map(this::mapToPesUmbralSequiaDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
     @Transactional
     public PesUmbralSequiaDTO save(PesUmbralSequiaDTO dto) {
         PesUmbralSequiaEntity entity = mapToPesUmbralSequiaEntity(dto);
@@ -157,5 +173,6 @@ public class PesUmbralSequiaService {
                     return mapToPesUmbralSequiaDTO(updatedEntity);
                 });
     }
+
 
 }

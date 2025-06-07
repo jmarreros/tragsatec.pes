@@ -158,4 +158,11 @@ public class MedicionService {
             medicionRepository.save(medicion);
         }
     }
+
+
+    @Transactional(readOnly = true)
+    public MedicionDTO findFirstNotProcessedMedicionByTipo(Character tipo) {
+        MedicionEntity medicion = medicionRepository.findFirstNotProcessedMedicionByTipo(tipo);
+        return mapToDTO(medicion);
+    }
 }

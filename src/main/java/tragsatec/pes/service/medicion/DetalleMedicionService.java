@@ -68,6 +68,13 @@ public class DetalleMedicionService {
         return detalleMedicionRepository.findById(id).map(this::mapToDTO);
     }
 
+    @Transactional(readOnly = true)
+    public List<DetalleMedicionDTO> findByMedicionId(Integer medicionId) {
+        return detalleMedicionRepository.findByMedicionId(medicionId).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public DetalleMedicionDTO save(DetalleMedicionDTO dto) {
         DetalleMedicionEntity entity = mapToEntity(dto);
