@@ -165,4 +165,9 @@ public class MedicionService {
         MedicionEntity medicion = medicionRepository.findFirstNotProcessedMedicionByTipo(tipo);
         return mapToDTO(medicion);
     }
+
+    @Transactional
+    public void marcarComoProcesada(Integer medicionId) {
+        medicionRepository.actualizarEstadoProcesado(medicionId, true);
+    }
 }

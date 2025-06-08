@@ -7,6 +7,7 @@ import tragsatec.pes.dto.estructura.PesUmbralSequiaDTO;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.exception.CalculoIndicadorException;
+import tragsatec.pes.persistence.entity.calculo.IndicadorSequiaEntity;
 import tragsatec.pes.persistence.repository.calculo.IndicadorSequiaRepository;
 import tragsatec.pes.service.estructura.PesUmbralSequiaService;
 import tragsatec.pes.service.medicion.DetalleMedicionService;
@@ -28,7 +29,7 @@ public class IndicadorSequiaService {
     private final PesUmbralSequiaService pesUmbralSequiaService;
 
     @Transactional
-    public Boolean calcularIndicadorSequia() {
+    public void calcularIndicadorSequia() {
         // 1- Revisar la tabla de mediciones para obtener la medición de sequia pendiente de calcular
         MedicionDTO medicion = medicionService.findFirstNotProcessedMedicionByTipo('S');
         if (medicion == null) {
@@ -37,7 +38,6 @@ public class IndicadorSequiaService {
 
         // 2- Obtener el detalle de la medicion de la tabla de detalles de mediciones por Id
         Integer medicionId = medicion.getId();
-        Short anio = medicion.getAnio();
         Byte mes = medicion.getMes();
         Integer pes_id = medicion.getPesId();
 
@@ -46,47 +46,56 @@ public class IndicadorSequiaService {
             throw new CalculoIndicadorException("No hay detalles de medición para la medición ID: " + medicionId);
         }
 
-        //3- Obtener todos los umbrales para el PES y mes actual de una vez
+        //3- Borrar los indicadores de sequía si existen para la medición actual y volver a calcularlos
+        repository.deleteByMedicionId(medicionId);
+
+        //4- Obtener todos los umbrales para el PES y mes actual de una vez
         List<PesUmbralSequiaDTO> umbralesSequia = pesUmbralSequiaService.findByPesIdAndMes(pes_id, mes);
         if (umbralesSequia.isEmpty()) {
             throw new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + " y mes: " + mes);
         }
 
-        // 3- Recorrer el detalle de la medición y calcular el indicador de sequía para cada estación
+        // 5- Recorrer el detalle de la medición y calcular el indicador de sequía para cada estación
         for (DetalleMedicionDTO detalleMedicion : detalle) {
-            // 3.1- Obtener el ID de la estación desde el detalle de medición
+            // 5.1- Obtener el ID y valor de la estación desde el detalle de medición
             Integer estacionId = detalleMedicion.getEstacionId();
             BigDecimal valor = detalleMedicion.getValor();
 
-            // 3.2- Buscar el umbral para la estación actual en la lista cargada
+            // 5.2- Buscar el umbral para la estación actual en la lista cargada
             PesUmbralSequiaDTO umbralEstacionActual = umbralesSequia.stream()
                     .filter(u -> u.getEstacionId().equals(estacionId))
                     .findFirst()
                     .orElseThrow(() -> new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + ", estación: " + estacionId + ", mes: " + mes));
 
-            // 3.3- Calcular el indicador de sequía para la estación, año y mes específicos
-            BigDecimal indiceEstacion = calcularIndice(valor, umbralEstacionActual);
+            // 5.3- Calcular el indicador de sequía para la estación, año y mes específicos
+            BigDecimal valorIndice = calcularIndice(valor, umbralEstacionActual);
 
-            // 3.4- Guardar el resultado del indicador de sequía en la base de datos
-            saveIndicadorSequia(medicionId, estacionId, anio, mes, valor, indiceEstacion);
+            // 5.4- Guardar el resultado del indicador de sequía en la base de datos
+            Long indicadorId = saveIndicadorSequia(medicion, estacionId, valor, valorIndice);
+            if (indicadorId == null) {
+                throw new CalculoIndicadorException("Error al guardar el indicador de sequía para la estación ID: " + estacionId);
+            }
 
         }
 
-        // Marcar la medición como procesada si todo fue exitoso
-//        medicion.setProcesado(true);
-//        medicionService.update(medicionId, medicion); // Asumiendo que update actualiza el estado procesado
-
-        return true;
+        // 6- Marcar la medición como procesada si fue correcto
+        medicionService.marcarComoProcesada(medicionId);
     }
 
-    private void saveIndicadorSequia(Integer medicionId, Integer estacionId, Short anio, Byte mes, BigDecimal valor, BigDecimal indiceEstacion) {
-        System.out.println("Guardando indicador de sequía: " +
-                "Medición ID: " + medicionId +
-                ", Estación ID: " + estacionId +
-                ", Año: " + anio +
-                ", Mes: " + mes +
-                ", Valor: " + valor +
-                ", Índice: " + indiceEstacion);
+    private Long saveIndicadorSequia(MedicionDTO medicion, Integer estacionId, BigDecimal valor, BigDecimal valorIndice) {
+        IndicadorSequiaEntity indicadorSequia = new IndicadorSequiaEntity();
+
+        // Establecemos los valores iniciales
+        indicadorSequia.setMedicionId(medicion.getId());
+        indicadorSequia.setMes(medicion.getMes());
+        indicadorSequia.setAnio(medicion.getAnio());
+        indicadorSequia.setEstacionId(estacionId);
+        indicadorSequia.setPrep1(valor);
+        indicadorSequia.setIeB1(valorIndice);
+
+        IndicadorSequiaEntity savedEntity = repository.save(indicadorSequia);
+
+        return savedEntity.getId();
     }
 
     @Transactional
