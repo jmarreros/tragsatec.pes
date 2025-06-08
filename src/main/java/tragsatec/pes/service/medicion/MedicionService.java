@@ -151,7 +151,7 @@ public class MedicionService {
     }
 
     @Transactional
-    public void anularMedicionAnterior(Integer pesId, Character tipo, Short anio, Byte mes){
+    public void anularMedicionAnterior(Integer pesId, Character tipo, Short anio, Byte mes) {
         List<MedicionEntity> mediciones = medicionRepository.findByPesIdAndTipoAndAnioAndMesAndEliminadoFalse(pesId, tipo, anio, mes);
         for (MedicionEntity medicion : mediciones) {
             medicion.setEliminado(true);
@@ -165,6 +165,13 @@ public class MedicionService {
         MedicionEntity medicion = medicionRepository.findFirstNotProcessedMedicionByTipo(tipo);
         return mapToDTO(medicion);
     }
+
+    @Transactional(readOnly = true)
+    public MedicionDTO findLastProcessedMedicionByTipo(Character tipo) {
+        MedicionEntity medicion = medicionRepository.findLastProcessedMedicionByTipo(tipo);
+        return mapToDTO(medicion);
+    }
+
 
     @Transactional
     public void marcarComoProcesada(Integer medicionId) {

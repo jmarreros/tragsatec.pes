@@ -3,6 +3,7 @@ package tragsatec.pes.service.calculo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tragsatec.pes.dto.calculo.AcumuladoSequia;
 import tragsatec.pes.dto.estructura.PesUmbralSequiaDTO;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDTO;
@@ -41,8 +42,8 @@ public class IndicadorSequiaService {
         Byte mes = medicion.getMes();
         Integer pes_id = medicion.getPesId();
 
-        List<DetalleMedicionDTO> detalle = detalleMedicionService.findByMedicionId(medicionId);
-        if (detalle.isEmpty()) {
+        List<DetalleMedicionDTO> detallesMedicion = detalleMedicionService.findByMedicionId(medicionId);
+        if (detallesMedicion.isEmpty()) {
             throw new CalculoIndicadorException("No hay detalles de medición para la medición ID: " + medicionId);
         }
 
@@ -55,31 +56,57 @@ public class IndicadorSequiaService {
             throw new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + " y mes: " + mes);
         }
 
-        // 5- Recorrer el detalle de la medición y calcular el indicador de sequía para cada estación
-        for (DetalleMedicionDTO detalleMedicion : detalle) {
-            // 5.1- Obtener el ID y valor de la estación desde el detalle de medición
-            Integer estacionId = detalleMedicion.getEstacionId();
-            BigDecimal valor = detalleMedicion.getValor();
+        //5- Para los acumulados, obtener los registros del mes anterior
+        List<AcumuladoSequia> acumuladosMesAnterior = getAcumuladosMesAnterior(detallesMedicion);
 
-            // 5.2- Buscar el umbral para la estación actual en la lista cargada
+        // 6- Recorrer el detalle de la medición y calcular el indicador de sequía para cada estación
+        for (DetalleMedicionDTO itemDetalleMedicion : detallesMedicion) {
+            // 6.1- Obtener el ID y valor de la estación desde el detalle de medición
+            Integer estacionId = itemDetalleMedicion.getEstacionId();
+            BigDecimal valor = itemDetalleMedicion.getValor();
+
+            // 6.2- Buscar el umbral para la estación actual en la lista cargada
             PesUmbralSequiaDTO umbralEstacionActual = umbralesSequia.stream()
                     .filter(u -> u.getEstacionId().equals(estacionId))
                     .findFirst()
                     .orElseThrow(() -> new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + ", estación: " + estacionId + ", mes: " + mes));
 
-            // 5.3- Calcular el indicador de sequía para la estación, año y mes específicos
+            // 6.3- Calcular el indicador de sequía para la estación, año y mes específicos
             BigDecimal valorIndice = calcularIndice(valor, umbralEstacionActual);
 
-            // 5.4- Guardar el resultado del indicador de sequía en la base de datos
+            // 6.4- Guardar el resultado del indicador de sequía en la base de datos
             Long indicadorId = saveIndicadorSequia(medicion, estacionId, valor, valorIndice);
             if (indicadorId == null) {
                 throw new CalculoIndicadorException("Error al guardar el indicador de sequía para la estación ID: " + estacionId);
             }
 
+            // 6.5- Acumulados de valores de precipitación y el índice de sequía
+
         }
 
-        // 6- Marcar la medición como procesada si fue correcto
+        // 7- Marcar la medición como procesada si fue correcto
         medicionService.marcarComoProcesada(medicionId);
+    }
+
+    private List<AcumuladoSequia> getAcumuladosMesAnterior(List<DetalleMedicionDTO> detallesMedicion) {
+        //1- Obtener la última medición procesada de tipo "S"
+        MedicionDTO medicion = medicionService.findLastProcessedMedicionByTipo('S');
+        if (medicion == null) {
+            // Construir el objeto de acumulados con valores nulos si no hay mediciones procesadas
+            return detallesMedicion.stream()
+                    .map(detalle -> new AcumuladoSequia(detalle.getEstacionId(), BigDecimal.ZERO, BigDecimal.ZERO))
+                    .toList();
+        }
+
+        //2- Obtener los acumulados de sequía dado el ID de la medición
+        Integer medicionId = medicion.getId();
+        return repository.findByMedicionId(medicionId)
+                .stream()
+                .map(indicador -> new AcumuladoSequia(
+                        indicador.getEstacionId(),
+                        indicador.getPrep1(),
+                        indicador.getPrep6()))
+                .toList();
     }
 
     private Long saveIndicadorSequia(MedicionDTO medicion, Integer estacionId, BigDecimal valor, BigDecimal valorIndice) {
