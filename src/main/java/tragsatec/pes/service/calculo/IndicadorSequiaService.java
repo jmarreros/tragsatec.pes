@@ -195,7 +195,7 @@ public class IndicadorSequiaService {
                 break;
         }
 
-        // Validar que media y desviación no sean null
+        //2- Validaciones previas
         if (media == null) {
             throw new CalculoIndicadorException(
                     String.format("La media es null para el umbral de la estación %s, mes %s, periodo %s meses. No se puede calcular el índice.",
@@ -208,8 +208,12 @@ public class IndicadorSequiaService {
                             umbral.getEstacionId(), umbral.getMes(), numeroMeses)
             );
         }
-
-        // Validar que la desviación estándar no sea negativa
+        if (minPrep == null || maxPrep == null) {
+            throw new CalculoIndicadorException(
+                    String.format("minPrep (%s) o maxPrep (%s) es null para el umbral de la estación %s, mes %s, periodo %s meses.",
+                            minPrep, maxPrep, umbral.getEstacionId(), umbral.getMes(), numeroMeses)
+            );
+        }
         if (desviacion.compareTo(BigDecimal.ZERO) < 0) {
             throw new CalculoIndicadorException(
                     String.format("La desviación estándar es negativa (%s) para el umbral de la estación %s, mes %s, periodo %s meses. No se puede calcular el índice.",
@@ -217,32 +221,23 @@ public class IndicadorSequiaService {
             );
         }
 
+        //3- Calcular los umbrales de probabilidad usando la función inversa de la normal
         BigDecimal probabilidadPreAlerta;
         BigDecimal probabilidadAlerta;
         BigDecimal probabilidadEmergencia;
 
-        // 2- Calcular los umbrales de probabilidad usando la función inversa de la normal
+        // Si la desviación estándar es cero, todos los valores históricos fueron iguales a la media.
         if (desviacion.compareTo(BigDecimal.ZERO) == 0) {
-            // Si la desviación estándar es cero, todos los valores históricos fueron iguales a la media.
             probabilidadPreAlerta = media;
             probabilidadAlerta = media;
             probabilidadEmergencia = media;
-        } else {
-            // Caso estándar: desviación > 0
+        } else { // Caso estándar: desviación > 0
             probabilidadPreAlerta = IndicadorUtils.invNormal(FACTOR_PRE_ALERTA, media, desviacion);
             probabilidadAlerta = IndicadorUtils.invNormal(FACTOR_ALERTA, media, desviacion);
             probabilidadEmergencia = IndicadorUtils.invNormal(FACTOR_EMERGENCIA, media, desviacion);
         }
 
-        // Validar que minPrep y maxPrep no sean null si IE_LinealMult no los maneja
-        if (minPrep == null || maxPrep == null) {
-            throw new CalculoIndicadorException(
-                    String.format("minPrep (%s) o maxPrep (%s) es null para el umbral de la estación %s, mes %s, periodo %s meses.",
-                            minPrep, maxPrep, umbral.getEstacionId(), umbral.getMes(), numeroMeses)
-            );
-        }
-
-        // 3- Calcular el índice de sequía lineal multiplicativo
+        // 4- Calcular el índice de sequía lineal multiplicativo
         return IndicadorUtils.IE_LinealMult(
                 valor,
                 probabilidadPreAlerta, // Umbral de prealerta
