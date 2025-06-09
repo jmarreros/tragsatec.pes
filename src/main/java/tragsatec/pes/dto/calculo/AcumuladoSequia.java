@@ -2,14 +2,15 @@ package tragsatec.pes.dto.calculo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
+@Getter
 public class AcumuladoSequia {
     private Integer estacionId;
-    private BigDecimal acumuladoPre3;
-    private BigDecimal acumuladoPre6;
+    private BigDecimal Pre3;
+    private BigDecimal Pre6;
 }
