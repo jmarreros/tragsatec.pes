@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @Getter
-public class AcumuladoSequia {
+public class AcumuladoSequiaDTO {
     private Integer estacionId;
     private BigDecimal Pre3;
     private BigDecimal Pre6;

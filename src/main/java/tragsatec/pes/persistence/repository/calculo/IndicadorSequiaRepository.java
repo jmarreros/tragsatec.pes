@@ -15,13 +15,23 @@ public interface IndicadorSequiaRepository extends JpaRepository<IndicadorSequia
 
     List<IndicadorSequiaEntity> findByMedicionId(Integer medicionId);
 
-    // Suma de prep1 de los últimos N meses para una estación específica
-    @Query(value = "SELECT SUM(prep1) FROM (SELECT TOP :numMeses prep1 FROM indicador_sequia " +
-            "WHERE estacion_id = :estacionId ORDER BY anio DESC, mes DESC) AS subquery",
-            nativeQuery = true)
-    BigDecimal sumLastNPrep1ByEstacionId(
-            @Param("estacionId") Integer estacionId,
-            @Param("numMeses") Integer numMeses);
-
-
+    // Suma de prep1 de los últimos N meses para cada estación
+    @Query(value = "WITH RankedIndicadores AS ( " +
+            "    SELECT " +
+            "        estacion_id, " +
+            "        prep1, " +
+            "        ROW_NUMBER() OVER(PARTITION BY estacion_id ORDER BY anio DESC, mes DESC) as rn " +
+            "    FROM " +
+            "        indicador_sequia " +
+            ") " +
+            "SELECT " +
+            "    estacion_id, " +
+            "    SUM(prep1) AS suma_ultimos_n_prep1 " +
+            "FROM " +
+            "    RankedIndicadores " +
+            "WHERE " +
+            "    rn <= :numMeses " + // Usar el parámetro aquí
+            "GROUP BY " +
+            "    estacion_id", nativeQuery = true)
+    List<Object[]> sumLastNPrep1ForEachEstacion(@Param("numMeses") Integer numMeses); // Añadir parámetro al método
 }
