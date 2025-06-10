@@ -166,6 +166,11 @@ public class MedicionService {
         return mapToDTO(medicion);
     }
 
+    public Optional<MedicionDTO> findLastProcessedMedicionByTipo(Character tipo) {
+        MedicionEntity medicion = medicionRepository.findLastProcessedMedicionByTipo(tipo);
+        return Optional.ofNullable(mapToDTO(medicion));
+    }
+
     @Transactional
     public void marcarComoProcesada(Integer medicionId) {
         medicionRepository.actualizarEstadoProcesado(medicionId, true);

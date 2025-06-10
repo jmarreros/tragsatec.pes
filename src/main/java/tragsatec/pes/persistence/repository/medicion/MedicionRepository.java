@@ -22,5 +22,6 @@ public interface MedicionRepository extends JpaRepository<MedicionEntity, Intege
     @Modifying
     @Query("UPDATE MedicionEntity m SET m.procesado = :procesado WHERE m.id = :id")
     void actualizarEstadoProcesado(@Param("id") Integer id, @Param("procesado") Boolean procesado);
+
 }
 

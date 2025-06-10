@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,7 +35,9 @@ public class ProcesarMedicionService {
 
     public void procesarArchivoMedicion(Character tipo, Short anio, Byte mes, MultipartFile file) {
 
-        // 1- Validar el archivo
+        // 1- Validar los parámetros de entrada
+        validarTipoMedicion(tipo);
+        ValidarNextYearAndMonth(anio, mes);
         validacionArchivoService.validarArchivo(file);
 
         // 2- Detectar el Plan Especial de Sequia (PES) actual
@@ -91,6 +94,57 @@ public class ProcesarMedicionService {
 
         // 8- Guardar archivo de medición
         archivoMedicionService.storeFile(file, medicionGuardada.getId());
+    }
+
+    private void validarTipoMedicion(Character tipo) {
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo de medición no puede ser nulo.");
+        }
+
+        if (tipo != 'S' && tipo != 'E') {
+            throw new IllegalArgumentException("Tipo de medición inválido. Debe ser 'S' para Sequía o 'E' para Sequia.");
+        }
+    }
+
+    private void ValidarNextYearAndMonth(Short anio, Byte mes) {
+        if (anio == null || mes == null) {
+            throw new IllegalArgumentException("El año y el mes no pueden ser nulos.");
+        }
+
+        Optional<MedicionDTO> ultimaMedicion = medicionService.findLastProcessedMedicionByTipo('S');
+        if (ultimaMedicion.isEmpty()) return;
+
+        MedicionDTO ultima = ultimaMedicion.get();
+        if (ultima.getAnio() > anio || (ultima.getAnio().equals(anio) && ultima.getMes() >= mes)) {
+            throw new IllegalArgumentException("El año y mes proporcionados deben ser posteriores al último procesado: " + ultima.getAnio() + "-" + ultima.getMes());
+        }
+
+        if (mes < 1 || mes > 12) {
+            throw new IllegalArgumentException("El mes debe estar entre 1 y 12.");
+        }
+
+        int currentYear = java.time.LocalDate.now().getYear();
+        if (anio < 1980 || anio > currentYear) {
+            throw new IllegalArgumentException("El año debe estar entre 1980 y " + currentYear);
+        }
+
+        // Evaluar que debe ser el siguiente año y mes
+        int ultimoAnio = ultima.getAnio();
+        byte ultimoMes = ultima.getMes();
+
+        int siguienteAnio = ultimoAnio;
+        byte siguienteMes;
+
+        if (ultimoMes == 12) {
+            siguienteMes = 1;
+            siguienteAnio++;
+        } else {
+            siguienteMes = (byte) (ultimoMes + 1);
+        }
+
+        if (anio != siguienteAnio || mes != siguienteMes) {
+            throw new IllegalArgumentException("El año y mes proporcionados deben ser el siguiente al último procesado: " + siguienteAnio + "-" + siguienteMes);
+        }
     }
 
     private List<MedicionDatoDTO> get_datos_medicion(MultipartFile file) {
