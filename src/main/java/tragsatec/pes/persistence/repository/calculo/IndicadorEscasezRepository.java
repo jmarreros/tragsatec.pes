@@ -6,5 +6,6 @@ import tragsatec.pes.persistence.entity.calculo.IndicadorEscasezEntity;
 
 @Repository
 public interface IndicadorEscasezRepository extends JpaRepository<IndicadorEscasezEntity, Long> {
+    void deleteByMedicionId(Integer medicionId);
 }
 

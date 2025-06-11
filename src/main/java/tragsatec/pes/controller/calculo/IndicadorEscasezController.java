@@ -16,12 +16,14 @@ public class IndicadorEscasezController {
     private final IndicadorEscasezService service;
 
     @PostMapping("/calcular")
-    public ResponseEntity<IndicadorEscasezEntity> calcularIndicador(
-            @RequestParam Integer estacionId,
-            @RequestParam Short anio,
-            @RequestParam Byte mes) {
-
-        IndicadorEscasezEntity resultado = service.calcularIndicadorEscasez(estacionId, anio, mes);
-        return ResponseEntity.ok(resultado);
+    public ResponseEntity<String> calcularIndicador() {
+        try {
+            service.calcularIndicadorEscasez();
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
+
+
 }

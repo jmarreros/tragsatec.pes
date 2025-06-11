@@ -34,17 +34,17 @@ public class IndicadorSequiaService {
 
     @Transactional
     public void calcularIndicadorSequia() {
-        // 1- Revisar la tabla de mediciones para obtener la medición de sequia pendiente de calcular
+        // 1- Revisar la tabla de mediciones para obtener la medición de sequia pendiente de calcular (Tipo 'S')
         MedicionDTO medicion = medicionService.findFirstNotProcessedMedicionByTipo('S');
         if (medicion == null) {
             throw new CalculoIndicadorException("No hay mediciones de sequía pendientes de calcular.");
         }
 
-        // 2- Obtener el detalle de la medicion de la tabla de detalles de mediciones por Id
         Integer medicionId = medicion.getId();
         Byte mes = medicion.getMes();
-        Integer pes_id = medicion.getPesId();
+        Integer pesId = medicion.getPesId();
 
+        // 2- Obtener el detalle de la medicion de la tabla de detalles de mediciones por Id
         List<DetalleMedicionDTO> detallesMedicion = detalleMedicionService.findByMedicionId(medicionId);
         if (detallesMedicion.isEmpty()) {
             throw new CalculoIndicadorException("No hay detalles de medición para la medición ID: " + medicionId);
@@ -54,9 +54,9 @@ public class IndicadorSequiaService {
         repository.deleteByMedicionId(medicionId);
 
         //4- Obtener todos los umbrales para el PES y mes actual de una vez
-        List<PesUmbralSequiaDTO> umbralesSequia = pesUmbralSequiaService.findByPesIdAndMes(pes_id, mes);
+        List<PesUmbralSequiaDTO> umbralesSequia = pesUmbralSequiaService.findByPesIdAndMes(pesId, mes);
         if (umbralesSequia.isEmpty()) {
-            throw new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + " y mes: " + mes);
+            throw new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pesId + " y mes: " + mes);
         }
 
         //5- Para los acumulados, obtener los registros del mes anterior
@@ -72,7 +72,7 @@ public class IndicadorSequiaService {
             PesUmbralSequiaDTO umbralEstacionActual = umbralesSequia.stream()
                     .filter(u -> u.getEstacionId().equals(estacionId))
                     .findFirst()
-                    .orElseThrow(() -> new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pes_id + ", estación: " + estacionId + ", mes: " + mes));
+                    .orElseThrow(() -> new CalculoIndicadorException("No se encontraron umbrales de sequía para PES ID: " + pesId + ", estación: " + estacionId + ", mes: " + mes));
 
             // 6.3- Acumulados de valores de precipitación y el índice de sequía
             AcumuladoSequiaDTO acumulados = acumuladosMesAnterior.stream()
