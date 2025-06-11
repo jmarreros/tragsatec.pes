@@ -40,5 +40,5 @@ public interface PesUmbralEscasezRepository extends JpaRepository<PesUmbralEscas
                    "    END AS valorMes " +
                    "FROM pes_umbral_escasez pue " +
                    "WHERE pue.pes_id = :pesId", nativeQuery = true)
-    List<UmbralEscasezRawDataDTO> findRawUmbralesByPesIdAndMes(@Param("pesId") Integer pesId, @Param("mesNumero") Integer mesNumero);
+    List<UmbralEscasezRawDataDTO> findRawUmbralesByPesIdAndMes(@Param("pesId") Integer pesId, @Param("mesNumero") Byte mesNumero);
 }
