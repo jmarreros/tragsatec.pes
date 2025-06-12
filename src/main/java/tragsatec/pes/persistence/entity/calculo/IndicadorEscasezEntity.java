@@ -24,7 +24,6 @@ public class IndicadorEscasezEntity extends AuditInsertUpdateEntity {
     @Column(nullable = false)
     private Long id;
 
-
     @Column(name = "anio", nullable = false)
     private Short anio;
 

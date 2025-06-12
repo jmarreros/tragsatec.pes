@@ -3,14 +3,12 @@ package tragsatec.pes.service.calculo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tragsatec.pes.dto.estructura.PesUmbralEscasezDTO;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.exception.CalculoIndicadorException;
 import tragsatec.pes.persistence.entity.calculo.IndicadorEscasezEntity;
 import tragsatec.pes.persistence.repository.calculo.IndicadorEscasezRepository;
 import tragsatec.pes.service.estructura.PesUmbralEscasezService;
-import tragsatec.pes.service.general.EstacionService;
 import tragsatec.pes.service.medicion.DetalleMedicionService;
 import tragsatec.pes.service.medicion.MedicionService;
 import tragsatec.pes.util.IndicadorUtils;
@@ -18,7 +16,6 @@ import tragsatec.pes.util.IndicadorUtils;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +25,6 @@ public class IndicadorEscasezService {
     private final MedicionService medicionService;
     private final DetalleMedicionService detalleMedicionService;
     private final PesUmbralEscasezService pesUmbralEscasezService;
-    private final EstacionService estacionService;
 
     // Estos estadísticos se usan como claves para extraer valores del mapa de umbrales.
     // Deben coincidir con los valores generados por `escenario + estadistico` en la consulta.
@@ -76,21 +72,48 @@ public class IndicadorEscasezService {
                     .orElse(null);
 
             if (umbralesParaEstacion == null) {
-                System.err.println("No se encontraron umbrales pivotados para la estación ID: " + estacionId + " (PES ID: " + pesId + ", mes: " + mes + "). Saltando cálculo para esta estación.");
-                continue;
+                throw new CalculoIndicadorException("No se encontraron umbrales de escasez para la estación ID: " + estacionId + " (PES ID: " + pesId + ", mes: " + mes + ")");
             }
-            BigDecimal valEstresMinimo = (BigDecimal) umbralesParaEstacion.get(FACTOR_ESTRES_MINIMO);
-            BigDecimal valNormalidadMinimo = (BigDecimal) umbralesParaEstacion.get(FACTOR_NORMALIDAD_MINIMO);
-            BigDecimal valNormalidadMaximo = (BigDecimal) umbralesParaEstacion.get(FACTOR_NORMALIDAD_MAXIMO);
 
-            // Imprimir valores de umbrales para depuración
-            System.out.println("Estación ID: " + estacionId + ", Estrés Mínimo: " + valEstresMinimo +
-                    ", Normalidad Mínimo: " + valNormalidadMinimo +
-                    ", Normalidad Máximo: " + valNormalidadMaximo);
+            // 5.2- Calcular el indicador de escasez
+            BigDecimal indicadorEscasez = calcularIndicadorEscasez(valorMedicion, umbralesParaEstacion);
+            if (indicadorEscasez == null) {
+                throw new CalculoIndicadorException("Error al calcular el indicador de escasez para la estación ID: " + estacionId);
+            }
 
+            // 5.3- Crear la entidad de indicador de escasez
+            IndicadorEscasezEntity indicadorEscasezEntity = new IndicadorEscasezEntity();
+            indicadorEscasezEntity.setEstacionId(estacionId);
+            indicadorEscasezEntity.setMedicionId(medicionId);
+            indicadorEscasezEntity.setDato(valorMedicion);
+            indicadorEscasezEntity.setAnio(medicion.getAnio());
+            indicadorEscasezEntity.setMes(mes);
+            indicadorEscasezEntity.setIe(indicadorEscasez);
+
+            // 5.4- Guardar el indicador de escasez
+            Long indicadorEscasezId = saveIndicadorEscasez(indicadorEscasezEntity);
+            if (indicadorEscasezId == null) {
+                throw new CalculoIndicadorException("Error al guardar el indicador de escasez para la estación ID: " + estacionId);
+            }
         }
 
+        // 6- Actualizar la medición a procesada
+        medicionService.marcarComoProcesada(medicionId);
 
+    }
+
+    private Long saveIndicadorEscasez(IndicadorEscasezEntity indicadorEscasez) {
+        IndicadorEscasezEntity savedEntity = repository.save(indicadorEscasez);
+        return savedEntity.getId();
+    }
+
+
+    private BigDecimal calcularIndicadorEscasez(BigDecimal valorMedicion, Map<String, Object> umbralesParaEstacion) {
+        BigDecimal valEstresMinimo = (BigDecimal) umbralesParaEstacion.get(FACTOR_ESTRES_MINIMO);
+        BigDecimal valNormalidadMinimo = (BigDecimal) umbralesParaEstacion.get(FACTOR_NORMALIDAD_MINIMO);
+        BigDecimal valNormalidadMaximo = (BigDecimal) umbralesParaEstacion.get(FACTOR_NORMALIDAD_MAXIMO);
+
+        return IndicadorUtils.IE_LinealC(valorMedicion, valNormalidadMinimo, valEstresMinimo, valNormalidadMaximo);
     }
 
 }

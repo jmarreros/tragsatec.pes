@@ -62,7 +62,7 @@ public class ProcesarMedicionService {
         // 5- Validar que las estaciones del archivo de medición existan en el PES actual
         for (MedicionDatoDTO dato : datosMedicion) {
             String codigoEstacion = dato.getNombreEstacion();
-            if (!estacionesPorCodigo.containsKey(codigoEstacion)) {
+            if (!estacionesPorCodigo.containsKey(codigoEstacion.toUpperCase())) {
                 throw new ArchivoValidationException("La estación '" + codigoEstacion + "' no está registrada en el PES actual.");
             }
         }
@@ -83,7 +83,7 @@ public class ProcesarMedicionService {
         for (MedicionDatoDTO dato : datosMedicion) {
             DetalleMedicionDTO detalle = new DetalleMedicionDTO();
 
-            detalle.setEstacionId(estacionesPorCodigo.get(dato.getNombreEstacion()));
+            detalle.setEstacionId(estacionesPorCodigo.get(dato.getNombreEstacion().toUpperCase()));
             detalle.setValor(dato.getValorMedicion());
             detalles.add(detalle);
         }
