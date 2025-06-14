@@ -4,20 +4,15 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
-import tragsatec.pes.persistence.audit.AuditOnlyInsertEntity;
-import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
 
 import java.math.BigDecimal;
 
 @Entity
-@EntityListeners({AuditingEntityListener.class, AuditOnlyInsertEntity.class})
-@Table(name = "indicador_escasez")
+@Table(name = "indicador_dh_escasez")
 @Getter
 @Setter
 @NoArgsConstructor
-public class IndicadorEscasezEntity extends AuditInsertUpdateEntity {
+public class indicadorDhEscasezEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -35,10 +30,12 @@ public class IndicadorEscasezEntity extends AuditInsertUpdateEntity {
     @Column(name = "ie", precision = 12, scale = 8, nullable = false)
     private BigDecimal ie;
 
+    @Column(name = "qty")
+    private Integer qty;
+
     @Column(name = "medicion_id", nullable = false)
     private Integer medicionId;
 
-    @Column(name = "estacion_id", nullable = false)
-    private Integer estacionId;
+    @Column(name = "demarcacion_id", nullable = false)
+    private Integer demarcacionId;
 }
-
