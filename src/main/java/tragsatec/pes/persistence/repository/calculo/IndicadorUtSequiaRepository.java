@@ -24,7 +24,7 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "    mes" +
             ") " +
             "SELECT " +
-            "    :medicionId, " +
+            "    inds.medicion_id, " +
             "    pute.unidad_territorial_id, " +
             "    SUM(inds.prep1 * pute.coeficiente / 100.0), " +
             "    SUM(inds.prep3 * pute.coeficiente / 100.0), " +
@@ -32,20 +32,17 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "    SUM(inds.ie_b1 * pute.coeficiente / 100.0), " +
             "    SUM(inds.ie_b3 * pute.coeficiente / 100.0), " +
             "    SUM(inds.ie_b6 * pute.coeficiente / 100.0), " +
-            "    :anio, " +
-            "    :mes " +
+            "    inds.anio, " +
+            "    inds.mes " +
             "FROM indicador_sequia inds " +
             "INNER JOIN pes_ut_estacion pute ON inds.estacion_id = pute.estacion_id " +
             "WHERE inds.medicion_id = :medicionId " +
             "  AND pute.pes_id = :pesId " +
-            "  AND pute.tipo = :tipo " +
-            "GROUP BY pute.unidad_territorial_id", nativeQuery = true)
+            "  AND pute.tipo = 'S' " +
+            "GROUP BY inds.medicion_id, pute.unidad_territorial_id, inds.anio, inds.mes", nativeQuery = true)
     void insertIndicadorUtSequia(
             @Param("medicionId") Integer medicionId,
-            @Param("anio") Integer anio,
-            @Param("mes") Byte mes,
-            @Param("pesId") Integer pesId,
-            @Param("tipo") Character tipo
+            @Param("pesId") Integer pesId
     );
 
 

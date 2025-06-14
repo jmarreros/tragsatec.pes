@@ -1,29 +1,22 @@
-package tragsatec.pes.service.calculo;
+package tragsatec.pes.service.calculo; // O el paquete donde desees ubicar tu servicio
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import tragsatec.pes.persistence.entity.calculo.IndicadorDhSequiaEntity;
+import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.persistence.repository.calculo.IndicadorDhSequiaRepository;
 
-import java.util.List;
-
 @Service
+@RequiredArgsConstructor
 public class IndicadorDhSequiaService {
-    private final IndicadorDhSequiaRepository repository;
 
-    public IndicadorDhSequiaService(IndicadorDhSequiaRepository repository) {
-        this.repository = repository;
-    }
+    private final IndicadorDhSequiaRepository indicadorDhSequiaRepository;
 
-    public List<IndicadorDhSequiaEntity> findAll() {
-        return repository.findAll();
-    }
+    @Transactional
+    public void calcularYGuardarIndicadoresDhSequia(Integer medicionId, Integer pesId) {
+        // Eliminar registros existentes para el medicionId dado
+        indicadorDhSequiaRepository.deleteByMedicionId(medicionId);
 
-    public IndicadorDhSequiaEntity save(IndicadorDhSequiaEntity entity) {
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        repository.deleteById(id);
+        // Insertar los nuevos registros calculados
+        indicadorDhSequiaRepository.insertIndicadorDhSequia(medicionId, pesId);
     }
 }
-

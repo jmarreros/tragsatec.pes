@@ -12,11 +12,11 @@ public class IndicadorUtSequiaService {
     private final IndicadorUtSequiaRepository indicadorUtSequiaRepository;
 
     @Transactional
-    public void calcularYGuardarIndicadoresUtSequia(Integer medicionId, Integer anio, Byte mes, Integer pesId, Character tipo) {
+    public void calcularYGuardarIndicadoresUtSequia(Integer medicionId, Integer pesId) {
         // Eliminar registros existentes para el medicionId dado
         indicadorUtSequiaRepository.deleteByMedicionId(medicionId);
 
         // Insertar los nuevos registros calculados
-        indicadorUtSequiaRepository.insertIndicadorUtSequia(medicionId, anio, mes, pesId, tipo);
+        indicadorUtSequiaRepository.insertIndicadorUtSequia(medicionId, pesId);
     }
 }
