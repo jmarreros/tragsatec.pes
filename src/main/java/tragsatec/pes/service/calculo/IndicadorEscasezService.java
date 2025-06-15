@@ -21,7 +21,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class IndicadorEscasezService {
 
-    private final IndicadorEscasezRepository repository;
+    private final IndicadorEscasezRepository indicadorEscasezRepository;
+    private final IndicadorUtEscasezService indicadorUtEscasezService;
+    private final IndicadorDhEscasezService indicadorDhEscasezService;
     private final MedicionService medicionService;
     private final DetalleMedicionService detalleMedicionService;
     private final PesUmbralEscasezService pesUmbralEscasezService;
@@ -52,7 +54,7 @@ public class IndicadorEscasezService {
         }
 
         // 3- Borrar los indicadores de escasez si existen para la medición actual para volver a calcularlos
-        repository.deleteByMedicionId(medicionId);
+        indicadorEscasezRepository.deleteByMedicionId(medicionId);
 
         // 4- Obtener todos los umbrales de escasez para el PES actual.
         List<Map<String, Object>> umbralesEscasez = pesUmbralEscasezService.getPivotedUmbralesPorEstacion(pesId, mes);
@@ -97,13 +99,18 @@ public class IndicadorEscasezService {
             }
         }
 
-        // 6- Actualizar la medición a procesada
-        medicionService.marcarComoProcesada(medicionId);
+        // 6- Calcular los indicadores de escasez por unidad territorial
+        indicadorUtEscasezService.calcularYGuardarIndicadoresUtEscasez(medicionId, pesId);
 
+        // 7- Calcular los indicadores de escasez por demarcación
+        indicadorDhEscasezService.calcularYGuardarIndicadoresDhEscasez(medicionId, pesId);
+
+        // 8- Actualizar la medición a procesada
+        medicionService.marcarComoProcesada(medicionId);
     }
 
     private Long saveIndicadorEscasez(IndicadorEscasezEntity indicadorEscasez) {
-        IndicadorEscasezEntity savedEntity = repository.save(indicadorEscasez);
+        IndicadorEscasezEntity savedEntity = indicadorEscasezRepository.save(indicadorEscasez);
         return savedEntity.getId();
     }
 
