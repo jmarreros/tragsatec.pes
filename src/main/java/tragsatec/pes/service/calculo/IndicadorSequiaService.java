@@ -27,10 +27,12 @@ import static tragsatec.pes.util.ConstantUtils.*;
 @RequiredArgsConstructor
 public class IndicadorSequiaService {
 
-    private final IndicadorSequiaRepository repository;
+    private final IndicadorSequiaRepository indicadorSequiaRepository;
     private final MedicionService medicionService;
     private final DetalleMedicionService detalleMedicionService;
     private final PesUmbralSequiaService pesUmbralSequiaService;
+    private final IndicadorUtSequiaService indicadorUtSequiaService;
+    private final IndicadorDhSequiaService indicadorDhSequiaService;
 
     @Transactional
     public void calcularIndicadorSequia() {
@@ -51,7 +53,7 @@ public class IndicadorSequiaService {
         }
 
         //3- Borrar los indicadores de sequía si existen para la medición actual y volver a calcularlos
-        repository.deleteByMedicionId(medicionId);
+        indicadorSequiaRepository.deleteByMedicionId(medicionId);
 
         //4- Obtener todos los umbrales para el PES y mes actual de una vez
         List<PesUmbralSequiaDTO> umbralesSequia = pesUmbralSequiaService.findByPesIdAndMes(pesId, mes);
@@ -107,6 +109,11 @@ public class IndicadorSequiaService {
             }
         }
 
+        // 7- Calcular los indicadores de sequía por unidad territorial
+        indicadorUtSequiaService.calcularYGuardarIndicadoresUtSequia(medicionId, pesId);
+        // 8- Calcular los indicadores de sequía por demarcación hidrográfica
+        indicadorDhSequiaService.calcularYGuardarIndicadoresDhSequia(medicionId, pesId);
+
         // 7- Marcar la medición como procesada si fue correcto
         medicionService.marcarComoProcesada(medicionId);
     }
@@ -125,7 +132,7 @@ public class IndicadorSequiaService {
         // 2. Obtener los datos de acumulados para 2 meses
         // La consulta devuelve List<Object[]>, donde Object[0] es estacion_id (Integer)
         // y Object[1] es la suma de prep1 (BigDecimal).
-        List<Object[]> acumulados2MesesRaw = repository.sumLastNPrep1ForEachEstacion(2);
+        List<Object[]> acumulados2MesesRaw = indicadorSequiaRepository.sumLastNPrep1ForEachEstacion(2);
 
         // Procesar los resultados de 2 meses
         for (Object[] row : acumulados2MesesRaw) {
@@ -142,7 +149,7 @@ public class IndicadorSequiaService {
         // 3. Obtener los datos de acumulados para 5 meses
         // La consulta devuelve List<Object[]>, donde Object[0] es estacion_id (Integer)
         // y Object[1] es la suma de prep1 (BigDecimal).
-        List<Object[]> acumulados5MesesRaw = repository.sumLastNPrep1ForEachEstacion(5);
+        List<Object[]> acumulados5MesesRaw = indicadorSequiaRepository.sumLastNPrep1ForEachEstacion(5);
 
         // Procesar los resultados de 5 meses
         for (Object[] row : acumulados5MesesRaw) {
@@ -161,7 +168,7 @@ public class IndicadorSequiaService {
 
 
     private Long saveIndicadorSequia(IndicadorSequiaEntity indicadorSequia) {
-        IndicadorSequiaEntity savedEntity = repository.save(indicadorSequia);
+        IndicadorSequiaEntity savedEntity = indicadorSequiaRepository.save(indicadorSequia);
         return savedEntity.getId();
     }
 

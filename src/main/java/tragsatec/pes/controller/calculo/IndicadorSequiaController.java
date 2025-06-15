@@ -26,6 +26,7 @@ public class IndicadorSequiaController {
         }
     }
 
+    // Temporal pruebas
     @PostMapping("/calcular-ut")
     public ResponseEntity<String> calcularIndicadorUtSequia() {
         try {
@@ -36,6 +37,7 @@ public class IndicadorSequiaController {
         }
     }
 
+    // Temporal pruebas
     @PostMapping("/calcular-dh")
     public ResponseEntity<String> calcularIndicadorDhSequia() {
         try {
