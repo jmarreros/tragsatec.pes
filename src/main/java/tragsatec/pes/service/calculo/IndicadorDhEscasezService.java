@@ -1,29 +1,22 @@
 package tragsatec.pes.service.calculo;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import tragsatec.pes.persistence.entity.calculo.indicadorDhEscasezEntity;
+import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.persistence.repository.calculo.IndicadorDhEscasezRepository;
 
-import java.util.List;
-
 @Service
+@RequiredArgsConstructor
 public class IndicadorDhEscasezService {
-    private final IndicadorDhEscasezRepository repository;
+    private final IndicadorDhEscasezRepository indicadorDhEscasezRepository;
 
-    public IndicadorDhEscasezService(IndicadorDhEscasezRepository repository) {
-        this.repository = repository;
-    }
+    @Transactional
+    public void calcularYGuardarIndicadoresDhEscasez(Integer medicionId, Integer pesId) {
+        // Eliminar registros existentes para el medicionId dado
+        indicadorDhEscasezRepository.deleteByMedicionId(medicionId);
 
-    public List<indicadorDhEscasezEntity> findAll() {
-        return repository.findAll();
-    }
-
-    public indicadorDhEscasezEntity save(indicadorDhEscasezEntity entity) {
-        return repository.save(entity);
-    }
-
-    public void deleteById(Long id) {
-        repository.deleteById(id);
+        // Insertar los nuevos registros calculados
+        indicadorDhEscasezRepository.insertIndicadorDhEscasez(medicionId, pesId);
     }
 }
 
