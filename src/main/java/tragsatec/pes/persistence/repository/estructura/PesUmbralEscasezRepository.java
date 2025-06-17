@@ -22,7 +22,7 @@ public interface PesUmbralEscasezRepository extends JpaRepository<PesUmbralEscas
      */
     @Query(value = "SELECT " +
                    "    pue.estacion_id AS estacionId, " +
-                   "    pue.escenario + pue.estadistico AS factor, " +
+                   "    pue.param AS factor, " +
                    "    CASE :mesNumero " +
                    "        WHEN 1 THEN pue.mes_1 " +
                    "        WHEN 2 THEN pue.mes_2 " +

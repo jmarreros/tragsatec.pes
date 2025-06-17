@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+import static tragsatec.pes.util.ConstantUtils.*;
+
 @Service
 @RequiredArgsConstructor
 public class IndicadorEscasezService {
@@ -27,13 +29,6 @@ public class IndicadorEscasezService {
     private final MedicionService medicionService;
     private final DetalleMedicionService detalleMedicionService;
     private final PesUmbralEscasezService pesUmbralEscasezService;
-
-    // Estos estadísticos se usan como claves para extraer valores del mapa de umbrales.
-    // Deben coincidir con los valores generados por `escenario + estadistico` en la consulta.
-    private static final String FACTOR_ESTRES_MINIMO = "EstrésMínimo";
-    private static final String FACTOR_NORMALIDAD_MINIMO = "NormalidadMínimo";
-    private static final String FACTOR_NORMALIDAD_MAXIMO = "NormalidadMáximo";
-
 
     @Transactional
     public void calcularIndicadorEscasez() {
@@ -114,13 +109,17 @@ public class IndicadorEscasezService {
         return savedEntity.getId();
     }
 
-
     private BigDecimal calcularIndicadorEscasez(BigDecimal valorMedicion, Map<String, Object> umbralesParaEstacion) {
-        BigDecimal valEstresMinimo = (BigDecimal) umbralesParaEstacion.get(FACTOR_ESTRES_MINIMO);
-        BigDecimal valNormalidadMinimo = (BigDecimal) umbralesParaEstacion.get(FACTOR_NORMALIDAD_MINIMO);
-        BigDecimal valNormalidadMaximo = (BigDecimal) umbralesParaEstacion.get(FACTOR_NORMALIDAD_MAXIMO);
+        BigDecimal xPre = (BigDecimal) umbralesParaEstacion.get(FACTOR_XPRE);
+        BigDecimal xMax = (BigDecimal) umbralesParaEstacion.get(FACTOR_XMAX);
+        BigDecimal xEmerg = (BigDecimal) umbralesParaEstacion.get(FACTOR_XEMERG);
+        BigDecimal xMin = (BigDecimal) umbralesParaEstacion.get(FACTOR_XMIN);
 
-        return IndicadorUtils.IE_LinealC(valorMedicion, valNormalidadMinimo, valEstresMinimo, valNormalidadMaximo);
+        if (xMin == null) {
+            xMin = BigDecimal.ZERO; // Asignar un valor por defecto si es nulo
+        }
+
+        return IndicadorUtils.IE_LinealC(valorMedicion, xPre, xEmerg, xMax, xMin);
     }
 
 }

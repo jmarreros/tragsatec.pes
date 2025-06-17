@@ -80,22 +80,24 @@ public final class IndicadorUtils {
         }
     }
 
-    public static BigDecimal IE_LinealC(BigDecimal x, BigDecimal xPre, BigDecimal xEmerg, BigDecimal xMax) {
+    public static BigDecimal IE_LinealC(BigDecimal x, BigDecimal xPre, BigDecimal xEmerg, BigDecimal xMax, BigDecimal xMin) {
         final BigDecimal IE_PRE = new BigDecimal("0.5");
         final BigDecimal IE_EMERG = new BigDecimal("0.15");
         final BigDecimal IE_MAX = BigDecimal.ONE;
         final BigDecimal IE_MIN = BigDecimal.ZERO;
-        final BigDecimal X_MIN = BigDecimal.ZERO;
-
         BigDecimal result;
 
+        if (x.compareTo(xMin) < 0) {
+            return BigDecimal.ZERO;
+        }
+
         if (x.compareTo(xEmerg) <= 0) { // Recta emergencia-cero
-            if (x.compareTo(X_MIN) <= 0) { // Si x <= 0
+            if (x.compareTo(xMin) <= 0) { // Si x <= 0
                 result = IE_MIN; // result = 0
             } else {
-                result = x.subtract(X_MIN)
+                result = x.subtract(xMin)
                         .multiply(IE_EMERG.subtract(IE_MIN))
-                        .divide(xEmerg.subtract(X_MIN), SCALE, ROUNDING)
+                        .divide(xEmerg.subtract(xMin), SCALE, ROUNDING)
                         .add(IE_MIN);
             }
         } else if (x.compareTo(xPre) <= 0) { // Recta de prealerta-emergencia

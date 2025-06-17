@@ -42,6 +42,9 @@ public class PesUmbralEscasezEntity extends AuditInsertUpdateEntity {
     @Column(name = "estadistico", length = 10)
     private String estadistico;
 
+    @Column(name = "param", length = 10)
+    private String param;
+
     @Column(name = "mes_10", precision = 12, scale = 8)
     private BigDecimal mes10;
 
