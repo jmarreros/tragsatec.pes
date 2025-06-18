@@ -11,6 +11,7 @@ public class PesUmbralEscasezDTO {
     private Integer unidadTerritorialId;
     private String escenario;
     private String estadistico;
+    private String param;
     private BigDecimal mes10;
     private BigDecimal mes11;
     private BigDecimal mes12;

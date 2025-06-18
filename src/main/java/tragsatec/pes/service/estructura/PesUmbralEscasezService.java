@@ -46,6 +46,7 @@ public class PesUmbralEscasezService {
         }
         dto.setEscenario(entity.getEscenario());
         dto.setEstadistico(entity.getEstadistico());
+        dto.setParam(entity.getParam());
         dto.setMes10(entity.getMes10());
         dto.setMes11(entity.getMes11());
         dto.setMes12(entity.getMes12());
@@ -85,6 +86,7 @@ public class PesUmbralEscasezService {
 
         entity.setEscenario(dto.getEscenario());
         entity.setEstadistico(dto.getEstadistico());
+        entity.setParam(dto.getParam());
         entity.setMes10(dto.getMes10());
         entity.setMes11(dto.getMes11());
         entity.setMes12(dto.getMes12());
@@ -147,6 +149,7 @@ public class PesUmbralEscasezService {
 
                     existingEntity.setEscenario(dto.getEscenario());
                     existingEntity.setEstadistico(dto.getEstadistico());
+                    existingEntity.setParam(dto.getParam());
                     existingEntity.setMes10(dto.getMes10());
                     existingEntity.setMes11(dto.getMes11());
                     existingEntity.setMes12(dto.getMes12());
@@ -169,7 +172,7 @@ public class PesUmbralEscasezService {
      * Obtiene los datos de umbrales de escasez pivotados por estación para un PES y un mes específico.
      * El resultado es una lista de mapas donde cada mapa representa una estación y sus factores como columnas.
      *
-     * @param pesId El ID del PES.
+     * @param pesId     El ID del PES.
      * @param mesNumero El número del mes (1-12) para el cual obtener los valores.
      * @return Una lista de mapas con los datos pivotados.
      */
