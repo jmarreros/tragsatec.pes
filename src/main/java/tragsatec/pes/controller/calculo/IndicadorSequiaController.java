@@ -13,35 +13,11 @@ import tragsatec.pes.service.calculo.IndicadorUtSequiaService;
 public class IndicadorSequiaController {
 
     private final IndicadorSequiaService service;
-    private final IndicadorUtSequiaService indicadorUtSequiaService;
-    private final IndicadorDhSequiaService indicadorDhSequiaService;
 
     @PostMapping("/calcular")
     public ResponseEntity<String> calcularIndicador() {
         try {
             service.calcularIndicadorSequia();
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
-
-    // Temporal pruebas
-    @PostMapping("/calcular-ut")
-    public ResponseEntity<String> calcularIndicadorUtSequia() {
-        try {
-            indicadorUtSequiaService.calcularYGuardarIndicadoresUtSequia(737, 1);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
-
-    // Temporal pruebas
-    @PostMapping("/calcular-dh")
-    public ResponseEntity<String> calcularIndicadorDhSequia() {
-        try {
-            indicadorDhSequiaService.calcularYGuardarIndicadoresDhSequia(737, 1);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());

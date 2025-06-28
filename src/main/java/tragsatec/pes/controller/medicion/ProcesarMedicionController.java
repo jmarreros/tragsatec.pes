@@ -3,16 +3,11 @@ package tragsatec.pes.controller.medicion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import tragsatec.pes.exception.ArchivoMuyGrandeException;
-import tragsatec.pes.exception.ArchivoValidationException;
-import tragsatec.pes.exception.TipoArchivoNoSoportadoException;
+import tragsatec.pes.dto.medicion.MedicionManualDTO;
+import tragsatec.pes.exception.*;
 import tragsatec.pes.service.medicion.ProcesarMedicionService;
-import tragsatec.pes.service.medicion.ValidacionArchivoService;
 
 @RestController
 @RequestMapping("/procesar-medicion") // Ajusta la ruta base según tus convenciones
@@ -21,25 +16,33 @@ public class ProcesarMedicionController {
 
     private final ProcesarMedicionService procesarMedicionService;
 
-    @PostMapping("/upload")
+    @PostMapping("/manual")
+    public ResponseEntity<String> procesarMedicionManual(
+            @RequestBody MedicionManualDTO request) {
+        try {
+            procesarMedicionService.procesarMedicionManual(
+                    request.getTipo(),
+                    request.getAnio(),
+                    request.getMes(),
+                    request.getDetallesMedicion()
+            );
+            return ResponseEntity.ok("Medición manual guardada correctamente.");
+        } catch (MedicionValidationException | PesNoValidoException | ArchivoValidationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar la medición manual: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload") // Para subir un archivo de mediciones
     public ResponseEntity<String> procesarArchivoMedicion(
             @RequestParam("tipo") Character tipo,
             @RequestParam("anio") Short anio,
             @RequestParam("mes") Byte mes,
             @RequestParam("file") MultipartFile file) {
-
-        // Validaciones de parámetros
-        if (tipo != 'E' && tipo != 'S') {
-            return ResponseEntity.badRequest().body("El campo 'tipo' debe ser 'E' o 'S'.");
-        }
-
-        if (anio < 1970 || anio > 2100) {
-            return ResponseEntity.badRequest().body("El campo 'anio' debe estar entre 1970 y 2100.");
-        }
-
-        if (mes < 1 || mes > 12) {
-            return ResponseEntity.badRequest().body("El campo 'mes' debe estar entre 1 y 12.");
-        }
 
         try {
             // Procesar el archivo
@@ -56,19 +59,6 @@ public class ProcesarMedicionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al procesar el archivo: " + e.getMessage());
-        }
-    }
-
-
-    // Realiza el cálculo de las mediciones pendientes de procesar
-    @PostMapping("/calcular")
-    public ResponseEntity<String> procesarCalculo(){
-        try {
-//            procesarMedicionService.procesarCalculo();
-            return ResponseEntity.ok("Cálculo de mediciones procesado correctamente.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar el cálculo de mediciones: " + e.getMessage());
         }
     }
 

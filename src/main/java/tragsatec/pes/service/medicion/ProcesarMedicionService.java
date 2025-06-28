@@ -10,6 +10,7 @@ import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDatoDTO;
 import tragsatec.pes.exception.ArchivoValidationException;
+import tragsatec.pes.exception.MedicionValidationException;
 import tragsatec.pes.exception.PesNoValidoException;
 import tragsatec.pes.service.estructura.PesService;
 import tragsatec.pes.service.estructura.PesUtEstacionService;
@@ -33,11 +34,62 @@ public class ProcesarMedicionService {
     private final MedicionService medicionService;
     private final ArchivoMedicionService archivoMedicionService;
 
+    // Procesa una medición manual con los detalles proporcionados
+    public void procesarMedicionManual(Character tipo, Short anio, Byte mes, List<DetalleMedicionDTO> detallesMedicion) {
+
+        // 1- Validar los parámetros de entrada
+        validarTipoMedicion(tipo);
+        ValidarNextYearAndMonth(anio, mes, tipo);
+
+        // 2- Detectar el Plan Especial de Sequia (PES) actual
+        Integer pesId = pesService.findActiveAndApprovedPesId().orElseThrow(
+                () -> new PesNoValidoException("No hay un Plan Especial de Sequía (PES) activo y aprobado.")
+        );
+
+        // 3- Validar que los detalles de medición no estén vacíos
+        if (detallesMedicion == null || detallesMedicion.isEmpty()) {
+            throw new MedicionValidationException("Los detalles de medición no pueden estar vacíos.");
+        }
+
+        // 4- Validar que las estaciones del detalle existan en el PES actual
+        Map<Integer, String> estacionesPorId = pesUtEstacionService.getEstacionesByPesId(pesId, tipo)
+                .stream()
+                .collect(Collectors.toMap(
+                        EstacionProjection::getId,
+                        EstacionProjection::getCodigo
+                ));
+
+        for (DetalleMedicionDTO detalle : detallesMedicion) {
+            if (!estacionesPorId.containsKey(detalle.getEstacionId())) {
+                throw new ArchivoValidationException("La estación con ID '" + detalle.getEstacionId() + "' no está registrada en el PES actual.");
+            }
+        }
+
+        // 5- Anular la medición anterior para el PES, tipo, anio y mes
+        medicionService.anularMedicionAnterior(pesId, tipo, anio, mes);
+
+        // 6- Crear la nueva medición con todos sus detalles
+        MedicionDTO nuevaMedicion = new MedicionDTO();
+        nuevaMedicion.setPesId(pesId);
+        nuevaMedicion.setTipo(tipo);
+        nuevaMedicion.setAnio(anio);
+        nuevaMedicion.setMes(mes);
+        nuevaMedicion.setEliminado(false);
+
+        // Crear los detalles de la medición
+        java.util.Set<DetalleMedicionDTO> detallesSet = new java.util.HashSet<>(detallesMedicion);
+        nuevaMedicion.setDetallesMedicion(detallesSet);
+
+        // 7- Guardar la medición con todos sus detalles en una sola operación
+        medicionService.save(nuevaMedicion);
+    }
+
+    // Procesa una medición a partir de un archivo cargado
     public void procesarArchivoMedicion(Character tipo, Short anio, Byte mes, MultipartFile file) {
 
         // 1- Validar los parámetros de entrada
         validarTipoMedicion(tipo);
-        ValidarNextYearAndMonth(anio, mes);
+        ValidarNextYearAndMonth(anio, mes, tipo);
         validacionArchivoService.validarArchivo(file);
 
         // 2- Detectar el Plan Especial de Sequia (PES) actual
@@ -106,12 +158,12 @@ public class ProcesarMedicionService {
         }
     }
 
-    private void ValidarNextYearAndMonth(Short anio, Byte mes) {
+    private void ValidarNextYearAndMonth(Short anio, Byte mes, Character tipo) {
         if (anio == null || mes == null) {
             throw new IllegalArgumentException("El año y el mes no pueden ser nulos.");
         }
 
-        Optional<MedicionDTO> ultimaMedicion = medicionService.findLastProcessedMedicionByTipo('S');
+        Optional<MedicionDTO> ultimaMedicion = medicionService.findLastProcessedMedicionByTipo(tipo);
         if (ultimaMedicion.isEmpty()) return;
 
         MedicionDTO ultima = ultimaMedicion.get();

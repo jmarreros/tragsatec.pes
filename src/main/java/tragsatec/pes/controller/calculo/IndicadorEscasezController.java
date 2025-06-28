@@ -17,8 +17,6 @@ import java.util.List;
 public class IndicadorEscasezController {
 
     private final IndicadorEscasezService service;
-    private final IndicadorDhEscasezService indicadorDhEscasezService;
-    private final IndicadorUtEscasezService indicadorUtEscasezService;
 
     @PostMapping("/calcular")
     public ResponseEntity<String> calcularIndicador() {
@@ -29,28 +27,4 @@ public class IndicadorEscasezController {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
-
-
-    // Temporal pruebas
-    @PostMapping("/calcular-ut")
-    public ResponseEntity<String> calcularIndicadorUtSequia() {
-        try {
-            indicadorUtEscasezService.calcularYGuardarIndicadoresUtEscasez(233, 1);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
-
-    // Temporal pruebas
-    @PostMapping("/calcular-dh")
-    public ResponseEntity<String> calcularIndicadorDhSequia() {
-        try {
-            indicadorDhEscasezService.calcularYGuardarIndicadoresDhEscasez(233, 1);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
-
 }
