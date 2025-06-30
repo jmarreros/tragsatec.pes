@@ -42,5 +42,20 @@ public class MedicionController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+
+    @GetMapping("/primera-no-procesada")
+    public ResponseEntity<?> getFirstNotProcessedMedicion(@RequestParam("tipo") Character tipo) {
+        try {
+            MedicionDTO medicion = medicionService.findFirstNotProcessedMedicionByTipo(tipo);
+            if (medicion != null) {
+                return ResponseEntity.ok(medicion);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al buscar la primera medición no procesada: " + e.getMessage());
+        }
+    }
 }
 

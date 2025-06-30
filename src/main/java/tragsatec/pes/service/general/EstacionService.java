@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tragsatec.pes.dto.estructura.EstacionProjection;
 import tragsatec.pes.dto.general.EstacionRequestDTO;
 import tragsatec.pes.dto.general.EstacionResponseDTO;
 import tragsatec.pes.dto.general.UnidadTerritorialSummaryDTO;
@@ -14,6 +15,7 @@ import tragsatec.pes.persistence.entity.general.UnidadTerritorialEntity;
 import tragsatec.pes.persistence.repository.general.EstacionRepository;
 import tragsatec.pes.persistence.repository.general.EstacionUtRepository;
 import tragsatec.pes.persistence.repository.general.UnidadTerritorialRepository;
+import tragsatec.pes.service.estructura.PesService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,14 +27,16 @@ public class EstacionService {
     private final EstacionRepository estacionRepository;
     private final EstacionUtRepository estacionUtRepository;
     private final UnidadTerritorialRepository unidadTerritorialRepository;
+    private final PesService pesService;
 
     @Autowired
     public EstacionService(EstacionRepository estacionRepository,
                            EstacionUtRepository estacionUtRepository,
-                           UnidadTerritorialRepository unidadTerritorialRepository) {
+                           UnidadTerritorialRepository unidadTerritorialRepository, PesService pesService) {
         this.estacionRepository = estacionRepository;
         this.estacionUtRepository = estacionUtRepository;
         this.unidadTerritorialRepository = unidadTerritorialRepository;
+        this.pesService = pesService;
     }
 
     @Transactional(readOnly = true)
@@ -161,5 +165,13 @@ public class EstacionService {
         }
         EstacionEntity estacionActualizada = estacionRepository.save(estacion);
         return mapToEstacionResponseDTO(estacionActualizada);
+    }
+
+    public List<EstacionProjection> getEstacionesByTipo(Character tipo) {
+        Optional<Integer> pesId = pesService.findActiveAndApprovedPesId();
+        if (pesId.isEmpty()) {
+            throw new EntityNotFoundException("No se encontró un PES activo y aprobado.");
+        }
+        return estacionRepository.findEstacionesByPes(pesId, tipo);
     }
 }

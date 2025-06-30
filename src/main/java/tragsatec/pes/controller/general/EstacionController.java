@@ -6,26 +6,31 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tragsatec.pes.dto.estructura.EstacionProjection;
 import tragsatec.pes.dto.general.EstacionRequestDTO;
 import tragsatec.pes.dto.general.EstacionResponseDTO;
 import tragsatec.pes.service.general.EstacionService;
+import tragsatec.pes.service.medicion.MedicionService;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("estaciones")
 public class EstacionController {
     private final EstacionService estacionService;
+    private final MedicionService medicionService;
 
     @Autowired
-    public EstacionController(EstacionService estacionService) {
+    public EstacionController(EstacionService estacionService, MedicionService medicionService) {
         this.estacionService = estacionService;
+        this.medicionService = medicionService;
     }
 
     // Si getAll devuelve DTOs:
-     @GetMapping
-     public List<EstacionResponseDTO> getAll() {
-         return estacionService.findAll();
-     }
+    @GetMapping
+    public List<EstacionResponseDTO> getAll() {
+        return estacionService.findAll();
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<EstacionResponseDTO> getById(@PathVariable Integer id) { // Cambiado a EstacionResponseDTO
@@ -60,5 +65,12 @@ public class EstacionController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/pes")
+    public ResponseEntity<List<EstacionProjection>> getEstacionesPorPes(
+            @RequestParam("tipo") Character tipo) {
+        List<EstacionProjection> estaciones = estacionService.getEstacionesByTipo(tipo);
+        return ResponseEntity.ok(estaciones);
     }
 }
