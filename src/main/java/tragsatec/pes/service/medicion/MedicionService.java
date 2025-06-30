@@ -183,7 +183,7 @@ public class MedicionService {
         MedicionEntity ultimaProcesada = medicionRepository.findLastProcessedMedicionByTipo(tipo);
 
         if (ultimaProcesada == null) {
-            return null;
+            throw new IllegalArgumentException("No se encontró una última medición procesada para el tipo: " + tipo);
         }
 
         short ultimoAnio = ultimaProcesada.getAnio();
