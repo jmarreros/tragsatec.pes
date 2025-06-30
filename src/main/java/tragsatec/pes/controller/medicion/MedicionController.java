@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.medicion.MedicionDTO;
+import tragsatec.pes.dto.medicion.SiguienteMedicionDTO;
 import tragsatec.pes.service.medicion.MedicionService;
 
 import java.util.List;
@@ -43,14 +44,27 @@ public class MedicionController {
     }
 
 
-    @GetMapping("/primera-no-procesada")
+    // Busca la primera medición no procesada, si no la encuentra construye una nueva medición
+    @GetMapping("/pendiente-nueva")
     public ResponseEntity<?> getFirstNotProcessedMedicion(@RequestParam("tipo") Character tipo) {
         try {
             MedicionDTO medicion = medicionService.findFirstNotProcessedMedicionByTipo(tipo);
             if (medicion != null) {
                 return ResponseEntity.ok(medicion);
             } else {
-                return ResponseEntity.notFound().build();
+                 SiguienteMedicionDTO siguienteMedicion = medicionService.findSiguienteMedicion(tipo);
+                if (siguienteMedicion != null) {
+                    // Construir el objeto de medicion
+                    MedicionDTO medicionNueva = new MedicionDTO();
+                    medicionNueva.setTipo(tipo);
+                    medicionNueva.setAnio(siguienteMedicion.getAnio());
+                    medicionNueva.setMes(siguienteMedicion.getMes());
+
+                    return ResponseEntity.ok(medicionNueva);
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("No se encontró una medición pendiente ni una nueva medición para el tipo: " + tipo);
+                }
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

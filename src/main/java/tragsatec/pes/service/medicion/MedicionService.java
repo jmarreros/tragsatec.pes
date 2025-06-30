@@ -12,6 +12,8 @@ import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
 import tragsatec.pes.persistence.repository.general.EstacionRepository;
 import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
 import tragsatec.pes.service.estructura.PesService;
+import tragsatec.pes.dto.medicion.SiguienteMedicionDTO;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -174,5 +176,29 @@ public class MedicionService {
     @Transactional
     public void marcarComoProcesada(Integer medicionId) {
         medicionRepository.actualizarEstadoProcesado(medicionId, true);
+    }
+
+    @Transactional(readOnly = true)
+    public SiguienteMedicionDTO findSiguienteMedicion(Character tipo) {
+        MedicionEntity ultimaProcesada = medicionRepository.findLastProcessedMedicionByTipo(tipo);
+
+        if (ultimaProcesada == null) {
+            return null;
+        }
+
+        short ultimoAnio = ultimaProcesada.getAnio();
+        byte ultimoMes = ultimaProcesada.getMes();
+
+        short siguienteAnio = ultimoAnio;
+        byte siguienteMes;
+
+        if (ultimoMes == 12) {
+            siguienteMes = 1;
+            siguienteAnio++;
+        } else {
+            siguienteMes = (byte) (ultimoMes + 1);
+        }
+
+        return new SiguienteMedicionDTO(siguienteAnio, siguienteMes);
     }
 }
