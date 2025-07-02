@@ -67,6 +67,7 @@ public class EstacionController {
         }
     }
 
+    // Obtener las estaciones por plan de sequia actual y por tipo
     @GetMapping("/pes")
     public ResponseEntity<List<EstacionProjection>> getEstacionesPorPes(
             @RequestParam("tipo") Character tipo) {
