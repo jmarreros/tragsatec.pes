@@ -12,15 +12,16 @@ import tragsatec.pes.service.calculo.IndicadorUtSequiaService;
 @RequiredArgsConstructor
 public class IndicadorSequiaController {
 
-    private final IndicadorSequiaService service;
+    private final IndicadorSequiaService indicadorSequiaService;
 
     @PostMapping("/calcular")
     public ResponseEntity<String> calcularIndicador() {
         try {
-            service.calcularIndicadorSequia();
+            indicadorSequiaService.calcularIndicadorSequia();
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
+
 }

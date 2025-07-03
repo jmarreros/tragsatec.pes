@@ -166,6 +166,11 @@ public class IndicadorSequiaService {
         return new ArrayList<>(mapaAcumulados.values());
     }
 
+    public void limpiarIndicadoresSequia(Integer medicionId) {
+        indicadorSequiaRepository.deleteByMedicionId(medicionId);
+        indicadorUtSequiaService.limpiarIndicadoresUtSequia(medicionId);
+        indicadorDhSequiaService.limpiarIndicadoresDhSequia(medicionId);
+    }
 
     private Long saveIndicadorSequia(IndicadorSequiaEntity indicadorSequia) {
         IndicadorSequiaEntity savedEntity = indicadorSequiaRepository.save(indicadorSequia);

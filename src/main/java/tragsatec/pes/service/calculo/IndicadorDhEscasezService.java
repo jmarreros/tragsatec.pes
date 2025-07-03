@@ -18,5 +18,9 @@ public class IndicadorDhEscasezService {
         // Insertar los nuevos registros calculados
         indicadorDhEscasezRepository.insertIndicadorDhEscasez(medicionId, pesId);
     }
+
+    public void limpiarIndicadoresDhEscasez(Integer medicionId) {
+        indicadorDhEscasezRepository.deleteByMedicionId(medicionId);
+    }
 }
 

@@ -12,6 +12,8 @@ import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
 import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
 import tragsatec.pes.persistence.repository.general.EstacionRepository;
 import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
+import tragsatec.pes.service.calculo.IndicadorEscasezService;
+import tragsatec.pes.service.calculo.IndicadorSequiaService;
 import tragsatec.pes.service.estructura.PesService;
 import tragsatec.pes.dto.medicion.SiguienteMedicionDTO;
 
@@ -177,6 +179,11 @@ public class MedicionService {
     @Transactional
     public void marcarComoProcesada(Integer medicionId) {
         medicionRepository.actualizarEstadoProcesado(medicionId, true);
+    }
+
+    @Transactional
+    public void marcarComoNoProcesada(Integer medicionId) {
+        medicionRepository.actualizarEstadoProcesado(medicionId, false);
     }
 
     @Transactional(readOnly = true)

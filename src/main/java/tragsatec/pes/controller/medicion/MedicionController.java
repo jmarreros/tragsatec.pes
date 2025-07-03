@@ -53,7 +53,7 @@ public class MedicionController {
             if (medicion != null) {
                 return ResponseEntity.ok(medicion);
             } else {
-                 SiguienteMedicionDTO siguienteMedicion = medicionService.findSiguienteMedicion(tipo);
+                SiguienteMedicionDTO siguienteMedicion = medicionService.findSiguienteMedicion(tipo);
                 if (siguienteMedicion != null) {
                     // Construir el objeto de medicion
                     MedicionDTO medicionNueva = new MedicionDTO();
@@ -80,5 +80,15 @@ public class MedicionController {
         List<MedicionHistorialProjection> historial = medicionService.getHistorialMediciones(anio, tipo);
         return ResponseEntity.ok(historial);
     }
+
+//    @PostMapping("/{id}/quitar-procesada")
+//    public ResponseEntity<Void> desmarcarProcesada(@PathVariable("id") Integer id) {
+//        try {
+//            medicionService.desmarcarProcesada(id);
+//            return ResponseEntity.ok().build();
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
 }
 

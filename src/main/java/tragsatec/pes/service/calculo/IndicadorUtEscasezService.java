@@ -23,5 +23,8 @@ public class IndicadorUtEscasezService {
         indicadorUtEscasezRepository.insertIndicadorUtEscasez(medicionId, pesId);
     }
 
+    public void limpiarIndicadoresUtEscasez(Integer medicionId) {
+        indicadorUtEscasezRepository.deleteByMedicionId(medicionId);
+    }
 }
 

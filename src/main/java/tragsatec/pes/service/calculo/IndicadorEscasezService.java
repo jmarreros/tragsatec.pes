@@ -104,6 +104,13 @@ public class IndicadorEscasezService {
         medicionService.marcarComoProcesada(medicionId);
     }
 
+    @Transactional
+    public void limpiarIndicadoresEscasez(Integer medicionId) {
+        indicadorEscasezRepository.deleteByMedicionId(medicionId);
+        indicadorUtEscasezService.limpiarIndicadoresUtEscasez(medicionId);
+        indicadorDhEscasezService.limpiarIndicadoresDhEscasez(medicionId);
+    }
+
     private Long saveIndicadorEscasez(IndicadorEscasezEntity indicadorEscasez) {
         IndicadorEscasezEntity savedEntity = indicadorEscasezRepository.save(indicadorEscasez);
         return savedEntity.getId();

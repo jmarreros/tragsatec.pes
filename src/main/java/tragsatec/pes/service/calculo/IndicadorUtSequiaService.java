@@ -19,4 +19,8 @@ public class IndicadorUtSequiaService {
         // Insertar los nuevos registros calculados
         indicadorUtSequiaRepository.insertIndicadorUtSequia(medicionId, pesId);
     }
+
+    public void limpiarIndicadoresUtSequia(Integer medicionId) {
+        indicadorUtSequiaRepository.deleteByMedicionId(medicionId);
+    }
 }
