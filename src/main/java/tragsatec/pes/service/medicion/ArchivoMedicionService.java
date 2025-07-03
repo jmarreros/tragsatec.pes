@@ -2,6 +2,8 @@ package tragsatec.pes.service.medicion;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -13,6 +15,7 @@ import tragsatec.pes.persistence.repository.medicion.ArchivoMedicionRepository;
 import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -119,5 +122,32 @@ public class ArchivoMedicionService {
             targetPath = this.fileStorageLocation.resolve(uniqueFileName);
         }
         return uniqueFileName;
+    }
+
+    public Resource loadFileAsResource(Integer fileId) {
+        try {
+            // 1. Busca la entidad del archivo en la BD
+            ArchivoMedicionEntity fileEntity = archivoMedicionRepository.findById(fileId)
+                    .orElseThrow(() -> new EntityNotFoundException("Archivo no encontrado con ID: " + fileId));
+
+            // 2. Construye la ruta al archivo físico
+            Path filePath = Paths.get(fileEntity.getFilePath()).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("No se pudo leer el archivo: " + fileEntity.getFileName());
+            }
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("Error al construir la ruta del archivo.", ex);
+        }
+    }
+
+    // Necesitas un método para obtener el nombre del archivo
+    public String getFileName(Integer fileId) {
+        return archivoMedicionRepository.findById(fileId)
+                .map(ArchivoMedicionEntity::getFileName)
+                .orElseThrow(() -> new EntityNotFoundException("Archivo no encontrado con ID: " + fileId));
     }
 }

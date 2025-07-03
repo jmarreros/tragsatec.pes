@@ -5,9 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tragsatec.pes.dto.medicion.MedicionHistorialProjection;
 import tragsatec.pes.dto.medicion.MedicionManualDTO;
 import tragsatec.pes.exception.*;
 import tragsatec.pes.service.medicion.ProcesarMedicionService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/procesar-medicion") // Ajusta la ruta base según tus convenciones

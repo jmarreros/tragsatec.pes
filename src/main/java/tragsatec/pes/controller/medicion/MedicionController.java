@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.medicion.MedicionDTO;
+import tragsatec.pes.dto.medicion.MedicionHistorialProjection;
 import tragsatec.pes.dto.medicion.SiguienteMedicionDTO;
 import tragsatec.pes.service.medicion.MedicionService;
 
@@ -70,6 +71,14 @@ public class MedicionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al buscar la primera medición no procesada: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/historial")
+    public ResponseEntity<List<MedicionHistorialProjection>> getHistorial(
+            @RequestParam("anio") Short anio,
+            @RequestParam("tipo") Character tipo) {
+        List<MedicionHistorialProjection> historial = medicionService.getHistorialMediciones(anio, tipo);
+        return ResponseEntity.ok(historial);
     }
 }
 

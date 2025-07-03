@@ -4,11 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import tragsatec.pes.dto.estructura.UmbralEscasezRawDataDTO;
+import tragsatec.pes.dto.estructura.UmbralEscasezRawDataProjection;
 import tragsatec.pes.persistence.entity.estructura.PesUmbralEscasezEntity;
 
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public interface PesUmbralEscasezRepository extends JpaRepository<PesUmbralEscasezEntity, Integer> {
@@ -40,5 +39,5 @@ public interface PesUmbralEscasezRepository extends JpaRepository<PesUmbralEscas
                    "    END AS valorMes " +
                    "FROM pes_umbral_escasez pue " +
                    "WHERE pue.pes_id = :pesId", nativeQuery = true)
-    List<UmbralEscasezRawDataDTO> findRawUmbralesByPesIdAndMes(@Param("pesId") Integer pesId, @Param("mesNumero") Byte mesNumero);
+    List<UmbralEscasezRawDataProjection> findRawUmbralesByPesIdAndMes(@Param("pesId") Integer pesId, @Param("mesNumero") Byte mesNumero);
 }

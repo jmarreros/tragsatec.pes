@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
+import tragsatec.pes.dto.medicion.DetalleMedicionProjection;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
 import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
 import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
@@ -101,5 +102,9 @@ public class DetalleMedicionService {
                 DetalleMedicionEntity updatedEntity = detalleMedicionRepository.save(existingEntity);
                 return mapToDTO(updatedEntity);
             });
+    }
+
+    public List<DetalleMedicionProjection> getReporteDetallesPorMedicion(Integer medicionId) {
+        return detalleMedicionRepository.findReporteByMedicionId(medicionId);
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
+import tragsatec.pes.dto.medicion.DetalleMedicionProjection;
 import tragsatec.pes.service.medicion.DetalleMedicionService;
 
 import java.util.List;
@@ -42,4 +43,11 @@ public class DetalleMedicionController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+
+    @GetMapping("/{medicionId}/reporte-detalles")
+    public ResponseEntity<List<DetalleMedicionProjection>> getReporteDetalles(
+            @PathVariable("medicionId") Integer medicionId) {
+        List<DetalleMedicionProjection> reporte = detalleMedicionService.getReporteDetallesPorMedicion(medicionId);
+        return ResponseEntity.ok(reporte);
+    }
 }

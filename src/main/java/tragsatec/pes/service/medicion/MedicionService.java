@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
+import tragsatec.pes.dto.medicion.MedicionHistorialProjection;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
 import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
@@ -200,5 +201,9 @@ public class MedicionService {
         }
 
         return new SiguienteMedicionDTO(siguienteAnio, siguienteMes);
+    }
+
+    public List<MedicionHistorialProjection> getHistorialMediciones(Short anio, Character tipo) {
+        return medicionRepository.findHistorialByAnioAndTipo(anio, tipo);
     }
 }

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.estructura.PesUmbralEscasezDTO;
-import tragsatec.pes.dto.estructura.UmbralEscasezRawDataDTO;
+import tragsatec.pes.dto.estructura.UmbralEscasezRawDataProjection;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;
 import tragsatec.pes.persistence.entity.estructura.PesUmbralEscasezEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
@@ -182,16 +182,16 @@ public class PesUmbralEscasezService {
             throw new IllegalArgumentException("El número de mes debe estar entre 1 y 12.");
         }
 
-        List<UmbralEscasezRawDataDTO> rawData = pesUmbralEscasezRepository.findRawUmbralesByPesIdAndMes(pesId, mesNumero);
+        List<UmbralEscasezRawDataProjection> rawData = pesUmbralEscasezRepository.findRawUmbralesByPesIdAndMes(pesId, mesNumero);
 
         // Agrupar por estacionId y luego transformar cada grupo en un mapa pivotado
         Map<Integer, Map<String, Object>> groupedByEstacion = rawData.stream()
                 .collect(Collectors.groupingBy(
-                        UmbralEscasezRawDataDTO::getEstacionId,
+                        UmbralEscasezRawDataProjection::getEstacionId,
                         LinkedHashMap::new, // Para mantener el orden de las estaciones si es relevante
                         Collectors.toMap(
-                                UmbralEscasezRawDataDTO::getFactor,
-                                UmbralEscasezRawDataDTO::getValorMes,
+                                UmbralEscasezRawDataProjection::getFactor,
+                                UmbralEscasezRawDataProjection::getValorMes,
                                 (oldValue, newValue) -> newValue, // Política de merge en caso de factores duplicados por estación (no debería ocurrir)
                                 LinkedHashMap::new // Para mantener el orden de los factores dentro de cada estación
                         )
