@@ -18,12 +18,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IndicadorEscasezController {
 
-    private final IndicadorEscasezService service;
+    private final IndicadorEscasezService indicadorEscasezService;
 
     @PostMapping("/calcular")
     public ResponseEntity<String> calcularIndicador() {
         try {
-            service.calcularIndicadorEscasez();
+            indicadorEscasezService.calcularIndicadorEscasez();
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
@@ -31,20 +31,14 @@ public class IndicadorEscasezController {
     }
 
 
-    // TODO
-//
-//    @Transactional
-//    public void desmarcarProcesada(Integer medicionId) {
-//        MedicionEntity medicion = medicionRepository.findById(medicionId)
-//                .orElseThrow(() -> new IllegalArgumentException("Medición no encontrada con ID: " + medicionId));
-//
-//        medicionRepository.actualizarEstadoProcesado(medicionId, false);
-//
-//        if (medicion.getTipo() == 'E') {
-//            indicadorEscasezService.limpiarIndicadoresEscasez(medicionId);
-//        } else if (medicion.getTipo() == 'S') {
-//            indicadorSequiaService.limpiarIndicadoresSequia(medicionId);
-//        }
-//    }
+    @DeleteMapping("/medicion/{medicionId}/no-procesado")
+    public ResponseEntity<Void> limpiarIndicadoresMedicionNoProcesada(@PathVariable Integer medicionId) {
+        try {
+            indicadorEscasezService.limpiarIndicadoresMedicionNoProcesada(medicionId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
 }

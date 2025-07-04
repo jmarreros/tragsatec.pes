@@ -104,8 +104,15 @@ public class IndicadorEscasezService {
         medicionService.marcarComoProcesada(medicionId);
     }
 
+
     @Transactional
-    public void limpiarIndicadoresEscasez(Integer medicionId) {
+    public void limpiarIndicadoresMedicionNoProcesada(Integer medicionId) {
+        if (medicionId == null) {
+            throw new IllegalArgumentException("El ID de medición no puede ser nulo.");
+        }
+        // 1- Marcar la medición como no procesada
+        medicionService.marcarComoNoProcesada(medicionId);
+        // 2- Borrar los indicadores de escasez asociados a la medición
         indicadorEscasezRepository.deleteByMedicionId(medicionId);
         indicadorUtEscasezService.limpiarIndicadoresUtEscasez(medicionId);
         indicadorDhEscasezService.limpiarIndicadoresDhEscasez(medicionId);

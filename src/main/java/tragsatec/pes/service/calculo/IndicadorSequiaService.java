@@ -1,5 +1,6 @@
 package tragsatec.pes.service.calculo;
 
+import com.unboundid.util.args.ArgumentException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -166,7 +167,14 @@ public class IndicadorSequiaService {
         return new ArrayList<>(mapaAcumulados.values());
     }
 
-    public void limpiarIndicadoresSequia(Integer medicionId) {
+    @Transactional
+    public void limpiarIndicadoresMedicionNoProcesada(Integer medicionId) {
+        if (medicionId == null) {
+            throw new IllegalArgumentException("El ID de medición no puede ser nulo.");
+        }
+        // 1- Marcar la medición como no procesada
+        medicionService.marcarComoNoProcesada(medicionId);
+        // 2- Borrar los indicadores de sequía asociados a la medición
         indicadorSequiaRepository.deleteByMedicionId(medicionId);
         indicadorUtSequiaService.limpiarIndicadoresUtSequia(medicionId);
         indicadorDhSequiaService.limpiarIndicadoresDhSequia(medicionId);
