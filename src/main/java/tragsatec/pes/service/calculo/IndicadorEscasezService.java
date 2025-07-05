@@ -16,6 +16,7 @@ import tragsatec.pes.util.IndicadorUtils;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static tragsatec.pes.util.ConstantUtils.*;
 
@@ -106,13 +107,19 @@ public class IndicadorEscasezService {
 
 
     @Transactional
-    public void limpiarIndicadoresMedicionNoProcesada(Integer medicionId) {
+    public void limpiarIndicadoresMedicionNoProcesada() {
+        // 1- Buscar la última medición de escasez procesada
+        Optional<MedicionDTO> medicion = medicionService.findLastProcessedMedicionByTipo('E');
+        Integer medicionId = medicion.map(MedicionDTO::getId).orElse(null);
+
         if (medicionId == null) {
             throw new IllegalArgumentException("El ID de medición no puede ser nulo.");
         }
-        // 1- Marcar la medición como no procesada
+
+        // 2- Marcar la medición como no procesada
         medicionService.marcarComoNoProcesada(medicionId);
-        // 2- Borrar los indicadores de escasez asociados a la medición
+
+        // 3- Borrar los indicadores de escasez asociados a la medición
         indicadorEscasezRepository.deleteByMedicionId(medicionId);
         indicadorUtEscasezService.limpiarIndicadoresUtEscasez(medicionId);
         indicadorDhEscasezService.limpiarIndicadoresDhEscasez(medicionId);

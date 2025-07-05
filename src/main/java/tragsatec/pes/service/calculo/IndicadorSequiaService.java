@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static tragsatec.pes.util.ConstantUtils.*;
@@ -168,13 +169,20 @@ public class IndicadorSequiaService {
     }
 
     @Transactional
-    public void limpiarIndicadoresMedicionNoProcesada(Integer medicionId) {
+    public void limpiarIndicadoresMedicionNoProcesada() {
+
+        // 1- Buscar la última medición de sequía procesada
+        Optional<MedicionDTO> medicion = medicionService.findLastProcessedMedicionByTipo('S');
+        Integer medicionId = medicion.map(MedicionDTO::getId).orElse(null);
+
         if (medicionId == null) {
             throw new IllegalArgumentException("El ID de medición no puede ser nulo.");
         }
-        // 1- Marcar la medición como no procesada
+
+        // 2- Marcar la medición como no procesada
         medicionService.marcarComoNoProcesada(medicionId);
-        // 2- Borrar los indicadores de sequía asociados a la medición
+
+        // 3- Borrar los indicadores de sequía asociados a la medición
         indicadorSequiaRepository.deleteByMedicionId(medicionId);
         indicadorUtSequiaService.limpiarIndicadoresUtSequia(medicionId);
         indicadorDhSequiaService.limpiarIndicadoresDhSequia(medicionId);

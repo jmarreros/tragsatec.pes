@@ -31,10 +31,10 @@ public class IndicadorEscasezController {
     }
 
 
-    @DeleteMapping("/medicion/{medicionId}/no-procesado")
-    public ResponseEntity<Void> limpiarIndicadoresMedicionNoProcesada(@PathVariable Integer medicionId) {
+    @DeleteMapping("/medicion/no-procesado")
+    public ResponseEntity<Void> limpiarIndicadoresMedicionNoProcesada() {
         try {
-            indicadorEscasezService.limpiarIndicadoresMedicionNoProcesada(medicionId);
+            indicadorEscasezService.limpiarIndicadoresMedicionNoProcesada();
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

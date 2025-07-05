@@ -24,10 +24,10 @@ public class IndicadorSequiaController {
         }
     }
 
-    @DeleteMapping("/medicion/{medicionId}/no-procesado")
-    public ResponseEntity<Void> limpiarIndicadoresMedicionNoProcesada(@PathVariable Integer medicionId) {
+    @DeleteMapping("/medicion/no-procesado")
+    public ResponseEntity<Void> limpiarIndicadoresMedicionNoProcesada() {
         try {
-            indicadorSequiaService.limpiarIndicadoresMedicionNoProcesada(medicionId);
+            indicadorSequiaService.limpiarIndicadoresMedicionNoProcesada();
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
