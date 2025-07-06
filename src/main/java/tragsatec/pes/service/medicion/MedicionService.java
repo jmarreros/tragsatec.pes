@@ -12,11 +12,8 @@ import tragsatec.pes.persistence.entity.medicion.MedicionEntity;
 import tragsatec.pes.persistence.entity.medicion.DetalleMedicionEntity;
 import tragsatec.pes.persistence.repository.general.EstacionRepository;
 import tragsatec.pes.persistence.repository.medicion.MedicionRepository;
-import tragsatec.pes.service.calculo.IndicadorEscasezService;
-import tragsatec.pes.service.calculo.IndicadorSequiaService;
 import tragsatec.pes.service.estructura.PesService;
 import tragsatec.pes.dto.medicion.SiguienteMedicionDTO;
-
 
 import java.util.List;
 import java.util.Optional;

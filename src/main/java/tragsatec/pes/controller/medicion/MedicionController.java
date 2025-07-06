@@ -81,14 +81,11 @@ public class MedicionController {
         return ResponseEntity.ok(historial);
     }
 
-//    @PostMapping("/{id}/quitar-procesada")
-//    public ResponseEntity<Void> desmarcarProcesada(@PathVariable("id") Integer id) {
-//        try {
-//            medicionService.desmarcarProcesada(id);
-//            return ResponseEntity.ok().build();
-//        } catch (IllegalArgumentException e) {
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
+    @GetMapping("/ultima-procesada")
+    public ResponseEntity<MedicionDTO> getLastProcessedMedicion(@RequestParam("tipo") Character tipo) {
+        return medicionService.findLastProcessedMedicionByTipo(tipo)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
 
