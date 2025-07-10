@@ -18,33 +18,6 @@ public class MedicionController {
 
     private final MedicionService medicionService;
 
-    @GetMapping
-    public ResponseEntity<List<MedicionDTO>> getAll() {
-        List<MedicionDTO> dtos = medicionService.findAll();
-        return ResponseEntity.ok(dtos);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<MedicionDTO> getById(@PathVariable Integer id) {
-        return medicionService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<MedicionDTO> create(@RequestBody MedicionDTO dto) {
-        MedicionDTO savedDto = medicionService.save(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedDto);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<MedicionDTO> update(@PathVariable Integer id, @RequestBody MedicionDTO dto) {
-        return medicionService.update(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-
     // Busca la primera medición no procesada, si no la encuentra construye una nueva medición
     @GetMapping("/pendiente-nueva")
     public ResponseEntity<?> getFirstNotProcessedMedicion(@RequestParam("tipo") Character tipo) {

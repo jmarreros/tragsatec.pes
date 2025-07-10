@@ -4,19 +4,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import tragsatec.pes.persistence.audit.AuditInsertUpdateEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
 
 import java.math.BigDecimal;
 
 @Entity
-@EntityListeners({AuditingEntityListener.class, AuditInsertUpdateEntity.class})
 @Table(name = "detalle_medicion")
 @Getter
 @Setter
 @NoArgsConstructor
-public class DetalleMedicionEntity extends AuditInsertUpdateEntity {
+public class DetalleMedicionEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

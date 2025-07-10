@@ -20,17 +20,21 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    // 1. Inject the secret key from application properties
+    //Inject the secret key from application properties
     @Value("${jwt.secret.key}")
     private String secretKey;
 
-    // 2. Declare Algorithm and Verifier without initializing here
+    // Inject the expiration time from application properties
+    @Value("${jwt.expiration.time.hours}")
+    private int expirationTimeHours;
+
+    // Declare Algorithm and Verifier without initializing here
     private Algorithm algorithm;
     private JWTVerifier verifier;
 
     private static final String AUTHORITIES_CLAIM = "authorities"; // Claim key for authorities
 
-    // 3. Initialize Algorithm and Verifier after properties are injected
+    // Initialize Algorithm and Verifier after properties are injected
     @PostConstruct
     public void init() {
         // Optional: Add validation for the key length
@@ -51,7 +55,7 @@ public class JwtUtil {
                 .withSubject(username)
                 .withClaim(AUTHORITIES_CLAIM, authoritiesList) // Add authorities claim
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 8)) // 8 hour expiration
+                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * expirationTimeHours))
                 .sign(algorithm); // Use the initialized algorithm
     }
 

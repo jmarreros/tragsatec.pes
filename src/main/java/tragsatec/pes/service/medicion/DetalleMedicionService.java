@@ -41,70 +41,10 @@ public class DetalleMedicionService {
         return dto;
     }
 
-    private DetalleMedicionEntity mapToEntity(DetalleMedicionDTO dto) {
-        DetalleMedicionEntity entity = new DetalleMedicionEntity();
-        entity.setValor(dto.getValor());
-        entity.setTipoDato(dto.getTipoDato());
-
-        if (dto.getMedicionId() != null) {
-            MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
-                .orElseThrow(() -> new IllegalArgumentException("Medicion no encontrada con ID: " + dto.getMedicionId()));
-            entity.setMedicion(medicion);
-        }
-        if (dto.getEstacionId() != null) {
-            EstacionEntity estacion = estacionRepository.findById(dto.getEstacionId())
-                .orElseThrow(() -> new IllegalArgumentException("Estacion no encontrada con ID: " + dto.getEstacionId()));
-            entity.setEstacion(estacion);
-        }
-        return entity;
-    }
-
-    @Transactional(readOnly = true)
-    public List<DetalleMedicionDTO> findAll() {
-        return detalleMedicionRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<DetalleMedicionDTO> findById(Long id) {
-        return detalleMedicionRepository.findById(id).map(this::mapToDTO);
-    }
-
     @Transactional(readOnly = true)
     public List<DetalleMedicionDTO> findByMedicionId(Integer medicionId) {
         return detalleMedicionRepository.findByMedicionId(medicionId).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public DetalleMedicionDTO save(DetalleMedicionDTO dto) {
-        DetalleMedicionEntity entity = mapToEntity(dto);
-        DetalleMedicionEntity savedEntity = detalleMedicionRepository.save(entity);
-        return mapToDTO(savedEntity);
-    }
-
-    @Transactional
-    public Optional<DetalleMedicionDTO> update(Long id, DetalleMedicionDTO dto) {
-        return detalleMedicionRepository.findById(id)
-            .map(existingEntity -> {
-                existingEntity.setValor(dto.getValor());
-                existingEntity.setTipoDato(dto.getTipoDato());
-                if (dto.getMedicionId() != null) {
-                    MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
-                        .orElseThrow(() -> new IllegalArgumentException("Medicion no encontrada con ID: " + dto.getMedicionId()));
-                    existingEntity.setMedicion(medicion);
-                }
-                if (dto.getEstacionId() != null) {
-                    EstacionEntity estacion = estacionRepository.findById(dto.getEstacionId())
-                        .orElseThrow(() -> new IllegalArgumentException("Estacion no encontrada con ID: " + dto.getEstacionId()));
-                    existingEntity.setEstacion(estacion);
-                }
-                DetalleMedicionEntity updatedEntity = detalleMedicionRepository.save(existingEntity);
-                return mapToDTO(updatedEntity);
-            });
-    }
-
-    public List<DetalleMedicionProjection> getReporteDetallesPorMedicion(Integer medicionId) {
-        return detalleMedicionRepository.findReporteByMedicionId(medicionId);
     }
 }
