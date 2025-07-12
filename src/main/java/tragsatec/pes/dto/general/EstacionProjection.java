@@ -1,4 +1,4 @@
-package tragsatec.pes.dto.estructura;
+package tragsatec.pes.dto.general;
 
 public interface EstacionProjection {
     Integer getId();

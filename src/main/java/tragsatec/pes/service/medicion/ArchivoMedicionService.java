@@ -57,7 +57,6 @@ public class ArchivoMedicionService {
         if (entity == null) return null;
         ArchivoMedicionDTO dto = new ArchivoMedicionDTO();
         dto.setId(entity.getId());
-        dto.setFilePath(entity.getFilePath());
         dto.setFileName(entity.getFileName());
         if (entity.getMedicion() != null) {
             dto.setMedicionId(entity.getMedicion().getId());
@@ -99,8 +98,7 @@ public class ArchivoMedicionService {
                     .orElseThrow(() -> new EntityNotFoundException("Medición no encontrada con ID: " + medicionId));
 
             ArchivoMedicionEntity archivoMedicion = new ArchivoMedicionEntity();
-            archivoMedicion.setFileName(originalFileName);
-            archivoMedicion.setFilePath(targetLocation.toString());
+            archivoMedicion.setFileName(uniqueFileName);
             archivoMedicion.setMedicion(medicion);
 
             ArchivoMedicionEntity savedFile = archivoMedicionRepository.save(archivoMedicion);
@@ -130,8 +128,8 @@ public class ArchivoMedicionService {
             ArchivoMedicionEntity fileEntity = archivoMedicionRepository.findById(fileId)
                     .orElseThrow(() -> new EntityNotFoundException("Archivo no encontrado con ID: " + fileId));
 
-            // 2. Construye la ruta al archivo físico
-            Path filePath = Paths.get(fileEntity.getFilePath()).normalize();
+            // 2. Construye la ruta al archivo físico usando fileStorageLocation y el nombre del archivo de la entidad.
+            Path filePath = this.fileStorageLocation.resolve(fileEntity.getFileName()).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {

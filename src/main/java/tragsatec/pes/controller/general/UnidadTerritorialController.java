@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tragsatec.pes.dto.general.UnidadTerritorialProjection;
 import tragsatec.pes.dto.general.UnidadTerritorialRequestDTO;
 import tragsatec.pes.dto.general.UnidadTerritorialResponseDTO; // Cambiado
 import tragsatec.pes.dto.general.UnidadTerritorialSummaryDTO;
@@ -56,5 +57,11 @@ public class UnidadTerritorialController {
         } catch (Exception e) { // Manejo genérico
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la unidad territorial: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/por-tipo")
+    public ResponseEntity<List<UnidadTerritorialProjection>> getUnidadesTerritorialesByTipo(@RequestParam Character tipo) {
+        List<UnidadTerritorialProjection> unidades = unidadTerritorialService.getUnidadesTerritorialesByTipo(tipo);
+        return ResponseEntity.ok(unidades);
     }
 }

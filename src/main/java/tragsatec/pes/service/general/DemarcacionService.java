@@ -3,6 +3,7 @@ package tragsatec.pes.service.general;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tragsatec.pes.dto.general.DemarcacionProjection;
 import tragsatec.pes.dto.general.DemarcacionResponseDTO;
 import tragsatec.pes.dto.general.DemarcacionSummaryDTO;
 import tragsatec.pes.dto.general.UnidadTerritorialSummaryDTO;
@@ -100,5 +101,10 @@ public class DemarcacionService {
     public DemarcacionSummaryDTO save(DemarcacionEntity entity) {
         DemarcacionEntity savedEntity = demarcacionRepository.save(entity);
         return mapToDemarcacionSummaryDTO(savedEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DemarcacionProjection> findDemarcacionesByTipo(Character tipo) {
+        return demarcacionRepository.findDemarcacionesByTipo(tipo);
     }
 }

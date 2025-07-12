@@ -26,7 +26,7 @@ public interface MedicionRepository extends JpaRepository<MedicionEntity, Intege
 
     @Query(value = "SELECT m.id," +
             "m.anio as anio, m.mes as mes, m.procesado as procesado, m.eliminado as eliminado, " +
-            "am.id as file_id, am.file_name as fileName, am.file_path as filePath, " +
+            "am.id as file_id, am.file_name as fileName," +
             "m.created_by as createdBy, m.created_at as createdAt " +
             "FROM medicion m " +
             "LEFT JOIN archivo_medicion am ON m.id = am.medicion_id " +

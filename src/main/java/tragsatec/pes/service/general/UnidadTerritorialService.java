@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 @Service
 public class UnidadTerritorialService {
 
-    private final UnidadTerritorialRepository unidadTerritorialRepository;
     private final DemarcacionRepository demarcacionRepository;
     private final EstacionRepository estacionRepository;
     private final EstacionUtRepository estacionUtRepository;
+    private final UnidadTerritorialRepository unidadTerritorialRepository;
 
     @Autowired
     public UnidadTerritorialService(UnidadTerritorialRepository unidadTerritorialRepository,
@@ -183,5 +183,13 @@ public class UnidadTerritorialService {
 
         UnidadTerritorialEntity updatedUt = unidadTerritorialRepository.save(ut);
         return mapToUnidadTerritorialResponseDTO(updatedUt);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UnidadTerritorialProjection> getUnidadesTerritorialesByTipo(Character tipo) {
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo no puede ser nulo");
+        }
+        return unidadTerritorialRepository.findUnidadesTerritorialesByTipo(tipo);
     }
 }

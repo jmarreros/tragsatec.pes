@@ -3,7 +3,7 @@ package tragsatec.pes.persistence.repository.general;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import tragsatec.pes.dto.estructura.EstacionProjection;
+import tragsatec.pes.dto.general.EstacionProjection;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
 
 import java.util.List;
@@ -21,4 +21,10 @@ public interface EstacionRepository extends JpaRepository<EstacionEntity, Intege
             @Param("pesId") Optional<Integer> pesId,
             @Param("tipo") Character tipo);
 
+    @Query(value = "SELECT DISTINCT e.id, e.codigo FROM estacion e " +
+            "INNER JOIN estacion_ut eut ON e.id = eut.estacion_id " +
+            "INNER JOIN unidad_territorial ut ON ut.id = eut.unidad_territorial_id " +
+            "WHERE ut.tipo = :tipo ORDER BY e.codigo",
+            nativeQuery = true)
+    List<EstacionProjection> findEstacionesByTipo(@Param("tipo") Character tipo);
 }

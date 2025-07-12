@@ -5,7 +5,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import tragsatec.pes.dto.estructura.EstacionProjection;
+import tragsatec.pes.dto.general.EstacionProjection;
 import tragsatec.pes.dto.medicion.DetalleMedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDTO;
 import tragsatec.pes.dto.medicion.MedicionDatoDTO;

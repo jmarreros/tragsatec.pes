@@ -10,7 +10,6 @@ public interface MedicionHistorialProjection {
     Boolean getEliminado();
     Integer getFileId();
     String getFileName();
-    String getFilePath();
     String getCreatedBy();
     LocalDateTime getCreatedAt();
 }

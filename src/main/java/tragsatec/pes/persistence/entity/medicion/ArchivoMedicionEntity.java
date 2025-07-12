@@ -20,9 +20,6 @@ public class ArchivoMedicionEntity extends AuditOnlyInsertEntity {
     @Column(nullable = false)
     private Integer id;
 
-    @Column(nullable = false, length = 512)
-    private String filePath;
-
     @Column(nullable = false, length = 250)
     private String fileName;
 

@@ -6,7 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tragsatec.pes.dto.estructura.EstacionProjection;
+import tragsatec.pes.dto.general.EstacionProjection;
 import tragsatec.pes.dto.general.EstacionRequestDTO;
 import tragsatec.pes.dto.general.EstacionResponseDTO;
 import tragsatec.pes.service.general.EstacionService;
@@ -70,6 +70,14 @@ public class EstacionController {
     // Obtener las estaciones por plan de sequia actual y por tipo
     @GetMapping("/pes")
     public ResponseEntity<List<EstacionProjection>> getEstacionesPorPes(
+            @RequestParam("tipo") Character tipo) {
+        List<EstacionProjection> estaciones = estacionService.getEstacionesByTipoCurrentPes(tipo);
+        return ResponseEntity.ok(estaciones);
+    }
+
+    // Obtener todas las estaciones por tipo
+    @GetMapping("/por-tipo")
+    public ResponseEntity<List<EstacionProjection>> getEstacionesPorTipo(
             @RequestParam("tipo") Character tipo) {
         List<EstacionProjection> estaciones = estacionService.getEstacionesByTipo(tipo);
         return ResponseEntity.ok(estaciones);

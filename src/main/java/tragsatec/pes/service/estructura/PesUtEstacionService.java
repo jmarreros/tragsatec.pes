@@ -3,7 +3,7 @@ package tragsatec.pes.service.estructura; // O el paquete donde residiría este 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tragsatec.pes.dto.estructura.EstacionProjection;
+import tragsatec.pes.dto.general.EstacionProjection;
 import tragsatec.pes.dto.estructura.PesUtEstacionRequestDTO;
 import tragsatec.pes.dto.estructura.PesUtEstacionResponseDTO;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;

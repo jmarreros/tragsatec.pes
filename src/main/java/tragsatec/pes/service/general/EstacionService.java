@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tragsatec.pes.dto.estructura.EstacionProjection;
+import tragsatec.pes.dto.general.EstacionProjection;
 import tragsatec.pes.dto.general.EstacionRequestDTO;
 import tragsatec.pes.dto.general.EstacionResponseDTO;
 import tragsatec.pes.dto.general.UnidadTerritorialSummaryDTO;
@@ -167,11 +167,15 @@ public class EstacionService {
         return mapToEstacionResponseDTO(estacionActualizada);
     }
 
-    public List<EstacionProjection> getEstacionesByTipo(Character tipo) {
+    public List<EstacionProjection> getEstacionesByTipoCurrentPes(Character tipo) {
         Optional<Integer> pesId = pesService.findActiveAndApprovedPesId();
         if (pesId.isEmpty()) {
             throw new EntityNotFoundException("No se encontró un PES activo y aprobado.");
         }
         return estacionRepository.findEstacionesByPes(pesId, tipo);
+    }
+
+    public List<EstacionProjection> getEstacionesByTipo(Character tipo) {
+        return estacionRepository.findEstacionesByTipo(tipo);
     }
 }

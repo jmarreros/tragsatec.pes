@@ -8,6 +8,5 @@ import lombok.NoArgsConstructor;
 public class ArchivoMedicionDTO {
     private Integer id;
     private String fileName;
-    private String filePath;
     private Integer medicionId;
 }

@@ -3,6 +3,7 @@ package tragsatec.pes.controller.general;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tragsatec.pes.dto.general.DemarcacionProjection;
 import tragsatec.pes.dto.general.DemarcacionResponseDTO;
 import tragsatec.pes.dto.general.DemarcacionSummaryDTO; // Asegúrate de que está importado
 import tragsatec.pes.persistence.entity.general.DemarcacionEntity;
@@ -45,5 +46,12 @@ public class DemarcacionController {
         entity.setId(id);
         DemarcacionSummaryDTO updatedDto = demarcacionService.save(entity);
         return ResponseEntity.ok(updatedDto);
+    }
+
+
+    @GetMapping("/por-tipo")
+    public ResponseEntity<List<DemarcacionProjection>> getDemarcacionesByTipo(@RequestParam Character tipo) {
+        List<DemarcacionProjection> demarcaciones = demarcacionService.findDemarcacionesByTipo(tipo);
+        return ResponseEntity.ok(demarcaciones);
     }
 }
