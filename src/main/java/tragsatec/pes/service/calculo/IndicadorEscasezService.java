@@ -131,10 +131,10 @@ public class IndicadorEscasezService {
     }
 
     private BigDecimal calcularIndicadorEscasez(BigDecimal valorMedicion, Map<String, Object> umbralesParaEstacion) {
-        BigDecimal xPre = (BigDecimal) umbralesParaEstacion.get(FACTOR_XPRE);
-        BigDecimal xMax = (BigDecimal) umbralesParaEstacion.get(FACTOR_XMAX);
-        BigDecimal xEmerg = (BigDecimal) umbralesParaEstacion.get(FACTOR_XEMERG);
-        BigDecimal xMin = (BigDecimal) umbralesParaEstacion.get(FACTOR_XMIN);
+        BigDecimal xPre = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XPRE);
+        BigDecimal xMax = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XMAX);
+        BigDecimal xEmerg = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XEMERG);
+        BigDecimal xMin = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XMIN);
 
         if (xMin == null) {
             xMin = BigDecimal.ZERO; // Asignar un valor por defecto si es nulo

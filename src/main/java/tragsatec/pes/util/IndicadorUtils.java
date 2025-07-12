@@ -5,6 +5,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static tragsatec.pes.util.ConstantUtils.*;
+
 public final class IndicadorUtils {
 
     // Constantes para escala y modo de redondeo
@@ -34,9 +36,9 @@ public final class IndicadorUtils {
             BigDecimal xMin,    // mínimo absoluto
             BigDecimal xMax     // máximo absoluto
     ) {
-        final BigDecimal IE_PRE = new BigDecimal("0.5");
-        final BigDecimal IE_ALERTA = new BigDecimal("0.3");
-        final BigDecimal IE_EMERG = new BigDecimal("0.15");
+        final BigDecimal IE_PRE = SEQUIA_IND_ESTADO_PRE;
+        final BigDecimal IE_ALERTA = SEQUIA_IND_ESTADO_ALERTA;
+        final BigDecimal IE_EMERG = SEQUIA_IND_ESTADO_EMERGENCIA;
         final BigDecimal IE_MIN = BigDecimal.ZERO;
         final BigDecimal IE_MAX = BigDecimal.ONE;
 
@@ -81,8 +83,8 @@ public final class IndicadorUtils {
     }
 
     public static BigDecimal IE_LinealC(BigDecimal x, BigDecimal xPre, BigDecimal xEmerg, BigDecimal xMax, BigDecimal xMin) {
-        final BigDecimal IE_PRE = new BigDecimal("0.5");
-        final BigDecimal IE_EMERG = new BigDecimal("0.15");
+        final BigDecimal IE_PRE = ESCASEZ_IND_ESTADO_PRE;
+        final BigDecimal IE_EMERG = ESCASEZ_IND_ESTADO_EMERGENCIA;
         final BigDecimal IE_MAX = BigDecimal.ONE;
         final BigDecimal IE_MIN = BigDecimal.ZERO;
         BigDecimal result;

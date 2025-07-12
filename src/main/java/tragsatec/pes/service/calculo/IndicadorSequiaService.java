@@ -1,6 +1,5 @@
 package tragsatec.pes.service.calculo;
 
-import com.unboundid.util.args.ArgumentException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -260,9 +259,9 @@ public class IndicadorSequiaService {
             probabilidadAlerta = media;
             probabilidadEmergencia = media;
         } else { // Caso estándar: desviación > 0
-            probabilidadPreAlerta = IndicadorUtils.invNormal(FACTOR_PRE_ALERTA, media, desviacion);
-            probabilidadAlerta = IndicadorUtils.invNormal(FACTOR_ALERTA, media, desviacion);
-            probabilidadEmergencia = IndicadorUtils.invNormal(FACTOR_EMERGENCIA, media, desviacion);
+            probabilidadPreAlerta = IndicadorUtils.invNormal(SEQUIA_PROB_ACUMULADA_PRE, media, desviacion);
+            probabilidadAlerta = IndicadorUtils.invNormal(SEQUIA_PROB_ACUMULADA_ALERTA, media, desviacion);
+            probabilidadEmergencia = IndicadorUtils.invNormal(SEQUIA_PROB_ACUMULADA_EMERGENCIA, media, desviacion);
         }
 
         // 4- Calcular el índice de sequía lineal multiplicativo
