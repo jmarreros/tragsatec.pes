@@ -1,11 +1,13 @@
 package tragsatec.pes.service.reporte;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.dto.reporte.EstadisticasMensualesDTO;
 import tragsatec.pes.persistence.repository.calculo.IndicadorSequiaRepository;
+import tragsatec.pes.util.ConstantUtils;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -57,17 +59,16 @@ public class ReporteEstacionSequiaService {
                     Collections.sort(valores);
 
                     EstadisticasMensualesDTO dto = new EstadisticasMensualesDTO();
+                    dto.setMes(mes);
+                    dto.setMinimo(valores.get(0));
+                    dto.setMaximo(valores.get(valores.size() - 1));
 
-                    dto.setMes(mes); //mes
-                    dto.setMinimo(valores.get(0)); // mínimo
-                    dto.setMaximo(valores.get(valores.size() - 1)); // máximo
-
+                    int size = valores.size();
                     BigDecimal sum = valores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-                    BigDecimal media = sum.divide(new BigDecimal(valores.size()), SCALE, ROUNDING_MODE);
-                    dto.setMedia(media); // media
+                    BigDecimal media = sum.divide(new BigDecimal(size), SCALE, ROUNDING_MODE);
+                    dto.setMedia(media);
 
                     BigDecimal mediana;
-                    int size = valores.size();
                     if (size % 2 == 0) {
                         BigDecimal mid1 = valores.get(size / 2 - 1);
                         BigDecimal mid2 = valores.get(size / 2);
@@ -75,21 +76,32 @@ public class ReporteEstacionSequiaService {
                     } else {
                         mediana = valores.get(size / 2);
                     }
-                    dto.setMediana(mediana); // mediana
+                    dto.setMediana(mediana);
 
-                    // desviación estándar
+                    BigDecimal desviacionEstandar;
                     if (size > 1) {
                         BigDecimal sumOfSquares = valores.stream()
                                 .map(v -> v.subtract(media).pow(2))
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
                         BigDecimal varianzaMuestral = sumOfSquares.divide(new BigDecimal(size - 1), SCALE, ROUNDING_MODE);
-
-                        BigDecimal desviacionEstandar = new BigDecimal(Math.sqrt(varianzaMuestral.doubleValue()), MC);
-                        dto.setDesviacionEstandar(desviacionEstandar);
+                        desviacionEstandar = new BigDecimal(Math.sqrt(varianzaMuestral.doubleValue()), MC);
                     } else {
-                        // La desviación estándar de una muestra con 0 o 1 elementos es 0.
-                        dto.setDesviacionEstandar(BigDecimal.ZERO);
+                        desviacionEstandar = BigDecimal.ZERO;
+                    }
+                    dto.setDesviacionEstandar(desviacionEstandar);
+
+                    // Cálculo de probabilidades con la inversa de la distribución normal
+                    // Si la desviación estándar es 0, el resultado es siempre la media.
+                    if (desviacionEstandar.compareTo(BigDecimal.ZERO) > 0) {
+                        NormalDistribution normalDistribution = new NormalDistribution(media.doubleValue(), desviacionEstandar.doubleValue());
+
+                        dto.setProbPre(new BigDecimal(normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_PRE.doubleValue()), MC));
+                        dto.setProbAlerta(new BigDecimal(normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_ALERTA.doubleValue()), MC));
+                        dto.setProbEmergencia(new BigDecimal(normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_EMERGENCIA.doubleValue()), MC));
+                    } else {
+                        dto.setProbPre(media);
+                        dto.setProbAlerta(media);
+                        dto.setProbEmergencia(media);
                     }
 
                     return dto;
