@@ -91,13 +91,17 @@ public class ReporteEstacionSequiaService {
                     dto.setDesviacionEstandar(desviacionEstandar);
 
                     // Cálculo de probabilidades con la inversa de la distribución normal
-                    // Si la desviación estándar es 0, el resultado es siempre la media.
                     if (desviacionEstandar.compareTo(BigDecimal.ZERO) > 0) {
                         NormalDistribution normalDistribution = new NormalDistribution(media.doubleValue(), desviacionEstandar.doubleValue());
 
-                        dto.setProbPre(new BigDecimal(normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_PRE.doubleValue()), MC));
-                        dto.setProbAlerta(new BigDecimal(normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_ALERTA.doubleValue()), MC));
-                        dto.setProbEmergencia(new BigDecimal(normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_EMERGENCIA.doubleValue()), MC));
+                        double probPreValue = normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_PRE.doubleValue());
+                        dto.setProbPre(BigDecimal.valueOf(probPreValue).round(MC));
+
+                        double probAlertaValue = normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_ALERTA.doubleValue());
+                        dto.setProbAlerta(BigDecimal.valueOf(probAlertaValue).round(MC));
+
+                        double probEmergenciaValue = normalDistribution.inverseCumulativeProbability(ConstantUtils.SEQUIA_PROB_ACUMULADA_EMERGENCIA.doubleValue());
+                        dto.setProbEmergencia(BigDecimal.valueOf(probEmergenciaValue).round(MC));
                     } else {
                         dto.setProbPre(media);
                         dto.setProbAlerta(media);
