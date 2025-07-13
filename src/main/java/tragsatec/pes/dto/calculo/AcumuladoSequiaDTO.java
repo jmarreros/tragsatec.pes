@@ -8,9 +8,8 @@ import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
-@Getter
 public class AcumuladoSequiaDTO {
     private Integer estacionId;
-    private BigDecimal Pre3;
-    private BigDecimal Pre6;
+    private BigDecimal pre3;
+    private BigDecimal pre6;
 }

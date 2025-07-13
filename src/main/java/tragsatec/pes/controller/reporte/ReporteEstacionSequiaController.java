@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
+import tragsatec.pes.dto.reporte.EstadisticasMensualesDTO;
 import tragsatec.pes.service.reporte.ReporteEstacionSequiaService;
 
 import java.util.List;
@@ -26,6 +27,18 @@ public class ReporteEstacionSequiaController {
         try {
             List<IndicadorDataProjection> datos = reporteEstacionSequiaService.getAllDataIndicadorAnioMes(estacionId, tipoPrep);
             return ResponseEntity.ok(datos);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{estacionId}/estadisticas")
+    public ResponseEntity<?> getEstadisticasMensuales(
+            @PathVariable Integer estacionId,
+            @RequestParam String tipoPrep) {
+        try {
+            List<EstadisticasMensualesDTO> estadisticas = reporteEstacionSequiaService.getEstadisticasMensuales(estacionId, tipoPrep);
+            return ResponseEntity.ok(estadisticas);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
