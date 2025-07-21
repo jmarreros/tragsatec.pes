@@ -4,28 +4,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
-import tragsatec.pes.dto.reporte.EstadisticasMensualesDTO;
+import tragsatec.pes.dto.estructura.UmbralEscasezDataProjection;
+import tragsatec.pes.dto.reporte.EstadisticasMensualesEscasezDTO;
 import tragsatec.pes.persistence.repository.calculo.IndicadorEscasezRepository;
+import tragsatec.pes.service.estructura.PesUmbralEscasezService;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class ReporteEstacionEscasezService {
 
     private final IndicadorEscasezRepository indicadorEscasezRepository;
+    private final PesUmbralEscasezService pesUmbralEscasezService;
     private static final int SCALE = 8;
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final MathContext MC = new MathContext(SCALE, ROUNDING_MODE);
 
     @Autowired
-    public ReporteEstacionEscasezService(IndicadorEscasezRepository indicadorEscasezRepository) {
+    public ReporteEstacionEscasezService(IndicadorEscasezRepository indicadorEscasezRepository, PesUmbralEscasezService pesUmbralEscasezService) {
         this.indicadorEscasezRepository = indicadorEscasezRepository;
+        this.pesUmbralEscasezService = pesUmbralEscasezService;
     }
 
     @Transactional(readOnly = true)
@@ -34,8 +37,24 @@ public class ReporteEstacionEscasezService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstadisticasMensualesDTO> getEstadisticasMensuales(Integer estacionId) {
+    public List<EstadisticasMensualesEscasezDTO> getEstadisticasMensuales(Integer estacionId) {
         List<IndicadorDataProjection> datos = getAllDataIndicadorAnioMes(estacionId);
+        List<UmbralEscasezDataProjection> umbrales = pesUmbralEscasezService.findUmbralesByEstacionIdAndCurrentPesId(estacionId);
+
+        Map<Integer, Map<String, BigDecimal>> umbralesPorMes = new HashMap<>();
+        for (UmbralEscasezDataProjection umbral : umbrales) {
+            String param = umbral.getParam();
+            List<Function<UmbralEscasezDataProjection, BigDecimal>> getters = Arrays.asList(
+                    p -> p.getMes_1(), p -> p.getMes_2(), p -> p.getMes_3(),
+                    p -> p.getMes_4(), p -> p.getMes_5(), p -> p.getMes_6(),
+                    p -> p.getMes_7(), p -> p.getMes_8(), p -> p.getMes_9(),
+                    p -> p.getMes_10(), p -> p.getMes_11(), p -> p.getMes_12()
+            );
+            for (int i = 0; i < getters.size(); i++) {
+                int mes = i + 1;
+                umbralesPorMes.computeIfAbsent(mes, k -> new HashMap<>()).put(param, getters.get(i).apply(umbral));
+            }
+        }
 
         Map<Integer, List<BigDecimal>> datosPorMes = datos.stream()
                 .filter(d -> d.getDato() != null)
@@ -50,7 +69,7 @@ public class ReporteEstacionEscasezService {
                     List<BigDecimal> valores = entry.getValue();
                     Collections.sort(valores);
 
-                    EstadisticasMensualesDTO dto = new EstadisticasMensualesDTO();
+                    EstadisticasMensualesEscasezDTO dto = new EstadisticasMensualesEscasezDTO();
                     dto.setMes(mes);
                     dto.setMinimo(valores.get(0));
                     dto.setMaximo(valores.get(valores.size() - 1));
@@ -82,9 +101,15 @@ public class ReporteEstacionEscasezService {
                     }
                     dto.setDesviacionEstandar(desviacionEstandar);
 
+                    Map<String, BigDecimal> umbralesDelMes = umbralesPorMes.getOrDefault(mes, Collections.emptyMap());
+                    dto.setXemerg(umbralesDelMes.get("XEMERG"));
+                    dto.setXpre(umbralesDelMes.get("XPRE"));
+                    dto.setXmax(umbralesDelMes.get("XMAX"));
+                    dto.setXmin(umbralesDelMes.get("XMIN"));
+
                     return dto;
                 })
-                .sorted((a, b) -> a.getMes().compareTo(b.getMes()))
+                .sorted(Comparator.comparing(EstadisticasMensualesEscasezDTO::getMes))
                 .collect(Collectors.toList());
     }
 }

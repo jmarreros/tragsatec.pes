@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.dto.reporte.EstadisticasMensualesDTO;
+import tragsatec.pes.dto.reporte.EstadisticasMensualesEscasezDTO;
 import tragsatec.pes.service.reporte.ReporteEstacionEscasezService;
 
 import java.util.List;
@@ -28,9 +29,9 @@ public class ReporteEstacionEscasezController {
     }
 
     @GetMapping("/{estacionId}/estadisticas")
-    public ResponseEntity<List<EstadisticasMensualesDTO>> getEstadisticasMensuales(
+    public ResponseEntity<List<EstadisticasMensualesEscasezDTO>> getEstadisticasMensuales(
             @PathVariable Integer estacionId) {
-        List<EstadisticasMensualesDTO> estadisticas = reporteEstacionEscasezService.getEstadisticasMensuales(estacionId);
+        List<EstadisticasMensualesEscasezDTO> estadisticas = reporteEstacionEscasezService.getEstadisticasMensuales(estacionId);
         return ResponseEntity.ok(estadisticas);
     }
 }

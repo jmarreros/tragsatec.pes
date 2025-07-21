@@ -1,10 +1,12 @@
 package tragsatec.pes.service.estructura;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.estructura.PesUmbralEscasezDTO;
-import tragsatec.pes.dto.estructura.UmbralEscasezRawDataProjection;
+import tragsatec.pes.dto.estructura.UmbralEscasezDataProjection;
+import tragsatec.pes.dto.estructura.UmbralEscasezMesDataProjection;
 import tragsatec.pes.persistence.entity.estructura.PesEntity;
 import tragsatec.pes.persistence.entity.estructura.PesUmbralEscasezEntity;
 import tragsatec.pes.persistence.entity.general.EstacionEntity;
@@ -167,7 +169,6 @@ public class PesUmbralEscasezService {
                 });
     }
 
-
     /**
      * Obtiene los datos de umbrales de escasez pivotados por estación para un PES y un mes específico.
      * El resultado es una lista de mapas donde cada mapa representa una estación y sus factores como columnas.
@@ -182,16 +183,16 @@ public class PesUmbralEscasezService {
             throw new IllegalArgumentException("El número de mes debe estar entre 1 y 12.");
         }
 
-        List<UmbralEscasezRawDataProjection> rawData = pesUmbralEscasezRepository.findRawUmbralesByPesIdAndMes(pesId, mesNumero);
+        List<UmbralEscasezMesDataProjection> rawData = pesUmbralEscasezRepository.findRawUmbralesByPesIdAndMes(pesId, mesNumero);
 
         // Agrupar por estacionId y luego transformar cada grupo en un mapa pivotado
         Map<Integer, Map<String, Object>> groupedByEstacion = rawData.stream()
                 .collect(Collectors.groupingBy(
-                        UmbralEscasezRawDataProjection::getEstacionId,
+                        UmbralEscasezMesDataProjection::getEstacionId,
                         LinkedHashMap::new, // Para mantener el orden de las estaciones si es relevante
                         Collectors.toMap(
-                                UmbralEscasezRawDataProjection::getFactor,
-                                UmbralEscasezRawDataProjection::getValorMes,
+                                UmbralEscasezMesDataProjection::getFactor,
+                                UmbralEscasezMesDataProjection::getValorMes,
                                 (oldValue, newValue) -> newValue, // Política de merge en caso de factores duplicados por estación (no debería ocurrir)
                                 LinkedHashMap::new // Para mantener el orden de los factores dentro de cada estación
                         )
@@ -207,4 +208,15 @@ public class PesUmbralEscasezService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<UmbralEscasezDataProjection> findUmbralesByEstacionIdAndCurrentPesId(Integer estacionId) {
+        Optional<Integer> pesId = pesService.findActiveAndApprovedPesId();
+        if (pesId.isEmpty()) {
+            throw new EntityNotFoundException("No se encontró un PES activo y aprobado.");
+        }
+
+        return pesUmbralEscasezRepository.findUmbralesByEstacionIdAndPesId(estacionId, pesId);
+    }
+
 }
