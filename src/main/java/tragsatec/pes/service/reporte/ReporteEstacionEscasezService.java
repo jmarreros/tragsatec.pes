@@ -8,6 +8,7 @@ import tragsatec.pes.dto.estructura.UmbralEscasezDataProjection;
 import tragsatec.pes.dto.reporte.EstadisticasMensualesEscasezDTO;
 import tragsatec.pes.persistence.repository.calculo.IndicadorEscasezRepository;
 import tragsatec.pes.service.estructura.PesUmbralEscasezService;
+import tragsatec.pes.util.ConstantUtils;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -102,10 +103,25 @@ public class ReporteEstacionEscasezService {
                     dto.setDesviacionEstandar(desviacionEstandar);
 
                     Map<String, BigDecimal> umbralesDelMes = umbralesPorMes.getOrDefault(mes, Collections.emptyMap());
-                    dto.setXemerg(umbralesDelMes.get("XEMERG"));
-                    dto.setXpre(umbralesDelMes.get("XPRE"));
+                    BigDecimal xpre = umbralesDelMes.get("XPRE");
+                    BigDecimal xemerg = umbralesDelMes.get("XEMERG");
+
+                    dto.setXemerg(xemerg);
+                    dto.setXpre(xpre);
                     dto.setXmax(umbralesDelMes.get("XMAX"));
                     dto.setXmin(umbralesDelMes.get("XMIN"));
+
+                    // Calcular XALERTA
+                    if (xpre != null && xemerg != null) {
+                        BigDecimal numerador = ConstantUtils.ESCASEZ_IND_ESTADO_ALERTA.subtract(ConstantUtils.ESCASEZ_IND_ESTADO_EMERGENCIA)
+                                .multiply(xpre.subtract(xemerg));
+                        BigDecimal denominador = ConstantUtils.ESCASEZ_IND_ESTADO_PRE.subtract(ConstantUtils.ESCASEZ_IND_ESTADO_EMERGENCIA);
+
+                        if (denominador.compareTo(BigDecimal.ZERO) != 0) {
+                            BigDecimal xalerta = numerador.divide(denominador, SCALE, ROUNDING_MODE).add(xemerg);
+                            dto.setXalerta(xalerta);
+                        }
+                    }
 
                     return dto;
                 })

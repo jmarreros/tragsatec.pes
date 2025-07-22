@@ -12,6 +12,7 @@ public class EstadisticasMensualesEscasezDTO {
     private BigDecimal minimo;
     private BigDecimal desviacionEstandar;
     private BigDecimal xemerg;
+    private BigDecimal xalerta;
     private BigDecimal xpre;
     private BigDecimal xmax;
     private BigDecimal xmin;

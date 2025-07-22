@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
-import tragsatec.pes.dto.reporte.EstadisticasMensualesDTO;
+import tragsatec.pes.dto.reporte.EstadisticasMensualesSequiaDTO;
 import tragsatec.pes.persistence.repository.calculo.IndicadorSequiaRepository;
 import tragsatec.pes.util.ConstantUtils;
 
@@ -42,7 +42,7 @@ public class ReporteEstacionSequiaService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstadisticasMensualesDTO> getEstadisticasMensuales(Integer estacionId, String tipoPrep) {
+    public List<EstadisticasMensualesSequiaDTO> getEstadisticasMensuales(Integer estacionId, String tipoPrep) {
         List<IndicadorDataProjection> datos = getAllDataIndicadorAnioMes(estacionId, tipoPrep);
 
         Map<Integer, List<BigDecimal>> datosPorMes = datos.stream()
@@ -58,7 +58,7 @@ public class ReporteEstacionSequiaService {
                     List<BigDecimal> valores = entry.getValue();
                     Collections.sort(valores);
 
-                    EstadisticasMensualesDTO dto = new EstadisticasMensualesDTO();
+                    EstadisticasMensualesSequiaDTO dto = new EstadisticasMensualesSequiaDTO();
                     dto.setMes(mes);
                     dto.setMinimo(valores.get(0));
                     dto.setMaximo(valores.get(valores.size() - 1));

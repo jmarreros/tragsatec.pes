@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
-import tragsatec.pes.dto.reporte.EstadisticasMensualesDTO;
 import tragsatec.pes.dto.reporte.EstadisticasMensualesEscasezDTO;
 import tragsatec.pes.service.reporte.ReporteEstacionEscasezService;
 

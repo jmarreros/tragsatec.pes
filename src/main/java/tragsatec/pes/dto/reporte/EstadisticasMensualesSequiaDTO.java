@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class EstadisticasMensualesDTO {
+public class EstadisticasMensualesSequiaDTO {
     private Integer mes;
     private BigDecimal media;
     private BigDecimal mediana;
