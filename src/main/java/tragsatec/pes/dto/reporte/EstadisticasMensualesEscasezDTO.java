@@ -16,4 +16,7 @@ public class EstadisticasMensualesEscasezDTO {
     private BigDecimal xpre;
     private BigDecimal xmax;
     private BigDecimal xmin;
+    private BigDecimal ocurrenciaPre;
+    private BigDecimal ocurrenciaAlerta;
+    private BigDecimal ocurrenciaEmergencia;
 }

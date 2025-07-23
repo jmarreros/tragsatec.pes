@@ -1,5 +1,6 @@
 package tragsatec.pes.service.reporte;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,6 +121,21 @@ public class ReporteEstacionEscasezService {
                         if (denominador.compareTo(BigDecimal.ZERO) != 0) {
                             BigDecimal xalerta = numerador.divide(denominador, SCALE, ROUNDING_MODE).add(xemerg);
                             dto.setXalerta(xalerta);
+                        }
+                    }
+
+                    // Calcular ocurrencias
+                    if (desviacionEstandar.compareTo(BigDecimal.ZERO) > 0) {
+                        NormalDistribution dist = new NormalDistribution(media.doubleValue(), desviacionEstandar.doubleValue());
+
+                        if (xpre != null) {
+                            dto.setOcurrenciaPre(BigDecimal.valueOf(dist.cumulativeProbability(xpre.doubleValue())));
+                        }
+                        if (dto.getXalerta() != null) {
+                            dto.setOcurrenciaAlerta(BigDecimal.valueOf(dist.cumulativeProbability(dto.getXalerta().doubleValue())));
+                        }
+                        if (xemerg != null) {
+                            dto.setOcurrenciaEmergencia(BigDecimal.valueOf(dist.cumulativeProbability(xemerg.doubleValue())));
                         }
                     }
 
