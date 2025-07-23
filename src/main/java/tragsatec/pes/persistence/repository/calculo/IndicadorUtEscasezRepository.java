@@ -5,7 +5,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorUtEscasezEntity;
+
+import java.util.List;
 
 @Repository
 public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtEscasezEntity, Long> {
@@ -36,6 +39,9 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
             @Param("medicionId") Integer medicionId,
             @Param("pesId") Integer pesId
     );
+
+    @Query(value = "SELECT anio, mes, dato, ie AS indicador FROM indicador_ut_escasez WHERE unidad_territorial_id = :utId ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMes(@Param("utId") Integer utId);
 
     @Modifying
     @Query("DELETE FROM IndicadorUtEscasezEntity i WHERE i.medicionId = :medicionId")

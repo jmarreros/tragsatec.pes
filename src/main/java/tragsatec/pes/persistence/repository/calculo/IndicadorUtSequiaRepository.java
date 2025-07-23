@@ -5,7 +5,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorUtSequiaEntity;
+
+import java.util.List;
 
 @Repository
 public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSequiaEntity, Long> {
@@ -44,6 +47,13 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             @Param("medicionId") Integer medicionId,
             @Param("pesId") Integer pesId
     );
+
+
+    @Query(value = "SELECT anio, mes, prep1 AS dato, ie_b1 AS indicador FROM indicador_ut_sequia WHERE unidad_territorial_id = :utId ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep1(@Param("utId") Integer utId);
+
+    @Query(value = "SELECT anio, mes, prep3 AS dato, ie_b3 AS indicador FROM indicador_ut_sequia WHERE unidad_territorial_id = :utId ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep3(@Param("utId") Integer utId);
 
 
     @Modifying
