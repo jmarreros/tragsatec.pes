@@ -192,4 +192,6 @@ public class UnidadTerritorialService {
         }
         return unidadTerritorialRepository.findUnidadesTerritorialesByTipo(tipo);
     }
+
+
 }

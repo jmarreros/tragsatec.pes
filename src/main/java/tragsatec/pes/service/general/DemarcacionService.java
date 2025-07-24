@@ -105,6 +105,9 @@ public class DemarcacionService {
 
     @Transactional(readOnly = true)
     public List<DemarcacionProjection> findDemarcacionesByTipo(Character tipo) {
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo no puede ser nulo");
+        }
         return demarcacionRepository.findDemarcacionesByTipo(tipo);
     }
 }

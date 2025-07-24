@@ -5,7 +5,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorDhSequiaEntity;
+
+import java.util.List;
 
 @Repository
 public interface IndicadorDhSequiaRepository extends JpaRepository<IndicadorDhSequiaEntity, Long> {
@@ -44,6 +47,12 @@ public interface IndicadorDhSequiaRepository extends JpaRepository<IndicadorDhSe
             @Param("medicionId") Integer medicionId,
             @Param("pesId") Integer pesId
     );
+
+    @Query(value = "SELECT anio, mes, prep1 AS dato, ie_b1 AS indicador FROM indicador_dh_sequia WHERE demarcacion_id = :demarcacionId ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep1(@Param("demarcacionId") Integer demarcacionId);
+
+    @Query(value = "SELECT anio, mes, prep3 AS dato, ie_b3 AS indicador FROM indicador_dh_sequia WHERE demarcacion_id = :demarcacionId ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep3(@Param("demarcacionId") Integer demarcacionId);
 
     @Modifying
     @Query("DELETE FROM IndicadorDhSequiaEntity i WHERE i.medicionId = :medicionId")
