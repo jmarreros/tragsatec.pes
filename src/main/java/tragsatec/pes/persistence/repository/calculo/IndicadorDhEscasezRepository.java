@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorDhEscasezEntity;
 
 import java.util.List;
@@ -42,6 +43,18 @@ public interface IndicadorDhEscasezRepository extends JpaRepository<IndicadorDhE
 
     @Query(value = "SELECT anio, mes, dato, ie AS indicador FROM indicador_dh_escasez WHERE demarcacion_id = :demarcacionId ORDER BY anio, mes", nativeQuery = true)
     List<IndicadorDataProjection> getAllDataIndicadorAnioMes(@Param("demarcacionId") Integer demarcacionId);
+
+    @Query(value = "SELECT d.nombre, idh.anio, idh.mes, idh.dato, idh.ie AS indicador " +
+            "FROM indicador_dh_escasez idh " +
+            "INNER JOIN demarcacion d ON idh.demarcacion_id = d.id " +
+            "WHERE ((idh.anio = :startYear AND idh.mes >= :startMonth) OR (idh.anio = :endYear AND idh.mes <= :endMonth)) " +
+            "ORDER BY d.nombre, idh.anio, idh.mes", nativeQuery = true)
+    List<IndicadorFechaDataProjection> getAllDataFecha(
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
 
     @Modifying
     @Query("DELETE FROM IndicadorDhEscasezEntity i WHERE i.medicionId = :medicionId")

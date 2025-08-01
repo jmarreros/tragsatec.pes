@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorDhSequiaEntity;
 
 import java.util.List;
@@ -53,6 +54,30 @@ public interface IndicadorDhSequiaRepository extends JpaRepository<IndicadorDhSe
 
     @Query(value = "SELECT anio, mes, prep3 AS dato, ie_b3 AS indicador FROM indicador_dh_sequia WHERE demarcacion_id = :demarcacionId ORDER BY anio, mes", nativeQuery = true)
     List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep3(@Param("demarcacionId") Integer demarcacionId);
+
+    @Query(value = "SELECT d.nombre, idh.anio, idh.mes, idh.prep1 AS dato, idh.ie_b1 AS indicador " +
+            "FROM indicador_dh_sequia idh " +
+            "INNER JOIN demarcacion d ON idh.demarcacion_id = d.id " +
+            "WHERE ((idh.anio = :startYear AND idh.mes >= :startMonth) OR (idh.anio = :endYear AND idh.mes <= :endMonth)) " +
+            "ORDER BY d.nombre, idh.anio, idh.mes", nativeQuery = true)
+    List<IndicadorFechaDataProjection> getAllDataFechaPrep1(
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
+
+    @Query(value = "SELECT d.nombre, idh.anio, idh.mes, idh.prep3 AS dato, idh.ie_b3 AS indicador " +
+            "FROM indicador_dh_sequia idh " +
+            "INNER JOIN demarcacion d ON idh.demarcacion_id = d.id " +
+            "WHERE ((idh.anio = :startYear AND idh.mes >= :startMonth) OR (idh.anio = :endYear AND idh.mes <= :endMonth)) " +
+            "ORDER BY d.nombre, idh.anio, idh.mes", nativeQuery = true)
+    List<IndicadorFechaDataProjection> getAllDataFechaPrep3(
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
 
     @Modifying
     @Query("DELETE FROM IndicadorDhSequiaEntity i WHERE i.medicionId = :medicionId")
