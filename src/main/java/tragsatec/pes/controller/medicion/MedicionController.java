@@ -60,5 +60,11 @@ public class MedicionController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/ultimas5")
+    public List<MedicionHistorialProjection> getUltimas5MedicionesPorTipo(@RequestParam("tipo") Character tipo) {
+        return medicionService.getUltimas5MedicionesPorTipo(tipo);
+    }
+
 }
 

@@ -210,4 +210,8 @@ public class MedicionService {
     public List<MedicionHistorialProjection> getHistorialMediciones(Short anio, Character tipo) {
         return medicionRepository.findHistorialByAnioAndTipo(anio, tipo);
     }
+
+    public List<MedicionHistorialProjection> getUltimas5MedicionesPorTipo(Character tipo) {
+        return medicionRepository.findTop5ByTipo(tipo);
+    }
 }

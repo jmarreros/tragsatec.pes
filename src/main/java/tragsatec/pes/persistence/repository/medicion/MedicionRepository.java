@@ -36,5 +36,8 @@ public interface MedicionRepository extends JpaRepository<MedicionEntity, Intege
     List<MedicionHistorialProjection> findHistorialByAnioAndTipo(
             @Param("anio") Short anio,
             @Param("tipo") Character tipo);
-}
 
+    @Query(value = "SELECT TOP 5 id, anio, mes, procesado, eliminado, created_by as createdBy, created_at as createdAt " +
+            "FROM medicion WHERE tipo = :tipo AND eliminado = 0 ORDER BY anio DESC, mes DESC", nativeQuery = true)
+    List<MedicionHistorialProjection> findTop5ByTipo(@Param("tipo") Character tipo);
+}
