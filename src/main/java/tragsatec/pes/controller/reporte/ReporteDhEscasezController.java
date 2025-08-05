@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
 import tragsatec.pes.service.reporte.ReporteDhEscasezService;
 
 import java.util.List;
@@ -26,6 +27,16 @@ public class ReporteDhEscasezController {
     public ResponseEntity<?> getDataIndicadorAnioMes(@PathVariable Integer demarcacionId) {
         try {
             List<IndicadorDataProjection> datos = reporteDhEscasezService.getAllDataIndicadorAnioMes(demarcacionId);
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/fecha/{anio}")
+    public ResponseEntity<?> getDataFecha(@PathVariable Integer anio) {
+        try {
+            List<IndicadorFechaDataProjection> datos = reporteDhEscasezService.getAllDataFecha(anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
