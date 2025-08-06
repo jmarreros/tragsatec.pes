@@ -47,4 +47,9 @@ public class DetalleMedicionService {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<DetalleMedicionProjection> findReporteByMedicionId(Integer medicionId) {
+        return detalleMedicionRepository.findReporteByMedicionId(medicionId);
+    }
 }
