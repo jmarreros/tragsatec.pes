@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
 import tragsatec.pes.service.reporte.ReporteUtSequiaService;
 
@@ -43,4 +44,18 @@ public class ReporteUtSequiaController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // Get all Unidad Territorial data for a specific demarcation and year
+    @GetMapping("/demarcacion/{demarcacionId}/anio/{anio}")
+    public ResponseEntity<?> getDataFechaDemarcacion(
+            @PathVariable Integer demarcacionId,
+            @PathVariable Integer anio) {
+        try {
+            List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio);
+            return ResponseEntity.ok(datos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

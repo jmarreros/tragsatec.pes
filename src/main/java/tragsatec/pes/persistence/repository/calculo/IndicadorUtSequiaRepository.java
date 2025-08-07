@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorUtSequiaEntity;
 
@@ -75,6 +76,32 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "WHERE ((iut.anio = :startYear AND iut.mes >= :startMonth) OR (iut.anio = :endYear AND iut.mes <= :endMonth)) " +
             "ORDER BY ut.nombre, iut.anio, iut.mes", nativeQuery = true)
     List<IndicadorFechaDataProjection> getAllDataFechaPrep3(
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
+
+    @Query(value = "SELECT " +
+            "d.codigo d_codigo, " +
+            "d.nombre d_nombre, " +
+            "ut.id ut_id, " +
+            "ut.codigo ut_codigo, " +
+            "ut.nombre ut_nombre, " +
+            "iuts.anio, " +
+            "iuts.mes, " +
+            "iuts.ie_b1 indicador " +
+            "FROM " +
+            "pes_demarcacion_ut pdut " +
+            "INNER JOIN demarcacion d ON pdut.demarcacion_id = d.id " +
+            "INNER JOIN unidad_territorial ut ON ut.id = pdut.unidad_territorial_id " +
+            "INNER JOIN indicador_ut_sequia iuts ON iuts.unidad_territorial_id = ut.id " +
+            "WHERE pdut.pes_id = :pesId AND d.id = :demarcacionId AND ( " +
+            "(iuts.anio = :startYear AND iuts.mes >= :startMonth) OR (iuts.anio = :endYear AND iuts.mes <= :endMonth)) " +
+            "ORDER BY ut_codigo, iuts.anio, iuts.mes", nativeQuery = true)
+    List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacion(
+            @Param("pesId") Integer pesId,
+            @Param("demarcacionId") Integer demarcacionId,
             @Param("startYear") Integer startYear,
             @Param("startMonth") Integer startMonth,
             @Param("endYear") Integer endYear,
