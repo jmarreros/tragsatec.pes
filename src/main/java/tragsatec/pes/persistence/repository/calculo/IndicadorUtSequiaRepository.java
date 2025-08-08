@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import tragsatec.pes.persistence.entity.calculo.IndicadorUtSequiaEntity;
 
 import java.util.List;
@@ -102,6 +103,19 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
     List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacion(
             @Param("pesId") Integer pesId,
             @Param("demarcacionId") Integer demarcacionId,
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
+
+    @Query(value = "SELECT ut.id, ut.codigo, ut.nombre, anio, mes, ie_b1 indicador, prep1 valor " +
+            "FROM indicador_ut_sequia iut " +
+            "INNER JOIN unidad_territorial ut ON iut.unidad_territorial_id = ut.id " +
+            "WHERE ut.id = :utId AND ((iut.anio = :startYear AND iut.mes >= :startMonth) OR (iut.anio = :endYear AND iut.mes <= :endMonth)) " +
+            "ORDER BY ut.nombre, iut.anio, iut.mes", nativeQuery = true)
+    List<IndicadorUTFechaDataProjection> getTotalDataUTFecha(
+            @Param("utId") Integer utId,
             @Param("startYear") Integer startYear,
             @Param("startMonth") Integer startMonth,
             @Param("endYear") Integer endYear,

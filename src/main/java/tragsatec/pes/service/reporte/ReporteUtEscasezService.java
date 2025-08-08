@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import tragsatec.pes.persistence.repository.calculo.IndicadorUtEscasezRepository;
 import tragsatec.pes.service.estructura.PesService;
 
@@ -34,7 +35,6 @@ public class ReporteUtEscasezService {
         int endYear = anio + 1;
         int startMonth = 10;
         int endMonth = 9;
-
         return indicadorUtEscasezRepository.getAllDataFecha(startYear, startMonth, endYear, endMonth);
     }
 
@@ -51,4 +51,13 @@ public class ReporteUtEscasezService {
         return indicadorUtEscasezRepository.getAllDataFechaDemarcacion(pesId, demarcacionId, startYear, startMonth, endYear, endMonth);
     }
 
+    @Transactional(readOnly = true)
+    public List<IndicadorUTFechaDataProjection> getTotalDataUTFecha(Integer utId, Integer anio) {
+        int startYear = anio;
+        int endYear = anio + 1;
+        int startMonth = 10;
+        int endMonth = 9;
+
+        return indicadorUtEscasezRepository.getTotalDataUTFecha(utId, startYear, startMonth, endYear, endMonth);
+    }
 }

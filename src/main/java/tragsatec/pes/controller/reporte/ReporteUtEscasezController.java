@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tragsatec.pes.dto.calculo.IndicadorDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import tragsatec.pes.dto.calculo.IndicadorFechaDataProjection;
+import tragsatec.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import tragsatec.pes.service.reporte.ReporteUtEscasezService;
 
 import java.util.List;
@@ -52,6 +53,18 @@ public class ReporteUtEscasezController {
             List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtEscasezService.getAllDataFechaDemarcacion(demarcacionId, anio);
             return ResponseEntity.ok(datos);
         } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/total/{utId}/anio/{anio}")
+    public ResponseEntity<?> getTotalDataUTFecha(
+            @PathVariable Integer utId,
+            @PathVariable Integer anio) {
+        try {
+            List<IndicadorUTFechaDataProjection> datos = reporteUtEscasezService.getTotalDataUTFecha(utId, anio);
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
