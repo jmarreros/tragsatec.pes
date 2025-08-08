@@ -122,6 +122,20 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             @Param("endMonth") Integer endMonth
     );
 
+    @Query(value = "SELECT e.id, e.codigo, e.nombre, i.anio, i.mes, i.ie_b1 indicador, i.prep1 valor " +
+            "FROM pes_ut_estacion pesut " +
+            "INNER JOIN estacion e ON pesut.estacion_id = e.id " +
+            "INNER JOIN indicador_sequia i ON i.estacion_id = e.id " +
+            "WHERE pesut.unidad_territorial_id = :utId AND ((i.anio = :startYear AND i.mes >= :startMonth) OR (i.anio = :endYear AND i.mes <= :endMonth)) " +
+            "ORDER BY e.nombre, i.anio, i.mes", nativeQuery = true)
+    List<IndicadorUTFechaDataProjection> getUTEstacionFecha(
+            @Param("utId") Integer utId,
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
+
     @Modifying
     @Query("DELETE FROM IndicadorUtSequiaEntity i WHERE i.medicionId = :medicionId")
     void deleteByMedicionId(@Param("medicionId") Integer medicionId);

@@ -60,4 +60,14 @@ public class ReporteUtEscasezService {
 
         return indicadorUtEscasezRepository.getTotalDataUTFecha(utId, startYear, startMonth, endYear, endMonth);
     }
+
+    @Transactional(readOnly = true)
+    public List<IndicadorUTFechaDataProjection> getUTEstacionFecha(Integer utId, Integer anio) {
+        int startYear = anio;
+        int endYear = anio + 1;
+        int startMonth = 10;
+        int endMonth = 9;
+
+        return indicadorUtEscasezRepository.getUTEstacionFecha(utId, startYear, startMonth, endYear, endMonth);
+    }
 }

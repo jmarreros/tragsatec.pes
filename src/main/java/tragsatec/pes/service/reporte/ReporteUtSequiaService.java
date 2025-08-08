@@ -74,4 +74,13 @@ public class ReporteUtSequiaService {
         return indicadorUtSequiaRepository.getTotalDataUTFecha(utId, startYear, startMonth, endYear, endMonth);
     }
 
+    @Transactional(readOnly = true)
+    public List<IndicadorUTFechaDataProjection> getUTEstacionFecha(Integer utId, Integer anio) {
+        int startYear = anio;
+        int endYear = anio + 1;
+        int startMonth = 10;
+        int endMonth = 9;
+
+        return indicadorUtSequiaRepository.getUTEstacionFecha(utId, startYear, startMonth, endYear, endMonth);
+    }
 }

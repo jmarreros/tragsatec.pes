@@ -71,4 +71,15 @@ public class ReporteUtSequiaController {
         }
     }
 
+    @GetMapping("/ut-estacion/{utId}/anio/{anio}")
+    public ResponseEntity<?> getUTEstacionFecha(
+            @PathVariable Integer utId,
+            @PathVariable Integer anio) {
+        try {
+            List<IndicadorUTFechaDataProjection> datos = reporteUtSequiaService.getUTEstacionFecha(utId, anio);
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

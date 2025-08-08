@@ -98,6 +98,20 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
             @Param("endMonth") Integer endMonth
     );
 
+    @Query(value = "SELECT e.id, e.codigo, e.nombre, iut.anio, iut.mes, iut.ie indicador, iut.dato valor " +
+            "FROM pes_ut_estacion pesut " +
+            "INNER JOIN unidad_territorial ut ON pesut.unidad_territorial_id = ut.id " +
+            "INNER JOIN estacion e ON pesut.estacion_id = e.id " +
+            "INNER JOIN indicador_ut_escasez iut ON iut.unidad_territorial_id = ut.id " +
+            "WHERE ut.id = :utId AND ((iut.anio = :startYear AND iut.mes >= :startMonth) OR (iut.anio = :endYear AND iut.mes <= :endMonth)) " +
+            "ORDER BY e.nombre, iut.anio, iut.mes", nativeQuery = true)
+    List<IndicadorUTFechaDataProjection> getUTEstacionFecha(
+            @Param("utId") Integer utId,
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
 
     @Modifying
     @Query("DELETE FROM IndicadorUtEscasezEntity i WHERE i.medicionId = :medicionId")
