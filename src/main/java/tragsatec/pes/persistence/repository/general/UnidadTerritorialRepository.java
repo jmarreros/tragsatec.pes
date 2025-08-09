@@ -13,4 +13,8 @@ public interface UnidadTerritorialRepository extends JpaRepository<UnidadTerrito
     @Query(value = "SELECT id, nombre, codigo FROM unidad_territorial WHERE tipo = :tipo ORDER BY codigo",
             nativeQuery = true)
     List<UnidadTerritorialProjection> findUnidadesTerritorialesByTipo(@Param("tipo") Character tipo);
+
+    @Query(value = "SELECT id, nombre, codigo FROM unidad_territorial WHERE tipo = :tipo AND demarcacion_id = :demarcacion ORDER BY nombre",
+            nativeQuery = true)
+    List<UnidadTerritorialProjection> findUnidadesTerritorialesByTipoAndDemarcacion(@Param("tipo") Character tipo, @Param("demarcacion") Integer demarcacion);
 }

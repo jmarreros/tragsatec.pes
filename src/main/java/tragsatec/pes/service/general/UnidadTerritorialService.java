@@ -193,5 +193,11 @@ public class UnidadTerritorialService {
         return unidadTerritorialRepository.findUnidadesTerritorialesByTipo(tipo);
     }
 
-
+    @Transactional(readOnly = true)
+    public List<UnidadTerritorialProjection> getUnidadesTerritorialesByTipoAndDemarcacion(Character tipo, Integer demarcacion) {
+        if (tipo == null || demarcacion == null) {
+            throw new IllegalArgumentException("El tipo y la demarcación no pueden ser nulos");
+        }
+        return unidadTerritorialRepository.findUnidadesTerritorialesByTipoAndDemarcacion(tipo, demarcacion);
+    }
 }

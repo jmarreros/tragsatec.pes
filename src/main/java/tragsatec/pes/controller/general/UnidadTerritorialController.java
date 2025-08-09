@@ -64,4 +64,12 @@ public class UnidadTerritorialController {
         List<UnidadTerritorialProjection> unidades = unidadTerritorialService.getUnidadesTerritorialesByTipo(tipo);
         return ResponseEntity.ok(unidades);
     }
+
+    @GetMapping("/por-tipo-demarcacion")
+    public ResponseEntity<List<UnidadTerritorialProjection>> getUnidadesTerritorialesByTipoAndDemarcacion(
+            @RequestParam Character tipo,
+            @RequestParam Integer demarcacion) {
+        List<UnidadTerritorialProjection> unidades = unidadTerritorialService.getUnidadesTerritorialesByTipoAndDemarcacion(tipo, demarcacion);
+        return ResponseEntity.ok(unidades);
+    }
 }
