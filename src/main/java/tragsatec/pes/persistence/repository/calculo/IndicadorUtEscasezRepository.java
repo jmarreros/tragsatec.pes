@@ -98,13 +98,12 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
             @Param("endMonth") Integer endMonth
     );
 
-    @Query(value = "SELECT e.id, e.codigo, e.nombre, iut.anio, iut.mes, iut.ie indicador, iut.dato valor " +
+    @Query(value = "SELECT e.id, e.codigo, e.nombre, i.anio, i.mes, i.ie indicador, i.dato valor " +
             "FROM pes_ut_estacion pesut " +
-            "INNER JOIN unidad_territorial ut ON pesut.unidad_territorial_id = ut.id " +
             "INNER JOIN estacion e ON pesut.estacion_id = e.id " +
-            "INNER JOIN indicador_ut_escasez iut ON iut.unidad_territorial_id = ut.id " +
-            "WHERE ut.id = :utId AND ((iut.anio = :startYear AND iut.mes >= :startMonth) OR (iut.anio = :endYear AND iut.mes <= :endMonth)) " +
-            "ORDER BY e.nombre, iut.anio, iut.mes", nativeQuery = true)
+            "INNER JOIN indicador_escasez i ON i.estacion_id = e.id " +
+            "WHERE pesut.unidad_territorial_id = :utId AND ((i.anio = :startYear AND i.mes >= :startMonth) OR (i.anio = :endYear AND i.mes <= :endMonth)) " +
+            "ORDER BY e.nombre, i.anio, i.mes", nativeQuery = true)
     List<IndicadorUTFechaDataProjection> getUTEstacionFecha(
             @Param("utId") Integer utId,
             @Param("startYear") Integer startYear,
