@@ -63,11 +63,14 @@ public class ReporteUtEscasezService {
 
     @Transactional(readOnly = true)
     public List<IndicadorUTFechaDataProjection> getUTEstacionFecha(Integer utId, Integer anio) {
+        Integer pesId = pesService.findActiveAndApprovedPesId()
+                .orElseThrow(() -> new RuntimeException("No se encontró ningún PES activo y aprobado."));
+
         int startYear = anio;
         int endYear = anio + 1;
         int startMonth = 10;
         int endMonth = 9;
 
-        return indicadorUtEscasezRepository.getUTEstacionFecha(utId, startYear, startMonth, endYear, endMonth);
+        return indicadorUtEscasezRepository.getUTEstacionFecha(pesId, utId, startYear, startMonth, endYear, endMonth);
     }
 }

@@ -126,9 +126,10 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "FROM pes_ut_estacion pesut " +
             "INNER JOIN estacion e ON pesut.estacion_id = e.id " +
             "INNER JOIN indicador_sequia i ON i.estacion_id = e.id " +
-            "WHERE pesut.unidad_territorial_id = :utId AND ((i.anio = :startYear AND i.mes >= :startMonth) OR (i.anio = :endYear AND i.mes <= :endMonth)) " +
+            "WHERE pesut.pes_id = :pesId AND pesut.unidad_territorial_id = :utId AND ((i.anio = :startYear AND i.mes >= :startMonth) OR (i.anio = :endYear AND i.mes <= :endMonth)) " +
             "ORDER BY e.nombre, i.anio, i.mes", nativeQuery = true)
     List<IndicadorUTFechaDataProjection> getUTEstacionFecha(
+            @Param("pesId") Integer pesId,
             @Param("utId") Integer utId,
             @Param("startYear") Integer startYear,
             @Param("startMonth") Integer startMonth,

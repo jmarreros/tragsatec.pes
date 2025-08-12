@@ -35,6 +35,8 @@ dependencies {
 	implementation 'org.apache.poi:poi-ooxml:5.4.0'
 	implementation 'org.apache.commons:commons-math3:3.6.1'
 
+	implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5")
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
