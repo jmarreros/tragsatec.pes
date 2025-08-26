@@ -2,6 +2,7 @@ package com.chc.pes.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider; // Import
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -30,18 +31,21 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/login").permitAll()
-                        .anyRequest().authenticated()
-                )
+        http.cors(withDefaults()) // Configuración de CORS
+                .csrf(AbstractHttpConfigurer::disable) // Desactiva CSRF para APIs
+                .authorizeHttpRequests(authorize -> authorize
+                        // Recursos públicos (frontend)
+                        .requestMatchers("/", "/index.html", "/assets/**", "/app-config.js", "/css/**", "/js/**", "/img/**").permitAll()
+                        // Login: permitir POST y OPTIONS
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/v1/login").permitAll().requestMatchers(HttpMethod.POST, "/api/v1/login").permitAll()
+                        // Cualquier otra petición requiere autenticación
+                        .anyRequest().authenticated())
+                // Stateless session (JWT)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Register the custom provider in HttpSecurity
+                // Registra tu proveedor de autenticación personalizado
                 .authenticationProvider(customAuthenticationProvider)
+                // Añade el filtro JWT antes de UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
