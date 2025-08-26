@@ -1,0 +1,45 @@
+package com.chc.pes.controller.reporte;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.chc.pes.dto.calculo.IndicadorDataProjection;
+import com.chc.pes.dto.calculo.IndicadorFechaDataProjection;
+import com.chc.pes.service.reporte.ReporteDhEscasezService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/reportes/dh-escasez")
+public class ReporteDhEscasezController {
+
+    private final ReporteDhEscasezService reporteDhEscasezService;
+
+    @Autowired
+    public ReporteDhEscasezController(ReporteDhEscasezService reporteDhEscasezService) {
+        this.reporteDhEscasezService = reporteDhEscasezService;
+    }
+
+    @GetMapping("/{demarcacionId}")
+    public ResponseEntity<?> getDataIndicadorAnioMes(@PathVariable Integer demarcacionId) {
+        try {
+            List<IndicadorDataProjection> datos = reporteDhEscasezService.getAllDataIndicadorAnioMes(demarcacionId);
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/fecha/{anio}")
+    public ResponseEntity<?> getDataFecha(@PathVariable Integer anio) {
+        try {
+            List<IndicadorFechaDataProjection> datos = reporteDhEscasezService.getAllDataFecha(anio);
+            return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}
