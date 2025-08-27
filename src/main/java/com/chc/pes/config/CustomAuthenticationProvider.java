@@ -1,6 +1,7 @@
 package com.chc.pes.config;
 
 import com.chc.pes.dto.LdapAutentificacion;
+import com.chc.pes.persistence.entity.UserEntity;
 import com.chc.pes.persistence.enums.UserRole;
 import com.chc.pes.service.LdapAutentificacionService;
 import com.chc.pes.service.UserService;
@@ -11,10 +12,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
@@ -31,11 +36,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
-        String providedPassword = (String) authentication.getCredentials(); // Obtener contraseña
+        String providedPassword = (String) authentication.getCredentials();
+        UserDetails userDetails;
 
         // 1. Validate credentials against external service
-        // --- Production Environment - LDAP ---
-        if (!StringUtils.isEmpty(ldapUrl)) {
+        if (!StringUtils.isBlank(ldapUrl)) {
             LdapAutentificacion autentificacion = ldapAuthService.autentificacion(username, providedPassword);
             switch (autentificacion.getEstado()) {
                 case DENEGADO:
@@ -48,30 +53,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                     break;
             }
 
-            username = autentificacion.getUsuario();
-            UserRole role = autentificacion.getRol();
-
-            userService.insertOrUpdateUser(username, role.name());
-
-            // Se debería crear el usuario en base de datos si no existe y si existe se
-            // debería actualizar su rol
-
-            // Para hacerlo compatible de momento se fuerza a que sea el usuario admin
-            //username = ""; // TODO: quitar esto
+            // Insert or update user in local database
+            userService.insertOrUpdateUser(autentificacion.getUsuario(), autentificacion.getRol().name());
         }
 
-        // 2. Load user details from local database
-        // --- Development Environment - Bypass external service - load user directly from local DB - Not required password check ---
-        UserDetails userDetails;
-        try {
-            userDetails = userDetailsService.loadUserByUsername(username);
-
-        } catch (UsernameNotFoundException e) {
-            // Even if the external validation was OK, if the user does not exist locally,
-            // it's a problem.
-            // Or you could decide to create it here if that's your business logic.
-            throw new BadCredentialsException("User authenticated externally but not found locally");
-        }
+        // 2. Load user details from local database (para entorno de desarrollo)
+        userDetails = userDetailsService.loadUserByUsername(username);
 
         // 3. Check local account status (locked, disabled, etc.)
         if (!userDetails.isAccountNonLocked()) {

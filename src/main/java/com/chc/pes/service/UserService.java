@@ -8,6 +8,7 @@ import com.chc.pes.persistence.entity.UserEntity;
 import com.chc.pes.persistence.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -52,7 +53,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserEntity insertOrUpdateUser(String username, String role) {
+    public void insertOrUpdateUser(String username, String role) {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("El nombre de usuario es requerido.");
         }
@@ -67,7 +68,7 @@ public class UserService {
             throw new IllegalArgumentException("El rol '" + role + "' no es válido.");
         }
 
-        return userRepository.findByUsername(username)
+        userRepository.findByUsername(username)
                 .map(user -> {
                     // El usuario existe, verificar si el rol ha cambiado
                     if (!user.getRole().equals(userRole)) {
@@ -82,6 +83,8 @@ public class UserService {
                     newUser.setUsername(username);
                     newUser.setRole(userRole);
                     newUser.setLocked(false);
+                    newUser.setCreatedBy("system");
+                    newUser.setCreatedAt(LocalDateTime.now());
                     return userRepository.save(newUser);
                 });
     }

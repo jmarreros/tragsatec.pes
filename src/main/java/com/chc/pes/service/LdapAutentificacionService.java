@@ -11,7 +11,7 @@ public class LdapAutentificacionService {
 
     // *********************************************************************************
     public LdapAutentificacion autentificacion(String usuario, String password) {
-        return new LdapAutentificacion(LdapAutentificacion.Estado.OK, "admin", UserRole.ADMINISTRADOR);
+        return new LdapAutentificacion(LdapAutentificacion.Estado.OK, "admin", UserRole.REGISTRADOR);
     }
 
 }
