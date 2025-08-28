@@ -1,8 +1,6 @@
 package com.chc.pes.config;
 
 import com.chc.pes.dto.LdapAutentificacion;
-import com.chc.pes.persistence.entity.UserEntity;
-import com.chc.pes.persistence.enums.UserRole;
 import com.chc.pes.service.LdapAutentificacionService;
 import com.chc.pes.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +10,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
@@ -55,6 +49,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
             // Insert or update user in local database
             userService.insertOrUpdateUser(autentificacion.getUsuario(), autentificacion.getRol().name());
+
+            username = autentificacion.getUsuario();
         }
 
         // 2. Load user details from local database (para entorno de desarrollo)

@@ -46,7 +46,7 @@ public class LoginController {
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
             // If authentication fails, return an error
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 }
