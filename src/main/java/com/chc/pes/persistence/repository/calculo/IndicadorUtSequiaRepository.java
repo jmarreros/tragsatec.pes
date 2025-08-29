@@ -100,7 +100,33 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "WHERE pdut.pes_id = :pesId AND d.id = :demarcacionId AND ( " +
             "(iuts.anio = :startYear AND iuts.mes >= :startMonth) OR (iuts.anio = :endYear AND iuts.mes <= :endMonth)) " +
             "ORDER BY ut_codigo, iuts.anio, iuts.mes", nativeQuery = true)
-    List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacion(
+    List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacionPrep1(
+            @Param("pesId") Integer pesId,
+            @Param("demarcacionId") Integer demarcacionId,
+            @Param("startYear") Integer startYear,
+            @Param("startMonth") Integer startMonth,
+            @Param("endYear") Integer endYear,
+            @Param("endMonth") Integer endMonth
+    );
+
+    @Query(value = "SELECT " +
+            "d.codigo d_codigo, " +
+            "d.nombre d_nombre, " +
+            "ut.id ut_id, " +
+            "ut.codigo ut_codigo, " +
+            "ut.nombre ut_nombre, " +
+            "iuts.anio, " +
+            "iuts.mes, " +
+            "iuts.ie_b3 indicador " +
+            "FROM " +
+            "pes_demarcacion_ut pdut " +
+            "INNER JOIN demarcacion d ON pdut.demarcacion_id = d.id " +
+            "INNER JOIN unidad_territorial ut ON ut.id = pdut.unidad_territorial_id " +
+            "INNER JOIN indicador_ut_sequia iuts ON iuts.unidad_territorial_id = ut.id " +
+            "WHERE pdut.pes_id = :pesId AND d.id = :demarcacionId AND ( " +
+            "(iuts.anio = :startYear AND iuts.mes >= :startMonth) OR (iuts.anio = :endYear AND iuts.mes <= :endMonth)) " +
+            "ORDER BY ut_codigo, iuts.anio, iuts.mes", nativeQuery = true)
+    List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacionPrep3(
             @Param("pesId") Integer pesId,
             @Param("demarcacionId") Integer demarcacionId,
             @Param("startYear") Integer startYear,

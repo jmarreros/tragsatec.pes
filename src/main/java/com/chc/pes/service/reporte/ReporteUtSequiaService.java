@@ -52,7 +52,11 @@ public class ReporteUtSequiaService {
     }
 
     @Transactional(readOnly = true)
-    public List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacion(Integer demarcacionId, Integer anio) {
+    public List<IndicadorDemarcacionFechaDataProjection> getAllDataFechaDemarcacion(Integer demarcacionId, Integer anio, String prepTipo) {
+        if (prepTipo == null || prepTipo.isEmpty()) {
+            prepTipo = "prep1";
+        }
+
         Integer pesId = pesService.findActiveAndApprovedPesId()
                 .orElseThrow(() -> new RuntimeException("No se encontró ningún PES activo y aprobado."));
 
@@ -61,7 +65,10 @@ public class ReporteUtSequiaService {
         int startMonth = 10;
         int endMonth = 9;
 
-        return indicadorUtSequiaRepository.getAllDataFechaDemarcacion(pesId, demarcacionId, startYear, startMonth, endYear, endMonth);
+        if ("prep3".equalsIgnoreCase(prepTipo)) {
+            return indicadorUtSequiaRepository.getAllDataFechaDemarcacionPrep3(pesId, demarcacionId, startYear, startMonth, endYear, endMonth);
+        }
+        return indicadorUtSequiaRepository.getAllDataFechaDemarcacionPrep1(pesId, demarcacionId, startYear, startMonth, endYear, endMonth);
     }
 
     @Transactional(readOnly = true)

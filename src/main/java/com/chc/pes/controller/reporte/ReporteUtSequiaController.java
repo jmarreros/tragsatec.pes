@@ -46,13 +46,14 @@ public class ReporteUtSequiaController {
         }
     }
 
-    // Get all Unidad Territorial data for a specific demarcation and year
-    @GetMapping("/demarcacion/{demarcacionId}/anio/{anio}")
+    // Get all Unidad Territorial data for a specific demarcation and year, prepTipo can be "prep1" or "prep3"
+    @GetMapping("/demarcacion/{demarcacionId}/anio/{anio}/{prepTipo}")
     public ResponseEntity<?> getDataFechaDemarcacion(
             @PathVariable Integer demarcacionId,
-            @PathVariable Integer anio) {
+            @PathVariable Integer anio,
+            @PathVariable String prepTipo) {
         try {
-            List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio);
+            List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio, prepTipo);
             return ResponseEntity.ok(datos);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
