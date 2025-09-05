@@ -2,6 +2,7 @@ package com.chc.pes.service.reporte;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.chc.pes.dto.calculo.IndicadorDataProjection;
@@ -25,6 +26,9 @@ public class ReporteEstacionSequiaService {
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final MathContext MC = new MathContext(SCALE, ROUNDING_MODE);
 
+    @Value("${report.max.year.sequia}")
+    private Integer maxYear;
+
     @Autowired
     public ReporteEstacionSequiaService(IndicadorSequiaRepository indicadorSequiaRepository) {
         this.indicadorSequiaRepository = indicadorSequiaRepository;
@@ -32,10 +36,16 @@ public class ReporteEstacionSequiaService {
 
     @Transactional(readOnly = true)
     public List<IndicadorDataProjection> getAllDataIndicadorAnioMes(Integer estacionId, String tipoPrep) {
+        // Comprobaciones maxYear a usar
+        Integer maxYearToUse = java.time.Year.now().getValue();
+        if (this.maxYear != null) {
+            maxYearToUse = this.maxYear;
+        }
+
         if ("prep1".equalsIgnoreCase(tipoPrep)) {
-            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep1(estacionId);
+            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep1(estacionId, maxYearToUse);
         } else if ("prep3".equalsIgnoreCase(tipoPrep)) {
-            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep3(estacionId);
+            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep3(estacionId, maxYearToUse);
         } else {
             throw new IllegalArgumentException("El tipo de precipitación especificado no es válido: " + tipoPrep);
         }

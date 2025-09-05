@@ -35,9 +35,9 @@ public interface IndicadorSequiaRepository extends JpaRepository<IndicadorSequia
             "    estacion_id", nativeQuery = true)
     List<Object[]> sumLastNPrep1ForEachEstacion(@Param("numMeses") Integer numMeses); // Añadir parámetro al método
 
-    @Query(value = "SELECT anio, mes, prep1 AS dato, ie_b1 AS indicador FROM indicador_sequia WHERE estacion_id = :estacionId ORDER BY anio, mes", nativeQuery = true)
-    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep1(@Param("estacionId") Integer estacionId);
+    @Query(value = "SELECT anio, mes, prep1 AS dato, ie_b1 AS indicador FROM indicador_sequia WHERE estacion_id = :estacionId AND anio <= :maxYear ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep1(@Param("estacionId") Integer estacionId, @Param("maxYear") Integer maxYear);
 
-    @Query(value = "SELECT anio, mes, prep3 AS dato, ie_b3 AS indicador FROM indicador_sequia WHERE estacion_id = :estacionId ORDER BY anio, mes", nativeQuery = true)
-    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep3(@Param("estacionId") Integer estacionId);
+    @Query(value = "SELECT anio, mes, prep3 AS dato, ie_b3 AS indicador FROM indicador_sequia WHERE estacion_id = :estacionId AND anio <= :maxYear ORDER BY anio, mes", nativeQuery = true)
+    List<IndicadorDataProjection> getAllDataIndicadorAnioMesPrep3(@Param("estacionId") Integer estacionId, @Param("maxYear") Integer maxYear);
 }

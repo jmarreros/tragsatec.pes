@@ -2,6 +2,7 @@ package com.chc.pes.service.reporte;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.chc.pes.dto.calculo.IndicadorDataProjection;
@@ -27,6 +28,9 @@ public class ReporteEstacionEscasezService {
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private static final MathContext MC = new MathContext(SCALE, ROUNDING_MODE);
 
+    @Value("${report.max.year.escasez}")
+    private Integer maxYear;
+
     @Autowired
     public ReporteEstacionEscasezService(IndicadorEscasezRepository indicadorEscasezRepository, PesUmbralEscasezService pesUmbralEscasezService) {
         this.indicadorEscasezRepository = indicadorEscasezRepository;
@@ -35,7 +39,13 @@ public class ReporteEstacionEscasezService {
 
     @Transactional(readOnly = true)
     public List<IndicadorDataProjection> getAllDataIndicadorAnioMes(Integer estacionId) {
-        return indicadorEscasezRepository.getAllDataIndicadorAnioMes(estacionId);
+        // Comprobaciones maxYear a usar
+        Integer maxYearToUse = java.time.Year.now().getValue();
+        if (this.maxYear != null) {
+            maxYearToUse = this.maxYear;
+        }
+
+        return indicadorEscasezRepository.getAllDataIndicadorAnioMes(estacionId, maxYearToUse);
     }
 
     @Transactional(readOnly = true)
