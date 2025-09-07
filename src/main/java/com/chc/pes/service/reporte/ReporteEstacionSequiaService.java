@@ -77,6 +77,7 @@ public class ReporteEstacionSequiaService {
                     BigDecimal sum = valores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
                     BigDecimal media = sum.divide(new BigDecimal(size), SCALE, ROUNDING_MODE);
                     dto.setMedia(media);
+                    dto.setCount(size);
 
                     BigDecimal mediana;
                     if (size % 2 == 0) {

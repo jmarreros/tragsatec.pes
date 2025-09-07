@@ -15,4 +15,5 @@ public class EstadisticasMensualesSequiaDTO {
     private BigDecimal probPre;
     private BigDecimal probAlerta;
     private BigDecimal probEmergencia;
+    private Integer count;
 }
