@@ -45,7 +45,19 @@ public class ReporteEstacionEscasezService {
             maxYearToUse = this.maxYear;
         }
 
-        return indicadorEscasezRepository.getAllDataIndicadorAnioMes(estacionId, maxYearToUse);
+        List<IndicadorDataProjection> result = indicadorEscasezRepository.getAllDataIndicadorAnioMes(estacionId, maxYearToUse);
+
+        // Quitar los tres últimos valores del último año (mes 10, 11, 12) para tener el año hidrológico
+        if (!result.isEmpty()) {
+            int lastYear = result.get(result.size() - 1).getAnio();
+            result = result.stream()
+                    .filter(d -> !(d.getAnio() == lastYear && d.getMes() >= 10))
+                    .collect(Collectors.toList());
+        } else {
+            result = Collections.emptyList();
+        }
+        return result;
+
     }
 
     @Transactional(readOnly = true)

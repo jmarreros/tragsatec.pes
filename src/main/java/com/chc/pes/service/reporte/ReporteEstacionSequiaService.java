@@ -42,13 +42,27 @@ public class ReporteEstacionSequiaService {
             maxYearToUse = this.maxYear;
         }
 
+
+        List<IndicadorDataProjection> result;
+
         if ("prep1".equalsIgnoreCase(tipoPrep)) {
-            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep1(estacionId, maxYearToUse);
+            result = indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep1(estacionId, maxYearToUse);
         } else if ("prep3".equalsIgnoreCase(tipoPrep)) {
-            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep3(estacionId, maxYearToUse);
+            result = indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep3(estacionId, maxYearToUse);
         } else {
             throw new IllegalArgumentException("El tipo de precipitación especificado no es válido: " + tipoPrep);
         }
+
+        // Quitar los tres últimos valores del último año (mes 10, 11, 12)
+        if (!result.isEmpty()) {
+            int lastYear = result.get(result.size() - 1).getAnio();
+            result = result.stream()
+                    .filter(d -> !(d.getAnio() == lastYear && d.getMes() >= 10))
+                    .collect(Collectors.toList());
+        } else {
+            result = Collections.emptyList();
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
