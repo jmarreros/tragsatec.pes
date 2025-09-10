@@ -1,5 +1,6 @@
 package com.chc.pes.service.reporte;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -10,9 +11,15 @@ import static com.chc.pes.util.ConstantUtils.*;
 
 @Service
 public class ReporteConstantesService {
+    @Value("${report.max.year.sequia}")
+    private Integer maxYearSequia;
 
-    public Map<String, BigDecimal> getConstantesDeSequia() {
-        Map<String, BigDecimal> constantes = new LinkedHashMap<>();
+    @Value("${report.max.year.escasez}")
+    private Integer maxYearEscasez;
+
+
+    public Map<String, Object> getConstantesDeSequia() {
+        Map<String, Object> constantes = new LinkedHashMap<>();
 
         constantes.put("SEQUIA_PROB_ACUMULADA_PRE", SEQUIA_PROB_ACUMULADA_PRE);
         constantes.put("SEQUIA_PROB_ACUMULADA_ALERTA", SEQUIA_PROB_ACUMULADA_ALERTA);
@@ -22,6 +29,7 @@ public class ReporteConstantesService {
         constantes.put("SEQUIA_IND_ESTADO_ALERTA", SEQUIA_IND_ESTADO_ALERTA);
         constantes.put("SEQUIA_IND_ESTADO_EMERGENCIA", SEQUIA_IND_ESTADO_EMERGENCIA);
 
+        constantes.put("ESTADISTICA_MAX_YEAR_SEQUIA", maxYearSequia);
         return constantes;
     }
 
@@ -36,6 +44,8 @@ public class ReporteConstantesService {
         constantes.put("ESCASEZ_FACTOR_XMAX", ESCASEZ_FACTOR_XMAX);
         constantes.put("ESCASEZ_FACTOR_XEMERG", ESCASEZ_FACTOR_XEMERG);
         constantes.put("ESCASEZ_FACTOR_XMIN", ESCASEZ_FACTOR_XMIN);
+
+        constantes.put("ESTADISTICA_MAX_YEAR_ESCASEZ", maxYearEscasez);
 
         return constantes;
     }

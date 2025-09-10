@@ -13,9 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reportes/estacion-escasez")
 public class ReporteEstacionEscasezController {
-    @Value("${report.max.year.escasez}")
-    private Integer maxYear;
-
     private final ReporteEstacionEscasezService reporteEstacionEscasezService;
 
     @Autowired
@@ -35,10 +32,5 @@ public class ReporteEstacionEscasezController {
             @PathVariable Integer estacionId) {
         List<EstadisticasMensualesEscasezDTO> estadisticas = reporteEstacionEscasezService.getEstadisticasMensuales(estacionId);
         return ResponseEntity.ok(estadisticas);
-    }
-
-    @GetMapping("/estadisticas/getMaxYear")
-    public ResponseEntity<Integer> getMaxYear() {
-        return ResponseEntity.ok(maxYear);
     }
 }

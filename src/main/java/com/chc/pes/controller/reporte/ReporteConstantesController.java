@@ -1,6 +1,7 @@
 package com.chc.pes.controller.reporte;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +14,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/reportes/constantes")
 public class ReporteConstantesController {
-
     private final ReporteConstantesService reporteConstantesService;
 
     @Autowired
@@ -22,8 +22,8 @@ public class ReporteConstantesController {
     }
 
     @GetMapping("/sequia")
-    public ResponseEntity<Map<String, BigDecimal>> getConstantesDeSequia() {
-        Map<String, BigDecimal> constantes = reporteConstantesService.getConstantesDeSequia();
+    public ResponseEntity<Map<String, Object>> getConstantesDeSequia() {
+        Map<String, Object> constantes = reporteConstantesService.getConstantesDeSequia();
         return ResponseEntity.ok(constantes);
     }
 

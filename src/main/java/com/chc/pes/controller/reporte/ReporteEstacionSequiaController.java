@@ -13,9 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reportes/estacion-sequia")
 public class ReporteEstacionSequiaController {
-
-    @Value("${report.max.year.sequia}")
-    private Integer maxYear;
     private final ReporteEstacionSequiaService reporteEstacionSequiaService;
 
     @Autowired
@@ -45,10 +42,5 @@ public class ReporteEstacionSequiaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-    @GetMapping("/estadisticas/getMaxYear")
-    public ResponseEntity<Integer> getMaxYear() {
-        return ResponseEntity.ok(maxYear);
     }
 }
