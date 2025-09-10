@@ -1,6 +1,7 @@
 package com.chc.pes.controller.reporte;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.chc.pes.dto.calculo.IndicadorDataProjection;
@@ -13,6 +14,8 @@ import java.util.List;
 @RequestMapping("/api/v1/reportes/estacion-sequia")
 public class ReporteEstacionSequiaController {
 
+    @Value("${report.max.year.sequia}")
+    private Integer maxYear;
     private final ReporteEstacionSequiaService reporteEstacionSequiaService;
 
     @Autowired
@@ -42,5 +45,10 @@ public class ReporteEstacionSequiaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/estadisticas/getMaxYear")
+    public ResponseEntity<Integer> getMaxYear() {
+        return ResponseEntity.ok(maxYear);
     }
 }

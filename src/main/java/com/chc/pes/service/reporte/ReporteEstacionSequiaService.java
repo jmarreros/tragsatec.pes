@@ -36,6 +36,20 @@ public class ReporteEstacionSequiaService {
 
     @Transactional(readOnly = true)
     public List<IndicadorDataProjection> getAllDataIndicadorAnioMes(Integer estacionId, String tipoPrep) {
+        Integer maxYearToUse = java.time.Year.now().getValue();
+
+        if ("prep1".equalsIgnoreCase(tipoPrep)) {
+            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep1(estacionId, maxYearToUse);
+        } else if ("prep3".equalsIgnoreCase(tipoPrep)) {
+            return indicadorSequiaRepository.getAllDataIndicadorAnioMesPrep3(estacionId, maxYearToUse);
+        } else {
+            throw new IllegalArgumentException("El tipo de precipitación especificado no es válido: " + tipoPrep);
+        }
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<IndicadorDataProjection> getAllDataIndicadorAnioMesEstadisticas(Integer estacionId, String tipoPrep) {
         // Comprobaciones maxYear a usar
         Integer maxYearToUse = java.time.Year.now().getValue();
         if (this.maxYear != null) {
@@ -67,7 +81,7 @@ public class ReporteEstacionSequiaService {
 
     @Transactional(readOnly = true)
     public List<EstadisticasMensualesSequiaDTO> getEstadisticasMensuales(Integer estacionId, String tipoPrep) {
-        List<IndicadorDataProjection> datos = getAllDataIndicadorAnioMes(estacionId, tipoPrep);
+        List<IndicadorDataProjection> datos = getAllDataIndicadorAnioMesEstadisticas(estacionId, tipoPrep);
 
         Map<Integer, List<BigDecimal>> datosPorMes = datos.stream()
                 .filter(d -> d.getDato() != null)

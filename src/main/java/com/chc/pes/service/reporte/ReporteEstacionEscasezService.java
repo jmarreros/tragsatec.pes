@@ -39,6 +39,13 @@ public class ReporteEstacionEscasezService {
 
     @Transactional(readOnly = true)
     public List<IndicadorDataProjection> getAllDataIndicadorAnioMes(Integer estacionId) {
+        Integer maxYearToUse = java.time.Year.now().getValue();
+
+        return indicadorEscasezRepository.getAllDataIndicadorAnioMes(estacionId, maxYearToUse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<IndicadorDataProjection> getAllDataIndicadorAnioMesEstadisticas(Integer estacionId) {
         // Comprobaciones maxYear a usar
         Integer maxYearToUse = java.time.Year.now().getValue();
         if (this.maxYear != null) {
@@ -62,7 +69,7 @@ public class ReporteEstacionEscasezService {
 
     @Transactional(readOnly = true)
     public List<EstadisticasMensualesEscasezDTO> getEstadisticasMensuales(Integer estacionId) {
-        List<IndicadorDataProjection> datos = getAllDataIndicadorAnioMes(estacionId);
+        List<IndicadorDataProjection> datos = getAllDataIndicadorAnioMesEstadisticas(estacionId);
         List<UmbralEscasezDataProjection> umbrales = pesUmbralEscasezService.findUmbralesByEstacionIdAndCurrentPesId(estacionId);
 
         Map<Integer, Map<String, BigDecimal>> umbralesPorMes = new HashMap<>();
