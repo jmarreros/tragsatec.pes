@@ -43,27 +43,30 @@ public class IndicadorEscasezService {
         Byte mes = medicion.getMes();
         Integer pesId = medicion.getPesId();
 
-        // 2- Obtener el detalle de la medicion por medicionId
+        // 2- Insertar estaciones faltantes en detalle_medicion con valor 0 para la medición actual
+        indicadorEscasezRepository.insertEstacionesFaltantes(medicionId, pesId);
+
+        // 3- Obtener el detalle de la medicion por medicionId
         List<DetalleMedicionDTO> detallesMedicion = detalleMedicionService.findByMedicionId(medicionId);
         if (detallesMedicion.isEmpty()) {
             throw new CalculoIndicadorException("No hay detalles de medición para la medición ID: " + medicionId);
         }
 
-        // 3- Borrar los indicadores de escasez si existen para la medición actual para volver a calcularlos
+        // 4- Borrar los indicadores de escasez si existen para la medición actual para volver a calcularlos
         indicadorEscasezRepository.deleteByMedicionId(medicionId);
 
-        // 4- Obtener todos los umbrales de escasez para el PES actual.
+        // 5- Obtener todos los umbrales de escasez para el PES actual.
         List<Map<String, Object>> umbralesEscasez = pesUmbralEscasezService.getPivotedUmbralesPorEstacion(pesId, mes);
         if (umbralesEscasez.isEmpty()) {
             throw new CalculoIndicadorException("No se encontraron umbrales de escasez para el PES ID: " + pesId + " y mes: " + mes);
         }
 
-        // 5- Recorrer el detalle de la medición y calcular los indicadores
+        // 6- Recorrer el detalle de la medición y calcular los indicadores
         for (DetalleMedicionDTO itemDetalle : detallesMedicion) {
             Integer estacionId = itemDetalle.getEstacionId();
             BigDecimal valorMedicion = itemDetalle.getValor();
 
-            // 5.1- Obtenemos los umbrales de escasez para la estación actual desde umbralesEscasezPivotados
+            // 6.1- Obtenemos los umbrales de escasez para la estación actual desde umbralesEscasezPivotados
             Map<String, Object> umbralesParaEstacion = umbralesEscasez.stream()
                     .filter(umbralMap -> estacionId.equals(umbralMap.get("estacion_id")))
                     .findFirst()
@@ -73,13 +76,13 @@ public class IndicadorEscasezService {
                 throw new CalculoIndicadorException("No se encontraron umbrales de escasez para la estación ID: " + estacionId + " (PES ID: " + pesId + ", mes: " + mes + ")");
             }
 
-            // 5.2- Calcular el indicador de escasez
+            // 6.2- Calcular el indicador de escasez
             BigDecimal indicadorEscasez = calcularIndicadorEscasez(valorMedicion, umbralesParaEstacion);
             if (indicadorEscasez == null) {
                 throw new CalculoIndicadorException("Error al calcular el indicador de escasez para la estación ID: " + estacionId);
             }
 
-            // 5.3- Crear la entidad de indicador de escasez
+            // 6.3- Crear la entidad de indicador de escasez
             IndicadorEscasezEntity indicadorEscasezEntity = new IndicadorEscasezEntity();
             indicadorEscasezEntity.setEstacionId(estacionId);
             indicadorEscasezEntity.setMedicionId(medicionId);
@@ -88,20 +91,20 @@ public class IndicadorEscasezService {
             indicadorEscasezEntity.setMes(mes);
             indicadorEscasezEntity.setIe(indicadorEscasez);
 
-            // 5.4- Guardar el indicador de escasez
+            // 6.4- Guardar el indicador de escasez
             Long indicadorEscasezId = saveIndicadorEscasez(indicadorEscasezEntity);
             if (indicadorEscasezId == null) {
                 throw new CalculoIndicadorException("Error al guardar el indicador de escasez para la estación ID: " + estacionId);
             }
         }
 
-        // 6- Calcular los indicadores de escasez por unidad territorial
+        // 7- Calcular los indicadores de escasez por unidad territorial
         indicadorUtEscasezService.calcularYGuardarIndicadoresUtEscasez(medicionId, pesId);
 
-        // 7- Calcular los indicadores de escasez por demarcación
+        // 8- Calcular los indicadores de escasez por demarcación
         indicadorDhEscasezService.calcularYGuardarIndicadoresDhEscasez(medicionId, pesId);
 
-        // 8- Actualizar la medición a procesada
+        // 9- Actualizar la medición a procesada
         medicionService.marcarComoProcesada(medicionId);
     }
 
