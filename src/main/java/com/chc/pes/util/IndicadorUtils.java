@@ -11,6 +11,8 @@ public final class IndicadorUtils {
 
     // Constantes para escala y modo de redondeo
     private static final int SCALE = 8;
+    private static final int COMPARISON_SCALE = 8;
+
     private static final RoundingMode ROUNDING = RoundingMode.HALF_UP;
 
     // Constructor privado para evitar instantiation
@@ -42,35 +44,35 @@ public final class IndicadorUtils {
         final BigDecimal IE_MIN = BigDecimal.ZERO;
         final BigDecimal IE_MAX = BigDecimal.ONE;
 
-        if (x.compareTo(xMin) <= 0) {
+        if (compareToWithPrecision(x, xMin) <= 0) {
             return IE_MIN;
-        } else if (x.compareTo(xEmerg) <= 0) {
+        } else if (compareToWithPrecision(x, xEmerg) <= 0) {
             // Asegurar que xEmerg no sea igual a xMin para evitar división por cero
-            if (xEmerg.compareTo(xMin) == 0) {
+            if (compareToWithPrecision(xEmerg, xMin) == 0) {
                 return IE_EMERG;
             }
             return x.subtract(xMin)
                     .multiply(IE_EMERG.subtract(IE_MIN))
                     .divide(xEmerg.subtract(xMin), SCALE, ROUNDING)
                     .add(IE_MIN);
-        } else if (x.compareTo(xAlerta) <= 0) {
-            if (xAlerta.compareTo(xEmerg) == 0) {
+        } else if (compareToWithPrecision(x, xAlerta) <= 0) {
+            if (compareToWithPrecision(xAlerta, xEmerg) == 0) {
                 return IE_EMERG;
             }
             return x.subtract(xEmerg)
                     .multiply(IE_ALERTA.subtract(IE_EMERG))
                     .divide(xAlerta.subtract(xEmerg), SCALE, ROUNDING)
                     .add(IE_EMERG);
-        } else if (x.compareTo(xPre) <= 0) {
-            if (xPre.compareTo(xAlerta) == 0) {
+        } else if (compareToWithPrecision(x, xPre) <= 0) {
+            if (compareToWithPrecision(xPre, xAlerta) == 0) {
                 return IE_ALERTA;
             }
             return x.subtract(xAlerta)
                     .multiply(IE_PRE.subtract(IE_ALERTA))
                     .divide(xPre.subtract(xAlerta), SCALE, ROUNDING)
                     .add(IE_ALERTA);
-        } else if (x.compareTo(xMax) <= 0) {
-            if (xMax.compareTo(xPre) == 0) {
+        } else if (compareToWithPrecision(x, xMax) <= 0) {
+            if (compareToWithPrecision(xMax, xPre) == 0) {
                 return IE_MAX;
             }
             return x.subtract(xPre)
@@ -89,12 +91,12 @@ public final class IndicadorUtils {
         final BigDecimal IE_MIN = BigDecimal.ZERO;
         BigDecimal result;
 
-        if (x.compareTo(xMin) < 0) {
+        if (compareToWithPrecision(x, xMin) < 0) {
             return BigDecimal.ZERO;
         }
 
-        if (x.compareTo(xEmerg) <= 0) { // Recta emergencia-cero
-            if (x.compareTo(xMin) <= 0) { // Si x <= 0
+        if (compareToWithPrecision(x, xEmerg) <= 0) { // Recta emergencia-cero
+            if (compareToWithPrecision(x, xMin) <= 0) { // Si x <= 0
                 result = IE_MIN; // result = 0
             } else {
                 result = x.subtract(xMin)
@@ -102,8 +104,8 @@ public final class IndicadorUtils {
                         .divide(xEmerg.subtract(xMin), SCALE, ROUNDING)
                         .add(IE_MIN);
             }
-        } else if (x.compareTo(xPre) <= 0) { // Recta de prealerta-emergencia
-            if (xPre.compareTo(xEmerg) == 0) {
+        } else if (compareToWithPrecision(x, xPre) <= 0) { // Recta de prealerta-emergencia
+            if (compareToWithPrecision(xPre, xEmerg) == 0) {
                 result = IE_EMERG;
             } else {
                 result = x.subtract(xEmerg)
@@ -111,8 +113,8 @@ public final class IndicadorUtils {
                         .divide(xPre.subtract(xEmerg), SCALE, ROUNDING)
                         .add(IE_EMERG);
             }
-        } else if (x.compareTo(xMax) <= 0) { // Recta de prealerta-Normalidad
-            if (xMax.compareTo(xPre) == 0) {
+        } else if (compareToWithPrecision(x, xMax) <= 0) { // Recta de prealerta-Normalidad
+            if (compareToWithPrecision(xMax, xPre) == 0) {
                 result = IE_PRE;
             } else {
                 result = x.subtract(xPre)
@@ -124,5 +126,11 @@ public final class IndicadorUtils {
             result = IE_MAX;
         }
         return result;
+    }
+
+
+    private static int compareToWithPrecision(BigDecimal bd1, BigDecimal bd2) {
+        return bd1.setScale(COMPARISON_SCALE, RoundingMode.HALF_UP)
+                .compareTo(bd2.setScale(COMPARISON_SCALE, RoundingMode.HALF_UP));
     }
 }
