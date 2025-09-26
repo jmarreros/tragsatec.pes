@@ -154,7 +154,7 @@ public class IndicadorSequiaService {
         // Procesar los resultados de 2 meses
         for (Object[] row : acumulados2MesesRaw) {
             Integer estacionId = (Integer) row[0];
-            BigDecimal pre3 = (row[1] instanceof BigDecimal) ? (BigDecimal) row[1] : BigDecimal.ZERO;
+            BigDecimal pre3 = (BigDecimal) row[1];
 
             // Obtener el DTO del mapa
             AcumuladoSequiaDTO dto = mapaAcumulados.get(estacionId);
@@ -171,7 +171,7 @@ public class IndicadorSequiaService {
         // Procesar los resultados de 5 meses
         for (Object[] row : acumulados5MesesRaw) {
             Integer estacionId = (Integer) row[0];
-            BigDecimal pre6 = (row[1] instanceof BigDecimal) ? (BigDecimal) row[1] : BigDecimal.ZERO;
+            BigDecimal pre6 = (BigDecimal) row[1];
 
             AcumuladoSequiaDTO dto = mapaAcumulados.get(estacionId);
             if (dto != null) {

@@ -28,14 +28,17 @@ public interface IndicadorSequiaRepository extends JpaRepository<IndicadorSequia
             ") " +
             "SELECT " +
             "    estacion_id, " +
-            "    SUM(prep1) AS suma_ultimos_n_prep1 " +
+            "    CASE " +
+            "        WHEN COUNT(CASE WHEN prep1 IS NULL THEN 1 END) > 0 THEN NULL " +
+            "        ELSE SUM(prep1) " +
+            "    END AS suma_ultimos_n_prep1 " +
             "FROM " +
             "    RankedIndicadores " +
             "WHERE " +
-            "    rn <= :numMeses " + // Usar el parámetro aquí
+            "    rn <= :numMeses " +
             "GROUP BY " +
             "    estacion_id", nativeQuery = true)
-    List<Object[]> sumLastNPrep1ForEachEstacion(@Param("numMeses") Integer numMeses); // Añadir parámetro al método
+    List<Object[]> sumLastNPrep1ForEachEstacion(@Param("numMeses") Integer numMeses);
 
     // Inserta estaciones faltantes de sequia con valor 0 para una medición dada, las estaciones activas se obtienen desde pes_ut_estacion
     @Modifying
