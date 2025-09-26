@@ -24,10 +24,10 @@ public class IndicadorUtEscasezEntity {
     @Column(name = "mes", nullable = false)
     private Byte mes;
 
-    @Column(name = "dato", precision = 12, scale = 8, nullable = false)
+    @Column(name = "dato", precision = 12, scale = 8)
     private BigDecimal dato;
 
-    @Column(name = "ie", precision = 12, scale = 8, nullable = false)
+    @Column(name = "ie", precision = 12, scale = 8)
     private BigDecimal ie;
 
     @Column(name = "medicion_id", nullable = false)

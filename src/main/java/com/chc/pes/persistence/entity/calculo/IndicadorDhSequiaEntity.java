@@ -24,7 +24,7 @@ public class IndicadorDhSequiaEntity {
     @Column(name = "mes", nullable = false)
     private Byte mes;
 
-    @Column(name = "prep1", precision = 12, scale = 8, nullable = false)
+    @Column(name = "prep1", precision = 12, scale = 8)
     private BigDecimal prep1;
 
     @Column(name = "prep3", precision = 12, scale = 8)

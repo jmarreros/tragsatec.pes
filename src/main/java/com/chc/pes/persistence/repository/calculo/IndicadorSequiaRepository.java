@@ -41,7 +41,7 @@ public interface IndicadorSequiaRepository extends JpaRepository<IndicadorSequia
     @Modifying
     @Transactional
     @Query(value = "INSERT INTO detalle_medicion (estacion_id, valor, medicion_id) " +
-            "SELECT DISTINCT estacion_id, 0, :medicionId " +
+            "SELECT DISTINCT estacion_id, NULL, :medicionId " +
             "FROM pes_ut_estacion " +
             "WHERE tipo = 'S' AND " +
             "pes_id = :pesId AND " +

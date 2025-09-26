@@ -43,7 +43,7 @@ public class IndicadorEscasezService {
         Byte mes = medicion.getMes();
         Integer pesId = medicion.getPesId();
 
-        // 2- Insertar estaciones faltantes en detalle_medicion con valor 0 para la medición actual
+        // 2- Insertar estaciones faltantes en detalle_medicion con valor NULL para la medición actual
         indicadorEscasezRepository.insertEstacionesFaltantes(medicionId, pesId);
 
         // 3- Obtener el detalle de la medicion por medicionId
@@ -78,9 +78,6 @@ public class IndicadorEscasezService {
 
             // 6.2- Calcular el indicador de escasez
             BigDecimal indicadorEscasez = calcularIndicadorEscasez(valorMedicion, umbralesParaEstacion);
-            if (indicadorEscasez == null) {
-                throw new CalculoIndicadorException("Error al calcular el indicador de escasez para la estación ID: " + estacionId);
-            }
 
             // 6.3- Crear la entidad de indicador de escasez
             IndicadorEscasezEntity indicadorEscasezEntity = new IndicadorEscasezEntity();
@@ -134,6 +131,11 @@ public class IndicadorEscasezService {
     }
 
     private BigDecimal calcularIndicadorEscasez(BigDecimal valorMedicion, Map<String, Object> umbralesParaEstacion) {
+
+        if (valorMedicion == null) {
+            return null;
+        }
+
         BigDecimal xPre = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XPRE);
         BigDecimal xMax = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XMAX);
         BigDecimal xEmerg = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XEMERG);

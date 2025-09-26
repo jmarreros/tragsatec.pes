@@ -19,7 +19,7 @@ public interface IndicadorEscasezRepository extends JpaRepository<IndicadorEscas
     @Modifying
     @Transactional
     @Query(value = "INSERT INTO detalle_medicion (estacion_id, valor, medicion_id) " +
-            "SELECT DISTINCT estacion_id, 0, :medicionId " +
+            "SELECT DISTINCT estacion_id, NULL, :medicionId " +
             "FROM pes_ut_estacion " +
             "WHERE tipo = 'E' AND " +
             "pes_id = :pesId AND " +

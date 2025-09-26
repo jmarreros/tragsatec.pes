@@ -47,7 +47,7 @@ public class IndicadorSequiaService {
         Byte mes = medicion.getMes();
         Integer pesId = medicion.getPesId();
 
-        // 2 - Completamos la tabla de detalle_medición con las estaciones faltantes con valor a 0, obtenidas desde la tabla pes_ut_estacion
+        // 2 - Completamos la tabla de detalle_medición con las estaciones faltantes con valor null, obtenidas desde la tabla pes_ut_estacion
         indicadorSequiaRepository.insertEstacionesFaltantes(medicionId, pesId);
 
         // 3- Obtener el detalle de la medicion de la tabla de detalles de mediciones por Id
@@ -88,9 +88,22 @@ public class IndicadorSequiaService {
 
             // 7.4- Calcular el indicador de sequía para la estación, año y mes específicos
             BigDecimal valorIndice1 = calcularIndicadorSequia(valorPre1, umbralEstacionActual, 1);
-            BigDecimal valorPrep3 = acumulados.getPre3().add(valorPre1);
+
+            BigDecimal valorPrep3;
+            if (acumulados.getPre3() == null || valorPre1 == null) {
+                valorPrep3 = null;
+            } else {
+                valorPrep3 = acumulados.getPre3().add(valorPre1);
+            }
+
+            BigDecimal valorPrep6;
+            if (acumulados.getPre6() == null || valorPre1 == null) {
+                valorPrep6 = null;
+            } else {
+                valorPrep6 = acumulados.getPre6().add(valorPre1);
+            }
+
             BigDecimal valorIndice3 = calcularIndicadorSequia(valorPrep3, umbralEstacionActual, 3);
-            BigDecimal valorPrep6 = acumulados.getPre6().add(valorPre1);
             BigDecimal valorIndice6 = calcularIndicadorSequia(valorPrep6, umbralEstacionActual, 6);
 
             // 7.5- Construir el objeto IndicadorSequiaEntity con los valores calculados
@@ -197,6 +210,11 @@ public class IndicadorSequiaService {
 
     @Transactional
     private BigDecimal calcularIndicadorSequia(BigDecimal valor, PesUmbralSequiaDTO umbral, Integer numeroMeses) {
+
+        if (valor == null) {
+            return null;
+        }
+
         // 1- Obtener la media y desviación estándar según el número de meses
         BigDecimal media;
         BigDecimal desviacion;
