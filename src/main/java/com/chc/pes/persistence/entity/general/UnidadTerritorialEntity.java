@@ -28,11 +28,17 @@ package com.chc.pes.persistence.entity.general;
         @Column(nullable = false, length = 20)
         private String codigo;
 
+        @Column(length = 50)
+        private String codigo_dh;
+
         @Column(length = 100)
         private String nombre;
 
         @Column(length = 1, nullable = false)
         private Character tipo; // E=Escasez, S=Sequia
+
+        @Column(length = 12)
+        private String competencia;
 
         @Column
         private Boolean activo = true;

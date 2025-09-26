@@ -12,7 +12,7 @@ public class EstacionRequestDTO {
     private String tipoMedicion;
     private String fuente;
     private Character calidadDato;
-    private String codigoSincronizacion;
+    private String codigoSaih;
     private String provincia;
     private Boolean activo;
     private String comentario;

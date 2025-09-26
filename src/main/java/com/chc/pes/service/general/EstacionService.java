@@ -71,7 +71,7 @@ public class EstacionService {
         nuevaEstacion.setTipoMedicion(dto.getTipoMedicion());
         nuevaEstacion.setFuente(dto.getFuente());
         nuevaEstacion.setCalidadDato(dto.getCalidadDato());
-        nuevaEstacion.setCodigoSincronizacion(dto.getCodigoSincronizacion());
+        nuevaEstacion.setCodigoSaih(dto.getCodigoSaih());
         nuevaEstacion.setProvincia(dto.getProvincia());
         nuevaEstacion.setActivo(dto.getActivo() != null ? dto.getActivo() : true);
         nuevaEstacion.setComentario(dto.getComentario());
@@ -102,7 +102,7 @@ public class EstacionService {
         dto.setTipoMedicion(estacion.getTipoMedicion());
         dto.setFuente(estacion.getFuente());
         dto.setCalidadDato(estacion.getCalidadDato());
-        dto.setCodigoSincronizacion(estacion.getCodigoSincronizacion());
+        dto.setCodigoSaih(estacion.getCodigoSaih());
         dto.setProvincia(estacion.getProvincia());
         dto.setActivo(estacion.getActivo());
         dto.setComentario(estacion.getComentario());
@@ -136,7 +136,7 @@ public class EstacionService {
         if (dto.getTipoMedicion() != null) estacion.setTipoMedicion(dto.getTipoMedicion());
         if (dto.getFuente() != null) estacion.setFuente(dto.getFuente());
         if (dto.getCalidadDato() != null) estacion.setCalidadDato(dto.getCalidadDato());
-        if (dto.getCodigoSincronizacion() != null) estacion.setCodigoSincronizacion(dto.getCodigoSincronizacion());
+        if (dto.getCodigoSaih() != null) estacion.setCodigoSaih(dto.getCodigoSaih());
         if (dto.getProvincia() != null) estacion.setProvincia(dto.getProvincia());
         if (dto.getActivo() != null) estacion.setActivo(dto.getActivo());
         if (dto.getComentario() != null) estacion.setComentario(dto.getComentario());

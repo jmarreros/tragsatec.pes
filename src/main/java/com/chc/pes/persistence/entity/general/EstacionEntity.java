@@ -38,8 +38,11 @@ public class EstacionEntity extends AuditInsertUpdateEntity {
     @Column(name = "calidad_dato", length = 1)
     private Character calidadDato;
 
-    @Column(name = "codigo_sincronizacion", length = 100)
-    private String codigoSincronizacion;
+    @Column(name = "codigo_saih", length = 30)
+    private String codigoSaih;
+
+    @Column(name = "codigo_roea", length = 30)
+    private String codigoRoea;
 
     @Column(length = 50)
     private String provincia;

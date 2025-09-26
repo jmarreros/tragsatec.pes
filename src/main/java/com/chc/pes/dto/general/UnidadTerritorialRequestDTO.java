@@ -10,6 +10,7 @@ import java.util.List;
 public class UnidadTerritorialRequestDTO {
     private Integer id;
     private String codigo;
+    private String codigoDh;
     private String nombre;
     private String tipo;
     private Boolean activo;
