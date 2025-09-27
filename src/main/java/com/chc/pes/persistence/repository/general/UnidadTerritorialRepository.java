@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface UnidadTerritorialRepository extends JpaRepository<UnidadTerritorialEntity, Integer> {
 
-    @Query(value = "SELECT id, nombre, codigo FROM unidad_territorial WHERE tipo = :tipo ORDER BY codigo",
+    @Query(value = "SELECT id, nombre, codigo FROM unidad_territorial WHERE tipo = :tipo ORDER BY nombre",
             nativeQuery = true)
     List<UnidadTerritorialProjection> findUnidadesTerritorialesByTipo(@Param("tipo") Character tipo);
 

@@ -24,6 +24,9 @@ public class IndicadorUtSequiaEntity {
     @Column(name = "mes", nullable = false)
     private Byte mes;
 
+    @Column(name = "cantidad")
+    private Integer cantidad;
+
     @Column(name = "prep1", precision = 12, scale = 8)
     private BigDecimal prep1;
 

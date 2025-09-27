@@ -16,5 +16,7 @@ public interface PesUtEstacionRepository extends JpaRepository<PesUtEstacionEnti
             "WHERE pute.pes.id = :pesId AND pute.tipo = :tipo")
     List<EstacionProjection> getAllEstacionesByPesId(@Param("pesId") Integer pesId,
                                                      @Param("tipo") Character tipo);
+
+    List<PesUtEstacionEntity> findByPesIdAndTipo(Integer pesId, Character tipo);
 }
 
