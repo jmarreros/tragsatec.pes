@@ -83,7 +83,7 @@ public class IndicadorUtSequiaService {
                         .orElse(null);
 
                 //5.5.2 - Si el indicador no es nulo, acumular los valores ponderados
-                if (indicador != null && indicador.getIeB1() != null) {
+                if (indicador != null && indicador.getPrep1() != null && indicador.getIeB1() != null) {
                     // Obtener el coeficiente de la estación
                     BigDecimal coeficiente = pute.getCoeficiente();
 
@@ -94,11 +94,14 @@ public class IndicadorUtSequiaService {
 
                     // Acumular los valores ponderados
                     cantidadEstaciones = cantidadEstaciones + 1;
-
                     prep1Ponderado = prep1Ponderado.add(indicador.getPrep1().multiply(coeficiente).divide(BigDecimal.valueOf(100), roundScale, RoundingMode.HALF_UP));
-                    prep3Ponderado = prep3Ponderado.add(indicador.getPrep3().multiply(coeficiente).divide(BigDecimal.valueOf(100), roundScale, RoundingMode.HALF_UP));
                     ieB1Ponderado = ieB1Ponderado.add(indicador.getIeB1().multiply(coeficiente).divide(BigDecimal.valueOf(100), roundScale, RoundingMode.HALF_UP));
-                    ieB3Ponderado = ieB3Ponderado.add(indicador.getIeB3().multiply(coeficiente).divide(BigDecimal.valueOf(100), roundScale, RoundingMode.HALF_UP));
+
+                    if (indicador.getPrep3() != null)
+                        prep3Ponderado = prep3Ponderado.add(indicador.getPrep3().multiply(coeficiente).divide(BigDecimal.valueOf(100), roundScale, RoundingMode.HALF_UP));
+
+                    if (indicador.getIeB3() != null)
+                        ieB3Ponderado = ieB3Ponderado.add(indicador.getIeB3().multiply(coeficiente).divide(BigDecimal.valueOf(100), roundScale, RoundingMode.HALF_UP));
                 }
             }
 
