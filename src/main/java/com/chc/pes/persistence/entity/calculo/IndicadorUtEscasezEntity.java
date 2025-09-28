@@ -24,6 +24,9 @@ public class IndicadorUtEscasezEntity {
     @Column(name = "mes", nullable = false)
     private Byte mes;
 
+    @Column(name = "cantidad")
+    private Integer cantidad;
+
     @Column(name = "dato", precision = 12, scale = 8)
     private BigDecimal dato;
 

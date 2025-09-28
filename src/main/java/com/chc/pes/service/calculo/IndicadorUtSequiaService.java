@@ -87,8 +87,8 @@ public class IndicadorUtSequiaService {
                     // Obtener el coeficiente de la estación
                     BigDecimal coeficiente = pute.getCoeficiente();
 
-                    // Si la suma de coeficientes válidos es menor a 100, redistribuir el porcentaje faltante
-                    if (sumaCoeficientesValidos.compareTo(BigDecimal.valueOf(100)) < 0) {
+                    // Si hay un porcentaje faltante, redistribuirlo proporcionalmente
+                    if ( porcentajeFaltante.compareTo(BigDecimal.ZERO) > 0) {
                         coeficiente = coeficiente.add(coeficiente.divide(sumaCoeficientesValidos, roundScale, RoundingMode.HALF_UP).multiply(porcentajeFaltante));
                     }
 

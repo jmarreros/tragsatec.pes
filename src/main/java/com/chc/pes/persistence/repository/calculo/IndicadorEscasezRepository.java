@@ -15,6 +15,8 @@ import java.util.List;
 public interface IndicadorEscasezRepository extends JpaRepository<IndicadorEscasezEntity, Long> {
     void deleteByMedicionId(Integer medicionId);
 
+    List<IndicadorEscasezEntity> findByMedicionId(Integer medicionId);
+
     // Inserta estaciones faltantes de escasez con valor 0 para una medición dada, las estaciones activas se obtienen desde pes_ut_estacion
     @Modifying
     @Transactional

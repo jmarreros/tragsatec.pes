@@ -34,6 +34,8 @@ public class IndicadorEscasezEntity extends AuditInsertUpdateEntity {
     @Column(name = "ie", precision = 12, scale = 8)
     private BigDecimal ie;
 
+
+
     @Column(name = "medicion_id", nullable = false)
     private Integer medicionId;
 
