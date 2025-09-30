@@ -40,7 +40,7 @@ public interface IndicadorSequiaRepository extends JpaRepository<IndicadorSequia
             "    estacion_id", nativeQuery = true)
     List<Object[]> sumLastNPrep1ForEachEstacion(@Param("numMeses") Integer numMeses);
 
-    // Inserta estaciones faltantes de sequia con valor 0 para una medición dada, las estaciones activas se obtienen desde pes_ut_estacion
+    // Inserta estaciones faltantes de sequia con valor NULL para una medición dada, las estaciones activas se obtienen desde pes_ut_estacion
     @Modifying
     @Transactional
     @Query(value = "INSERT INTO detalle_medicion (estacion_id, valor, medicion_id) " +

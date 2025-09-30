@@ -24,6 +24,9 @@ public class IndicadorDhSequiaEntity {
     @Column(name = "mes", nullable = false)
     private Byte mes;
 
+    @Column(name = "cantidad")
+    private Integer cantidad;
+
     @Column(name = "prep1", precision = 12, scale = 8)
     private BigDecimal prep1;
 
@@ -41,9 +44,6 @@ public class IndicadorDhSequiaEntity {
 
     @Column(name = "ie_b6", precision = 12, scale = 8)
     private BigDecimal ieB6;
-
-    @Column(name = "qty")
-    private Integer qty;
 
     @Column(name = "medicion_id", nullable = false)
     private Integer medicionId;

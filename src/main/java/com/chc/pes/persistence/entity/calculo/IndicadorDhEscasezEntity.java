@@ -27,11 +27,11 @@ public class IndicadorDhEscasezEntity {
     @Column(name = "dato", precision = 12, scale = 8)
     private BigDecimal dato;
 
+    @Column(name = "cantidad")
+    private Integer cantidad;
+
     @Column(name = "ie", precision = 12, scale = 8)
     private BigDecimal ie;
-
-    @Column(name = "qty")
-    private Integer qty;
 
     @Column(name = "medicion_id", nullable = false)
     private Integer medicionId;

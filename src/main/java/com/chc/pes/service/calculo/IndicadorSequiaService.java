@@ -128,6 +128,7 @@ public class IndicadorSequiaService {
 
         //8- Calcular los indicadores de sequía por unidad territorial
         indicadorUtSequiaService.calcularYGuardarIndicadoresUtSequia(medicionId, pesId);
+
         //9- Calcular los indicadores de sequía por demarcación hidrográfica
         indicadorDhSequiaService.calcularYGuardarIndicadoresDhSequia(medicionId, pesId);
 

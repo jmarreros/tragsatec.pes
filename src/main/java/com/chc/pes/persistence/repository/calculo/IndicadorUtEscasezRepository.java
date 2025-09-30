@@ -86,6 +86,8 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
             @Param("endMonth") Integer endMonth
     );
 
+    List<IndicadorUtEscasezEntity> findByMedicionId(Integer medicionId);
+
     @Modifying
     @Query("DELETE FROM IndicadorUtEscasezEntity i WHERE i.medicionId = :medicionId")
     void deleteByMedicionId(@Param("medicionId") Integer medicionId);

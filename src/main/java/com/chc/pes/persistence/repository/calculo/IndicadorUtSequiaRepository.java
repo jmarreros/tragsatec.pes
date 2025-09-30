@@ -127,6 +127,8 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             @Param("endMonth") Integer endMonth
     );
 
+    List<IndicadorUtSequiaEntity> findByMedicionId(Integer medicionId);
+
     @Modifying
     @Query("DELETE FROM IndicadorUtSequiaEntity i WHERE i.medicionId = :medicionId")
     void deleteByMedicionId(@Param("medicionId") Integer medicionId);
