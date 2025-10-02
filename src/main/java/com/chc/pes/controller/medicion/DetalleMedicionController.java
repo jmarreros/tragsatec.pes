@@ -1,11 +1,9 @@
 package com.chc.pes.controller.medicion;
 
+import com.chc.pes.dto.medicion.DetalleMedicionDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.chc.pes.dto.medicion.DetalleMedicionProjection;
 import com.chc.pes.service.medicion.DetalleMedicionService;
 
@@ -22,5 +20,18 @@ public class DetalleMedicionController {
     public ResponseEntity<List<DetalleMedicionProjection>> getReporteDetallesPorMedicionId(@PathVariable Integer medicionId) {
         List<DetalleMedicionProjection> reporte = detalleMedicionService.findReporteByMedicionId(medicionId);
         return ResponseEntity.ok(reporte);
+    }
+
+    // Grabar o actualizar detalle de medicion por medicionId y estacionId
+    @PutMapping("/{medicionId}/actualizar-detalles/{estacionId}")
+    public ResponseEntity<DetalleMedicionDTO> actualizarDetalleMedicion(
+            @PathVariable Integer medicionId,
+            @PathVariable Integer estacionId,
+            @RequestBody DetalleMedicionDTO detalleMedicionDTO) {
+
+        DetalleMedicionDTO detalleActualizado = detalleMedicionService.actualizarDetalleMedicion(
+                medicionId, estacionId, detalleMedicionDTO);
+
+        return ResponseEntity.ok(detalleActualizado);
     }
 }

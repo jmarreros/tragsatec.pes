@@ -49,4 +49,18 @@ public class DetalleMedicionService {
     public List<DetalleMedicionProjection> findReporteByMedicionId(Integer medicionId) {
         return detalleMedicionRepository.findReporteByMedicionId(medicionId);
     }
+
+
+    public DetalleMedicionDTO actualizarDetalleMedicion(Integer medicionId, Integer estacionId, DetalleMedicionDTO detalleMedicionDTO) {
+        DetalleMedicionEntity detalleMedicion = detalleMedicionRepository.findByMedicionIdAndEstacionId(medicionId, estacionId)
+                .orElse(new DetalleMedicionEntity());
+
+        detalleMedicion.setValor(detalleMedicionDTO.getValor());
+        detalleMedicion.setTipoDato(detalleMedicionDTO.getTipoDato());
+        detalleMedicion.setMedicion(medicionRepository.findById(medicionId).orElse(null));
+        detalleMedicion.setEstacion(estacionRepository.findById(estacionId).orElse(null));
+
+        DetalleMedicionEntity savedEntity = detalleMedicionRepository.save(detalleMedicion);
+        return mapToDTO(savedEntity);
+    }
 }

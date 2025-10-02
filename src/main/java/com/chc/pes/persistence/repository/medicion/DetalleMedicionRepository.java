@@ -20,4 +20,9 @@ public interface DetalleMedicionRepository extends JpaRepository<DetalleMedicion
             "ORDER BY e.codigo",
             nativeQuery = true)
     List<DetalleMedicionProjection> findReporteByMedicionId(@Param("medicionId") Integer medicionId);
+
+
+    @Query("SELECT dm FROM DetalleMedicionEntity dm " +
+           "WHERE dm.medicion.id = :medicionId AND dm.estacion.id = :estacionId")
+    java.util.Optional<DetalleMedicionEntity> findByMedicionIdAndEstacionId(@Param("medicionId") Integer medicionId, @Param("estacionId") Integer estacionId);
 }
