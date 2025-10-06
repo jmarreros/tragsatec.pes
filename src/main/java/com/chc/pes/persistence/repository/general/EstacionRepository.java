@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface EstacionRepository extends JpaRepository<EstacionEntity, Integer> {
     boolean existsByCodigo(String codigo);
 
+    // A nivel de relación con PES
     @Query(value = "SELECT DISTINCT pe.estacion_id as id, e.codigo as codigo " +
             "FROM pes_ut_estacion pe " +
             "INNER JOIN estacion e ON pe.estacion_id = e.id " +
@@ -21,7 +22,11 @@ public interface EstacionRepository extends JpaRepository<EstacionEntity, Intege
             @Param("pesId") Optional<Integer> pesId,
             @Param("tipo") Character tipo);
 
-    @Query(value = "SELECT DISTINCT e.id, e.codigo FROM estacion e " +
+    // A nivel de relación con unidad territorial
+    @Query(value = "SELECT DISTINCT e.id, " +
+            "e.codigo, " +
+            "CONCAT(e.codigo, ' - ',  e.nombre) AS nombre " +
+            "FROM estacion e " +
             "INNER JOIN estacion_ut eut ON e.id = eut.estacion_id " +
             "INNER JOIN unidad_territorial ut ON ut.id = eut.unidad_territorial_id " +
             "WHERE ut.tipo = :tipo ORDER BY e.codigo",
