@@ -12,6 +12,7 @@ import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import com.chc.pes.persistence.entity.calculo.IndicadorUtEscasezEntity;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtEscasezEntity, Long> {
@@ -91,4 +92,6 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
     @Modifying
     @Query("DELETE FROM IndicadorUtEscasezEntity i WHERE i.medicionId = :medicionId")
     void deleteByMedicionId(@Param("medicionId") Integer medicionId);
+
+    Optional<IndicadorUtEscasezEntity> findByUnidadTerritorialIdAndAnioAndMes(Integer utId, Integer anio, Integer mes);
 }

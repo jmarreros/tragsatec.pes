@@ -38,6 +38,12 @@ public class IndicadorUtEscasezEntity {
 
     @Column(name = "unidad_territorial_id", nullable = false)
     private Integer unidadTerritorialId;
+
+    @Column(name = "escenario_inicial", length = 50)
+    private String escenarioInicial;
+
+    @Column(name = "escenario_final", length = 50)
+    private String escenarioFinal;
 }
 
 
