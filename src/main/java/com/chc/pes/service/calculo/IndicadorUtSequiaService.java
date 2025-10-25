@@ -120,6 +120,10 @@ public class IndicadorUtSequiaService {
                 indicadorUtSequiaEntity.setAnio(indicador.getAnio());
                 indicadorUtSequiaEntity.setMes(indicador.getMes());
                 indicadorUtSequiaEntity.setCantidad(cantidadEstaciones);
+
+                // Calcular el escenario final basado en ieB3
+                calcularEscenario(indicadorUtSequiaEntity);
+
                 indicadorUtSequiaRepository.save(indicadorUtSequiaEntity);
             }
 
@@ -128,5 +132,21 @@ public class IndicadorUtSequiaService {
 
     public void limpiarIndicadoresUtSequia(Integer medicionId) {
         indicadorUtSequiaRepository.deleteByMedicionId(medicionId);
+    }
+
+
+    // Si ieB3 < 0.3 => Escenario Final: "Sequia prolongada"
+    // Si ieB3 >= 0.3  => Escenario Final: "Condiciones normales"
+    public void calcularEscenario(IndicadorUtSequiaEntity indicadorUtSequiaEntity) {
+        BigDecimal umbral = new BigDecimal("0.3");
+        String escenarioFinal = "";
+        if (indicadorUtSequiaEntity.getIeB3() != null) {
+            if (indicadorUtSequiaEntity.getIeB3().compareTo(umbral) < 0) {
+                escenarioFinal = "Sequia prolongada";
+            } else {
+                escenarioFinal = "Condiciones normales";
+            }
+        }
+        indicadorUtSequiaEntity.setEscenarioFinal(escenarioFinal);
     }
 }
