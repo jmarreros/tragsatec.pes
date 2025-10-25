@@ -142,9 +142,9 @@ public class IndicadorUtSequiaService {
         String escenarioFinal = "";
         if (indicadorUtSequiaEntity.getIeB3() != null) {
             if (indicadorUtSequiaEntity.getIeB3().compareTo(umbral) < 0) {
-                escenarioFinal = "Sequia prolongada";
+                escenarioFinal = "sequia";
             } else {
-                escenarioFinal = "Condiciones normales";
+                escenarioFinal = "normalidad";
             }
         }
         indicadorUtSequiaEntity.setEscenarioFinal(escenarioFinal);
