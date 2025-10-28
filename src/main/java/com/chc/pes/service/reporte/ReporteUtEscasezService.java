@@ -1,6 +1,7 @@
 package com.chc.pes.service.reporte;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.chc.pes.dto.calculo.IndicadorDataProjection;
@@ -15,6 +16,8 @@ import java.util.List;
 @Service
 public class ReporteUtEscasezService {
 
+    @Value("${file.report-dir}")
+    private String reportDir;
     private final IndicadorUtEscasezRepository indicadorUtEscasezRepository;
     private final PesService pesService;
 
@@ -72,5 +75,12 @@ public class ReporteUtEscasezService {
         int endMonth = 9;
 
         return indicadorUtEscasezRepository.getUTEstacionFecha(pesId, utId, startYear, startMonth, endYear, endMonth);
+    }
+
+
+    public void generarReporteWord(Integer anio, Integer mes, String tipo){
+        String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
+        String archivoFinal = reportDir + "/Reporte_UTE_" + tipo + ".docx";
+
     }
 }

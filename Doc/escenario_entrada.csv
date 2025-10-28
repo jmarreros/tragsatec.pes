@@ -1,7 +1,0 @@
-Escenario Actual,Condiciones del Índice (Ie​),Escenario de Entrada
-Normalidad,[0.5;0.3] durante 2 meses consecutivos o <0.3 un mes,Prealerta 
-Normalidad,[0.5;0.3] durante 2 meses consecutivos o <0.15 un mes,Alerta 
-Normalidad,<0.15 durante 2 meses consecutivos,Emergencia 
-Prealerta,[0.3;0.15] durante 2 meses consecutivos o <0.15 un mes,Alerta 
-Prealerta,<0.15 durante 2 meses consecutivos,Emergencia 
-Alerta,<0.15 durante 2 meses consecutivos,Emergencia 

@@ -80,4 +80,23 @@ public class ReporteUtEscasezController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
+    @GetMapping("/reporte-word/{tipo}")
+    public ResponseEntity<?> generarReporteWord(
+            @PathVariable Integer anio,
+            @PathVariable Integer mes,
+            @PathVariable String tipo) {
+        try {
+            if (!tipo.equals("oriental") && !tipo.equals("occidental")) {
+                return ResponseEntity.badRequest().body("El tipo debe ser 'oriental' u 'occidental'");
+            }
+
+            reporteUtEscasezService.generarReporteWord(anio, mes, tipo);
+            return ResponseEntity.ok("Reporte generado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

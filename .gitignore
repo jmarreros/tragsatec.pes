@@ -38,5 +38,5 @@ out/
 
 ## Other
 src/main/resources/application-pdn.properties
-file_uploads
-file_uploads/**
+fileUploads
+fileUploads/**

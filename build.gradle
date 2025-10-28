@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'tragsatec'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
 
 java {
 	toolchain {
@@ -39,6 +39,11 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation("org.apache.poi:poi:5.4.1")
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
+    implementation("org.apache.xmlgraphics:batik-transcoder:1.18")
+    implementation("org.apache.xmlgraphics:batik-codec:1.18")
 }
 
 tasks.named('test') {
