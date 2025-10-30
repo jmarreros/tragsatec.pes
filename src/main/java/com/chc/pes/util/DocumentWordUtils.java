@@ -1,5 +1,6 @@
 package com.chc.pes.util;
 
+import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import org.apache.poi.xwpf.usermodel.BreakType;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -10,7 +11,9 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STPageOrientation;
 
 import java.math.BigInteger;
-import java.util.List;
+import java.text.DateFormatSymbols;
+import java.util.*;
+import java.util.stream.Collectors;
 
 // Clase utilitaria para operaciones relacionadas con documentos de Word
 public class DocumentWordUtils {
@@ -161,16 +164,36 @@ public class DocumentWordUtils {
         runSalto.addBreak(BreakType.PAGE);
     }
 
+
+    public static List<Map<String, Object>> prepararDatosTotalesParaGrafico(
+            List<IndicadorUTFechaDataProjection> datos) {
+
+        if (datos == null || datos.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Ordena los datos por año y mes usando Comparator
+        return datos.stream()
+                .sorted(Comparator.comparingInt(IndicadorUTFechaDataProjection::getAnio)
+                        .thenComparingInt(IndicadorUTFechaDataProjection::getMes))
+                .map(item -> {
+                    // Usa DateFormatSymbols para obtener nombres de meses
+                    String mesAbreviado = new DateFormatSymbols(new Locale("es", "ES"))
+                            .getShortMonths()[item.getMes() - 1];
+                    String anioCorto = String.valueOf(item.getAnio()).substring(2);
+
+                    Map<String, Object> punto = new HashMap<>();
+                    punto.put("periodo", mesAbreviado + "-" + anioCorto);
+                    punto.put("valor", item.getIndicador());
+                    punto.put("mes", item.getMes());
+                    punto.put("anio", item.getAnio());
+
+                    return punto;
+                })
+                .collect(Collectors.toList());
+    }
+
+
+
 }
 
-
-//            for (XWPFTable table : document.getTables()) {
-//                for (XWPFTableRow row : table.getRows()) {
-//                    for (XWPFTableCell cell : row.getTableCells()) {
-//                        for (XWPFParagraph paragraph : cell.getParagraphs()) {
-//                            reemplazarTextoEnParagrafo(paragraph, "<<mes>>", nombreMes);
-//                            reemplazarTextoEnParagrafo(paragraph, "<<año>>", String.valueOf(anio));
-//                        }
-//                    }
-//                }
-//            }

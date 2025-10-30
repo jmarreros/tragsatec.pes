@@ -1,18 +1,36 @@
 package com.chc.pes.service.reporte;
 
 import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
+import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import com.chc.pes.dto.general.DemarcacionProjection;
 import com.chc.pes.service.general.DemarcacionService;
-import com.chc.pes.util.DateUtils;
+
 import com.chc.pes.util.DocumentWordUtils;
 import org.apache.poi.xwpf.usermodel.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import java.text.FieldPosition;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 
+import java.awt.*;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReporteWordUtEscasezService {
@@ -39,6 +57,17 @@ public class ReporteWordUtEscasezService {
             // Agregar salto de página
             DocumentWordUtils.agregarSaltoDePagina(document);
 
+            List<IndicadorUTFechaDataProjection> datos = reporteUtEscasezService.getTotalDataUTFecha(1, anio);
+            List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(datos);
+
+            // Imprimir los datos del gráfico (para verificación)
+            for (Map<String, Object> dato : datosGrafico) {
+                System.out.println(dato);
+            }
+
+            // Generar imagen del gráfico
+            generarGraficoLineas(datosGrafico);
+
             // Crear tablas debajo del título
             XWPFTable table = document.createTable(5, 4);
             crearTablaPrincipal(table);
@@ -64,6 +93,97 @@ public class ReporteWordUtEscasezService {
 
 
 
+
+    public void generarGraficoLineas(List<Map<String, Object>> datosGrafico) throws IOException {
+        // Crear la serie de datos
+        XYSeries series = new XYSeries("Indicador");
+
+        // Agregar datos a la serie
+        for (int i = 0; i < datosGrafico.size(); i++) {
+            Map<String, Object> dato = datosGrafico.get(i);
+            Double valor = ((Number) dato.get("valor")).doubleValue();
+            series.add(i, valor);
+        }
+
+        // Crear el dataset
+        XYSeriesCollection dataset = new XYSeriesCollection(series);
+
+        // Crear el gráfico
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                "",
+                "",
+                "",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,
+                false,
+                false
+        );
+
+        // Personalizar el gráfico
+        XYPlot plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+        plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+
+        // Configurar el eje Y con valores específicos
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setRange(0.0, 1.0);
+        rangeAxis.setTickUnit(new NumberTickUnit(0.25));
+
+        NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();
+        domainAxis.setTickUnit(new NumberTickUnit(1));
+        domainAxis.setNumberFormatOverride(new NumberFormat() {
+            @Override
+            public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
+                int index = (int) number;
+                if (index >= 0 && index < datosGrafico.size()) {
+                    return toAppendTo.append(datosGrafico.get(index).get("periodo"));
+                }
+                return toAppendTo;
+            }
+
+            @Override
+            public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) {
+                return format((double) number, toAppendTo, pos);
+            }
+
+            @Override
+            public Number parse(String source, ParsePosition parsePosition) {
+                return null;
+            }
+        });
+
+        // Configurar el renderer
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.BLACK);
+        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+        renderer.setSeriesShapesVisible(0, false);
+        plot.setRenderer(renderer);
+
+        // Agregar zonas de colores
+        plot.addRangeMarker(createZonaMarker(0.0, 0.15, new Color(255, 182, 193)));
+        plot.addRangeMarker(createZonaMarker(0.15, 0.30, new Color(255, 200, 124)));
+        plot.addRangeMarker(createZonaMarker(0.30, 0.50, new Color(255, 235, 156)));
+        plot.addRangeMarker(createZonaMarker(0.50, 1.0, new Color(169, 223, 191)));
+
+        // Crear directorio y guardar
+        File directorio = new File("reporteWord");
+        if (!directorio.exists()) {
+            directorio.mkdirs();
+        }
+
+        File outputFile = new File("reporteWord/Grafico_UT_escasez.png");
+        ChartUtils.saveChartAsPNG(outputFile, chart, 1200, 400);
+    }
+
+    private org.jfree.chart.plot.IntervalMarker createZonaMarker(double start, double end, Color color) {
+        org.jfree.chart.plot.IntervalMarker marker =
+                new org.jfree.chart.plot.IntervalMarker(start, end);
+        marker.setPaint(color);
+        marker.setAlpha(0.5f);
+        return marker;
+    }
 
 
     private void generarTablaDemarcacionUT(String tipo, Integer anio) {
