@@ -4,11 +4,11 @@ import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-public class DateUtil {
+public class DateUtils {
 
     private static final Locale LOCALE_ES = new Locale("es", "ES");
 
-    private DateUtil() {
+    private DateUtils() {
         // Constructor privado para clase utilitaria
     }
 

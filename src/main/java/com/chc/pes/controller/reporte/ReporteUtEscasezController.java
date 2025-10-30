@@ -1,5 +1,6 @@
 package com.chc.pes.controller.reporte;
 
+import com.chc.pes.service.reporte.ReporteWordUtEscasezService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,10 +20,12 @@ import java.util.List;
 public class ReporteUtEscasezController {
 
     private final ReporteUtEscasezService reporteUtEscasezService;
+    private final ReporteWordUtEscasezService reporteWordUtEscasezService;
 
     @Autowired
-    public ReporteUtEscasezController(ReporteUtEscasezService reporteUtEscasezService) {
+    public ReporteUtEscasezController(ReporteUtEscasezService reporteUtEscasezService, ReporteWordUtEscasezService reporteWordUtEscasezService) {
         this.reporteUtEscasezService = reporteUtEscasezService;
+        this.reporteWordUtEscasezService = reporteWordUtEscasezService;
     }
 
     @GetMapping("/{utId}")
@@ -92,7 +95,7 @@ public class ReporteUtEscasezController {
                 return ResponseEntity.badRequest().body("El tipo debe ser 'oriental' u 'occidental'");
             }
 
-            reporteUtEscasezService.generarReporteWord(anio, mes, tipo);
+            reporteWordUtEscasezService.generarReporteWord(anio, mes, tipo);
             return ResponseEntity.ok("Reporte generado exitosamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
