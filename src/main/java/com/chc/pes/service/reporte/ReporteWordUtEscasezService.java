@@ -34,7 +34,7 @@ public class ReporteWordUtEscasezService {
         try (XWPFDocument document = new XWPFDocument(new FileInputStream(archivoOrigen))) {
 
             // Cambiar mes y año en el documento
-            cambiarMesYAnioEnParrafo(document, mes, anio);
+            DocumentWordUtils.cambiarMesYAnioEnParrafo(document, mes, anio);
 
             // Agregar salto de página
             DocumentWordUtils.agregarSaltoDePagina(document);
@@ -63,15 +63,6 @@ public class ReporteWordUtEscasezService {
     }
 
 
-    private void cambiarMesYAnioEnParrafo(XWPFDocument document, Integer mes, Integer anio) {
-        List<XWPFParagraph> paragraphs = document.getParagraphs();
-
-        String nombreMes = DateUtils.obtenerNombreMesCapitalizado(mes);
-        for (XWPFParagraph paragraph : paragraphs) {
-            DocumentWordUtils.reemplazarTextoEnParagrafo(paragraph, "<<mes>>", nombreMes);
-            DocumentWordUtils.reemplazarTextoEnParagrafo(paragraph, "<<año>>", String.valueOf(anio));
-        }
-    }
 
 
 

@@ -15,6 +15,7 @@ import java.util.List;
 // Clase utilitaria para operaciones relacionadas con documentos de Word
 public class DocumentWordUtils {
 
+    // Remplazos
     public static void encabezadoH2(XWPFDocument document, String nuevoTexto) {
         List<XWPFParagraph> paragraphs = document.getParagraphs();
         XWPFParagraph encabezadoOriginal = null;
@@ -99,6 +100,17 @@ public class DocumentWordUtils {
         return nuevoParrafo;
     }
 
+    public static void cambiarMesYAnioEnParrafo(XWPFDocument document, Integer mes, Integer anio) {
+        List<XWPFParagraph> paragraphs = document.getParagraphs();
+
+        String nombreMes = DateUtils.obtenerNombreMesCapitalizado(mes);
+        for (XWPFParagraph paragraph : paragraphs) {
+            DocumentWordUtils.reemplazarTextoEnParagrafo(paragraph, "<<mes>>", nombreMes);
+            DocumentWordUtils.reemplazarTextoEnParagrafo(paragraph, "<<año>>", String.valueOf(anio));
+        }
+    }
+
+    // Utilidades generales
     public static void reemplazarTextoEnParagrafo(XWPFParagraph paragraph, String buscar, String reemplazar) {
         String textoCompleto = paragraph.getText();
         if (textoCompleto.contains(buscar)) {
@@ -119,7 +131,6 @@ public class DocumentWordUtils {
             primerRun.setText(nuevoTexto, 0);
         }
     }
-
     public static void configurarOrientacionHorizontal(XWPFParagraph paragraph) {
         CTPPr ppr = paragraph.getCTP().getPPr();
         if (ppr == null) {
@@ -144,7 +155,6 @@ public class DocumentWordUtils {
         pageSize.setW(BigInteger.valueOf(15840)); // Ancho en horizontal
         pageSize.setH(BigInteger.valueOf(11906)); // Alto en horizontal
     }
-
     public static void agregarSaltoDePagina(XWPFDocument document) {
         XWPFParagraph saltoPagina = document.createParagraph();
         XWPFRun runSalto = saltoPagina.createRun();
