@@ -1,10 +1,14 @@
 package com.chc.pes.util;
 
+import com.chc.pes.dto.calculo.IndicadorUTEscenarioProjection;
 import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
-import org.apache.poi.xwpf.usermodel.BreakType;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.usermodel.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -19,11 +23,16 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STPageOrientation;
+import org.springframework.beans.factory.annotation.Value;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DateFormatSymbols;
 import java.text.FieldPosition;
 import java.text.NumberFormat;
@@ -210,7 +219,7 @@ public class DocumentWordUtils {
                 .collect(Collectors.toList());
     }
 
-    // Generación archivo de gráfico
+    // Generación de archivo de gráfico
     public static void generarGraficoLineas(List<Map<String, Object>> datosGrafico) throws IOException {
         // Crear la serie de datos
         XYSeries series = new XYSeries("Indicador");
@@ -301,5 +310,82 @@ public class DocumentWordUtils {
         return marker;
     }
 
+
+    // Cambio de colores SVG en archivo y generación de PNG
+    public static String procesarSVGFile(
+            Character tipoReporte, //'E' o 'S' (Escasez o Sequia),
+            String reportDir,
+            List<IndicadorUTEscenarioProjection> listUTEscenario,
+            String demarcacionCodigo) throws IOException {
+
+        // Ruta de archivos
+        String pathFile = reportDir + "/plantillas/" + demarcacionCodigo + "_UT" + tipoReporte;
+        String fileSvg = pathFile + ".svg";
+        String outputPngPath = pathFile + ".png";
+
+        // Eliminar el archivo existente
+        Path outputPng = Path.of(outputPngPath);
+        try {
+            Files.deleteIfExists(outputPng);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Abrimos el archivo SVG y buscamos los códigos de las UTs para actualizar sus colores
+        String svg = Files.readString(Path.of(fileSvg), StandardCharsets.UTF_8);
+
+        for (IndicadorUTEscenarioProjection item : listUTEscenario) {
+            String buscar = "id=\"" + item.getCodigoDh() + "\" fill=\"#fff\"";
+            String reemplazar = "id=\"" + item.getCodigoDh() + "\" fill=\"" + obtenerColorPorEscenarioUT(item.getEscenarioFinal()) + "\"";
+            svg = svg.replace(buscar, reemplazar);
+        }
+
+        // Transcoding desde el SVG en memoria hacia PNG
+        try (InputStream svgStream = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)); FileOutputStream pngOut = new FileOutputStream(outputPngPath)) {
+            TranscoderInput input = new TranscoderInput(svgStream);
+            TranscoderOutput output = new TranscoderOutput(pngOut);
+            PNGTranscoder transcoder = new PNGTranscoder();
+
+            transcoder.addTranscodingHint(PNGTranscoder.KEY_MEDIA, "screen");
+            transcoder.addTranscodingHint(ImageTranscoder.KEY_WIDTH, 1600f);
+            transcoder.addTranscodingHint(ImageTranscoder.KEY_HEIGHT, 566f);
+            transcoder.transcode(input, output);
+
+            return outputPngPath;
+        } catch (TranscoderException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String obtenerColorPorEscenarioUT(String escenario) {
+        Escenario escenarioResult = Escenario.fromValue(escenario);
+        return Escenario.getColor(escenarioResult);
+    }
+
+    public static void insertaImagenPrincipal(XWPFDocument document, String imgUTEs) throws IOException {
+        // Insertamos el archivo .png generado al final del documento Word
+        File imgFile = new File(imgUTEs);
+
+        if (imgFile.exists()) {
+            try (FileInputStream is = new FileInputStream(imgFile)) {
+                BufferedImage img = ImageIO.read(imgFile);
+                int widthPx = 800;
+                int heightPx = 283;
+
+                XWPFParagraph imgParagraph = document.createParagraph();
+                imgParagraph.setAlignment(ParagraphAlignment.CENTER);
+                XWPFRun imgRun = imgParagraph.createRun();
+
+                // Inserta la imagen (PNG). Units.pixelToEMU convierte píxeles a EMU usados por Word.
+                imgRun.addPicture(is, Document.PICTURE_TYPE_PNG, imgFile.getName(),
+                        Units.pixelToEMU(widthPx), Units.pixelToEMU(heightPx));
+
+            } catch (Exception e) {
+                throw new RuntimeException("Error al insertar la imagen en el documento Word: " + e.getMessage(), e);
+            }
+        } else {
+            throw new FileNotFoundException("El archivo de imagen no se encontró: " + imgUTEs);
+        }
+    }
 }
 
