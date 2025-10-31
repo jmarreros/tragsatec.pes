@@ -25,4 +25,14 @@ public enum Escenario {
                 .findFirst()
                 .orElse(NORMALIDAD);
     }
+
+    // Colores por escenario
+    public static String getColor(Escenario escenario) {
+        return switch (escenario) {
+            case NORMALIDAD -> "#7FCD87"; // Verde
+            case PREALERTA -> "#FFF55F"; // Amarillo
+            case ALERTA -> "#FBC063"; // Naranja
+            case EMERGENCIA -> "#FF755F"; // Rojo
+        };
+    }
 }
