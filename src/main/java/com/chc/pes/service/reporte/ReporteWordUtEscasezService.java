@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReporteWordUtEscasezService {
@@ -58,22 +59,24 @@ public class ReporteWordUtEscasezService {
 
             // Insertar la imagen principal en el documento
             DocumentWordUtils.insertaImagenPrincipal(document, imgUTEs);
+            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE ESCASEZ");
 
             // Crear un párrafo vacío después de la imagen
             document.createParagraph();
 
-            XWPFTable table1 = document.createTable(5, 4);
-            crearTablaPrincipal(table1);
+            XWPFTable table1 = document.createTable(5, 13);
+            insertarTablaPrincipal(table1);
 
             // Configurar orientación horizontal DESPUÉS de la tabla
             XWPFParagraph paraHorizontal = document.createParagraph();
             DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
 
+
             // Siguiente contenido
             DocumentWordUtils.encabezadoH2(document, "Nuevo Texto de Encabezado");
-            document.createParagraph();
-            XWPFTable table2 = document.createTable(5, 4);
-            crearTablaPrincipal(table2);
+//            document.createParagraph();
+//            XWPFTable table2 = document.createTable(5, 4);
+//            crearTablaPrincipal(table2);
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);
@@ -91,6 +94,52 @@ public class ReporteWordUtEscasezService {
     }
 
 
+    private void insertarTablaPrincipal(XWPFTable table) {
+        // Configurar bordes de la tabla
+        table.setWidth("100%");
+
+        // FILA 0: Cabecera principal con colspan
+        XWPFTableRow row0 = table.getRow(0);
+        XWPFTableCell cell00 = row0.getCell(0);
+        cell00.setText("Indicadores de Escasez por UTE");
+        cell00.setColor("4472C4"); // Color de fondo azul
+
+        // Fusionar las 4 columnas de la primera fila (colspan=4)
+        cell00.getCTTc().addNewTcPr().addNewGridSpan().setVal(java.math.BigInteger.valueOf(4));
+
+        // Centrar texto
+        XWPFParagraph p0 = cell00.getParagraphs().get(0);
+        p0.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun r0 = p0.getRuns().isEmpty() ? p0.createRun() : p0.getRuns().get(0);
+        r0.setBold(true);
+        r0.setColor("FFFFFF");
+
+        // Eliminar celdas fusionadas
+        row0.removeCell(1);
+        row0.removeCell(1);
+        row0.removeCell(1);
+
+        // FILA 1: Subcabeceras
+        XWPFTableRow row1 = table.getRow(1);
+        configurarCeldaCabecera(row1.getCell(0), "Región");
+        configurarCeldaCabecera(row1.getCell(1), "Producto");
+        configurarCeldaCabecera(row1.getCell(2), "Cantidad");
+        configurarCeldaCabecera(row1.getCell(3), "Total");
+
+        // FILA 2: Primera región con rowspan
+        XWPFTableRow row2 = table.getRow(2);
+        XWPFTableCell cellNorte = row2.getCell(0);
+        cellNorte.setText("Norte");
+
+        // Fusionar 2 filas (rowspan=2)
+        cellNorte.getCTTc().addNewTcPr().addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
+
+        row2.getCell(1).setText("Laptop");
+        row2.getCell(2).setText("150");
+        row2.getCell(3).setText("$225,000");
+    }
+
+
     private void generarTablaDemarcacionUT(String tipo, Integer anio) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('E');
         // Buscar en la lista de demarcaciones en el campo de nombre que tenga el texto: "oriental" u "occidental" según el tipo
@@ -102,10 +151,12 @@ public class ReporteWordUtEscasezService {
 
         // Tabla general de datos por demarcación
         List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtEscasezService.getAllDataFechaDemarcacion(demarcacionId, anio);
+
+
     }
 
 
-    private static void crearTablaPrincipal(XWPFTable table) {
+    private static void crearTablaPrueba(XWPFTable table) {
         // Configurar bordes de la tabla
         table.setWidth("100%");
 

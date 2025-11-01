@@ -17,5 +17,6 @@ public class EstacionResponseDTO {
     private String provincia;
     private Boolean activo;
     private String comentario;
+    private String coordenadas;
     private List<UnidadTerritorialSummaryDTO> unidadesTerritoriales; // Lista de UTs asociadas de forma simplificada
 }

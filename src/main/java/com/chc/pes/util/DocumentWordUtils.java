@@ -387,5 +387,17 @@ public class DocumentWordUtils {
             throw new FileNotFoundException("El archivo de imagen no se encontró: " + imgUTEs);
         }
     }
+
+    public static void insertarLeyendaImagen(XWPFDocument document, String texto) {
+        XWPFParagraph caption = document.createParagraph();
+        caption.setAlignment(ParagraphAlignment.CENTER);
+        caption.setSpacingAfter(200); // ajustar espacio después si hace falta
+        XWPFRun run = caption.createRun();
+        run.setText(texto);
+        run.setItalic(true);
+        run.setBold(false);
+        run.setFontSize(11); // ajustar tamaño según necesidad
+        run.setColor("000000");
+    }
 }
 

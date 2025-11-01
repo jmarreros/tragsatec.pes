@@ -16,6 +16,7 @@ public class EstacionRequestDTO {
     private String provincia;
     private Boolean activo;
     private String comentario;
+    private String coordenadas;
 
     // IDs de las Unidades Territoriales a asociar con esta Estación
     private List<Integer> unidadTerritorialIds;
