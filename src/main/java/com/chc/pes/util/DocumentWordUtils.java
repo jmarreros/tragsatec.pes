@@ -1,5 +1,6 @@
 package com.chc.pes.util;
 
+import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import com.chc.pes.dto.calculo.IndicadorUTEscenarioProjection;
 import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import org.apache.batik.transcoder.TranscoderException;
@@ -23,7 +24,6 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STPageOrientation;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -33,7 +33,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DateFormatSymbols;
 import java.text.FieldPosition;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
@@ -204,12 +203,12 @@ public class DocumentWordUtils {
                         .thenComparingInt(IndicadorUTFechaDataProjection::getMes))
                 .map(item -> {
                     // Usa DateFormatSymbols para obtener nombres de meses
-                    String mesAbreviado = new DateFormatSymbols(new Locale("es", "ES"))
-                            .getShortMonths()[item.getMes() - 1];
-                    String anioCorto = String.valueOf(item.getAnio()).substring(2);
+//                    String mesAbreviado = new DateFormatSymbols(new Locale("es", "ES"))
+//                            .getShortMonths()[item.getMes() - 1];
+//                    String anioCorto = String.valueOf(item.getAnio()).substring(2);
 
                     Map<String, Object> punto = new HashMap<>();
-                    punto.put("periodo", mesAbreviado + "-" + anioCorto);
+                    punto.put("periodo", DateUtils.ObtenerPeriodo(item.getAnio(), item.getMes()));
                     punto.put("valor", item.getIndicador());
                     punto.put("mes", item.getMes());
                     punto.put("anio", item.getAnio());
@@ -387,11 +386,11 @@ public class DocumentWordUtils {
             throw new FileNotFoundException("El archivo de imagen no se encontró: " + imgUTEs);
         }
     }
-
     public static void insertarLeyendaImagen(XWPFDocument document, String texto) {
         XWPFParagraph caption = document.createParagraph();
         caption.setAlignment(ParagraphAlignment.CENTER);
         caption.setSpacingAfter(200); // ajustar espacio después si hace falta
+        caption.setSpacingBefore(200); // ajustar espacio antes si hace falta
         XWPFRun run = caption.createRun();
         run.setText(texto);
         run.setItalic(true);
@@ -399,5 +398,133 @@ public class DocumentWordUtils {
         run.setFontSize(11); // ajustar tamaño según necesidad
         run.setColor("000000");
     }
+
+    // Creación de tabla principal
+    public static void crearTablaUT(XWPFDocument document, List<IndicadorDemarcacionFechaDataProjection> datos) {
+        if (datos == null || datos.isEmpty()) {
+            return;
+        }
+
+        java.util.Map<String, java.util.Map<String, Double>> datosPorUT = new java.util.LinkedHashMap<>();
+        java.util.Map<String, Integer> ordenMeses = new java.util.HashMap<>();
+
+        for (IndicadorDemarcacionFechaDataProjection d : datos) {
+            String ut = d.getUtNombre();
+            String label = DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes());
+            int orden = d.getAnio() * 100 + d.getMes();
+
+            ordenMeses.putIfAbsent(label, orden);
+            datosPorUT.computeIfAbsent(ut, k -> new java.util.HashMap<>()).put(label, d.getIndicador());
+        }
+
+        java.util.List<String> mesesOrdenados = ordenMeses.entrySet().stream()
+                .sorted(java.util.Map.Entry.comparingByValue())
+                .map(java.util.Map.Entry::getKey)
+                .toList();
+
+        int filas = datosPorUT.size() + 1;
+        int cols = mesesOrdenados.size() + 1;
+
+        XWPFTable table = document.createTable(filas, cols);
+        table.setWidth("100%");
+
+        // Cabecera
+        XWPFTableRow headerRow = table.getRow(0);
+        configurarAlturaFila(headerRow); // 20px ≈ 300 twips
+        configurarCeldaCabecera(headerRow.getCell(0), "UT");
+
+        for (int c = 0; c < mesesOrdenados.size(); c++) {
+            XWPFTableCell cell = headerRow.getCell(c + 1);
+            configurarCeldaCabecera(cell, mesesOrdenados.get(c));
+        }
+
+        java.text.DecimalFormat df = new java.text.DecimalFormat("0.000");
+
+        // Filas por UT
+        int filaIdx = 1;
+        for (java.util.Map.Entry<String, java.util.Map<String, Double>> entry : datosPorUT.entrySet()) {
+            String ut = entry.getKey();
+            java.util.Map<String, Double> valores = entry.getValue();
+
+            XWPFTableRow row = table.getRow(filaIdx);
+            configurarAlturaFila(row); // 20px ≈ 300 twips
+
+            // Primera celda: nombre UT
+            XWPFTableCell cellUT = row.getCell(0);
+            configurarAlineacionVertical(cellUT);
+            cellUT.removeParagraph(0);
+            XWPFParagraph pUT = cellUT.addParagraph();
+            pUT.setAlignment(ParagraphAlignment.LEFT);
+            eliminarEspaciadoParrafo(pUT);
+            XWPFRun runUT = pUT.createRun();
+            runUT.setBold(false);
+            runUT.setFontSize(8);
+            runUT.setText(ut);
+
+            // Valores por mes
+            for (int c = 0; c < mesesOrdenados.size(); c++) {
+                String mesLabel = mesesOrdenados.get(c);
+                XWPFTableCell cell = row.getCell(c + 1);
+                configurarAlineacionVertical(cell);
+
+                cell.removeParagraph(0);
+                XWPFParagraph p = cell.addParagraph();
+                p.setAlignment(ParagraphAlignment.CENTER);
+                eliminarEspaciadoParrafo(p);
+                XWPFRun run = p.createRun();
+                run.setFontSize(8);
+
+                Double val = valores.get(mesLabel);
+                if (val == null) {
+                    run.setText("-");
+                } else {
+                    run.setText(df.format(val));
+                }
+            }
+            filaIdx++;
+        }
+    }
+    private static void configurarAlturaFila(XWPFTableRow row) {
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTrPr trPr = row.getCtRow().isSetTrPr()
+                ? row.getCtRow().getTrPr()
+                : row.getCtRow().addNewTrPr();
+
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHeight height = trPr.sizeOfTrHeightArray() > 0
+                ? trPr.getTrHeightArray(0)
+                : trPr.addNewTrHeight();
+
+        height.setVal(java.math.BigInteger.valueOf(300));
+        height.setHRule(org.openxmlformats.schemas.wordprocessingml.x2006.main.STHeightRule.AT_LEAST);
+    }
+    private static void eliminarEspaciadoParrafo(XWPFParagraph p) {
+        p.setSpacingBefore(0);
+        p.setSpacingAfter(0);
+        p.setSpacingBetween(1.0);
+    }
+    private static void configurarCeldaCabecera(XWPFTableCell cell, String texto) {
+        cell.setColor("D9E1F2");
+        configurarAlineacionVertical(cell);
+
+        cell.removeParagraph(0);
+        XWPFParagraph p = cell.addParagraph();
+        p.setAlignment(ParagraphAlignment.CENTER);
+        eliminarEspaciadoParrafo(p);
+
+        XWPFRun run = p.createRun();
+        run.setBold(true);
+        run.setFontSize(8);
+        run.setText(texto);
+    }
+    private static void configurarAlineacionVertical(XWPFTableCell cell) {
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr = cell.getCTTc().isSetTcPr()
+                ? cell.getCTTc().getTcPr()
+                : cell.getCTTc().addNewTcPr();
+
+        if (!tcPr.isSetVAlign()) {
+            tcPr.addNewVAlign();
+        }
+        tcPr.getVAlign().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc.CENTER);
+    }
+
 }
 

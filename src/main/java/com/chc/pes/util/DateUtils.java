@@ -1,5 +1,6 @@
 package com.chc.pes.util;
 
+import java.text.DateFormatSymbols;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.Locale;
@@ -22,5 +23,13 @@ public class DateUtils {
     public static String obtenerNombreMesCapitalizado(Integer mes) {
         String nombreMes = obtenerNombreMes(mes);
         return nombreMes.substring(0, 1).toUpperCase() + nombreMes.substring(1);
+    }
+
+    public static String ObtenerPeriodo(Integer anio, Integer mes) {
+        String mesAbreviado = new DateFormatSymbols(new Locale("es", "ES"))
+                .getShortMonths()[mes - 1];
+        String anioCorto = String.valueOf(anio).substring(2);
+
+        return mesAbreviado + "-" + anioCorto;
     }
 }
