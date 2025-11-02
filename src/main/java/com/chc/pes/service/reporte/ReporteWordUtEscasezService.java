@@ -3,7 +3,11 @@ package com.chc.pes.service.reporte;
 import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import com.chc.pes.dto.calculo.IndicadorUTEscenarioProjection;
 import com.chc.pes.dto.general.DemarcacionProjection;
+import com.chc.pes.dto.general.EstacionPesUtProjection;
+import com.chc.pes.dto.general.UnidadTerritorialProjection;
 import com.chc.pes.persistence.repository.calculo.IndicadorUtEscasezRepository;
+import com.chc.pes.persistence.repository.estructura.PesUtEstacionRepository;
+import com.chc.pes.persistence.repository.general.UnidadTerritorialRepository;
 import com.chc.pes.service.general.DemarcacionService;
 
 import com.chc.pes.util.DateUtils;
@@ -31,11 +35,15 @@ public class ReporteWordUtEscasezService {
     private final DemarcacionService demarcacionService;
     private final ReporteUtEscasezService reporteUtEscasezService;
     private final IndicadorUtEscasezRepository indicadorUtEscasezRepository;
+    private final UnidadTerritorialRepository unidadTerritorialRepository;
+    private final PesUtEstacionRepository pesUtEstacionRepository;
 
-    public ReporteWordUtEscasezService(DemarcacionService demarcacionService, ReporteUtEscasezService reporteUtEscasezService, IndicadorUtEscasezRepository indicadorUtEscasezRepository) {
+    public ReporteWordUtEscasezService(DemarcacionService demarcacionService, ReporteUtEscasezService reporteUtEscasezService, IndicadorUtEscasezRepository indicadorUtEscasezRepository, UnidadTerritorialRepository unidadTerritorialRepository, PesUtEstacionRepository pesUtEstacionRepository) {
         this.demarcacionService = demarcacionService;
         this.reporteUtEscasezService = reporteUtEscasezService;
         this.indicadorUtEscasezRepository = indicadorUtEscasezRepository;
+        this.unidadTerritorialRepository = unidadTerritorialRepository;
+        this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
     public void generarReporteWord(Integer anio, Integer mes, String tipo) throws IOException {
@@ -74,11 +82,19 @@ public class ReporteWordUtEscasezService {
             // Configurar orientación horizontal DESPUÉS de la tabla
             XWPFParagraph paraHorizontal = document.createParagraph();
             DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
+            DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
+
+            UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(0);
 
             // Siguiente contenido
-            DocumentWordUtils.encabezadoH2(document, "Nuevo Texto de Encabezado");
-//            document.createParagraph();
+            DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
+
+            List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
+            DocumentWordUtils.crearTablaEstaciones(document, estacionesPesUt);
+            DocumentWordUtils.crearTablaEstaciones(document, estacionesPesUt);
+
+            //            document.createParagraph();
 //            XWPFTable table2 = document.createTable(5, 4);
 //            crearTablaPrincipal(table2);
 
@@ -87,6 +103,7 @@ public class ReporteWordUtEscasezService {
             }
         }
     }
+
 
     private DemarcacionProjection getDemarcacionInfo(String ubicacion) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('E');
@@ -107,6 +124,10 @@ public class ReporteWordUtEscasezService {
         Integer demarcacionId = demarcacionTipo.getId();
 
         return reporteUtEscasezService.getAllDataFechaDemarcacion(demarcacionId, anio);
+    }
+
+    private List<UnidadTerritorialProjection> getUTsPorDemarcacionEscasez(Integer demarcacionId) {
+        return unidadTerritorialRepository.findUnidadesTerritorialesByTipoDemarcacionAndPes('E', demarcacionId);
     }
 
 }

@@ -3,6 +3,7 @@ package com.chc.pes.util;
 import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import com.chc.pes.dto.calculo.IndicadorUTEscenarioProjection;
 import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
+import com.chc.pes.dto.general.EstacionPesUtProjection;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -183,9 +184,9 @@ public class DocumentWordUtils {
         pageSize.setW(BigInteger.valueOf(15840)); // Ancho en horizontal
         pageSize.setH(BigInteger.valueOf(11906)); // Alto en horizontal
     }
-    public static void agregarSaltoDePagina(XWPFDocument document) {
-        XWPFParagraph saltoPagina = document.createParagraph();
-        XWPFRun runSalto = saltoPagina.createRun();
+
+    public static void agregarSaltoDePagina(XWPFParagraph paragraph) {
+        XWPFRun runSalto = paragraph.createRun();
         runSalto.addBreak(BreakType.PAGE);
     }
 
@@ -524,6 +525,108 @@ public class DocumentWordUtils {
             tcPr.addNewVAlign();
         }
         tcPr.getVAlign().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc.CENTER);
+    }
+
+    // Tabla de estaciones por Unidad Territorial
+    public static void crearTablaEstaciones(XWPFDocument document, List<EstacionPesUtProjection> estaciones) {
+        if (estaciones == null || estaciones.isEmpty()) {
+            return;
+        }
+
+        // Crear tabla: 1 fila título + 1 fila cabecera + n filas datos
+        int filas = estaciones.size() + 2;
+        XWPFTable table = document.createTable(filas, 3);
+        table.setWidth("50%");
+
+        // Fila 0: Título fusionado
+        XWPFTableRow tituloRow = table.getRow(0);
+        configurarAlturaFila(tituloRow);
+
+        // Fusionar las 3 celdas de la primera fila
+        XWPFTableCell tituloCell = tituloRow.getCell(0);
+        tituloCell.getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
+        tituloRow.getCell(1).getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
+        tituloRow.getCell(2).getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
+
+        tituloCell.setColor("4472C4");
+        configurarAlineacionVertical(tituloCell);
+        tituloCell.removeParagraph(0);
+        XWPFParagraph pTitulo = tituloCell.addParagraph();
+        pTitulo.setAlignment(ParagraphAlignment.CENTER);
+        eliminarEspaciadoParrafo(pTitulo);
+        XWPFRun runTitulo = pTitulo.createRun();
+        runTitulo.setBold(true);
+        runTitulo.setFontSize(10);
+        runTitulo.setColor("FFFFFF");
+        runTitulo.setText("ESTACIONES SELECCIONADAS Y PONDERACIÓN");
+
+        // Fila 1: Cabecera
+        XWPFTableRow headerRow = table.getRow(1);
+        configurarAlturaFila(headerRow);
+        configurarCeldaCabecera(headerRow.getCell(0), "Nombre y código");
+        configurarCeldaCabecera(headerRow.getCell(1), "Ponderación (%)");
+        configurarCeldaCabecera(headerRow.getCell(2), "Coordenadas");
+
+        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
+
+        // Filas de datos
+        for (int i = 0; i < estaciones.size(); i++) {
+            EstacionPesUtProjection estacion = estaciones.get(i);
+            XWPFTableRow row = table.getRow(i + 2);
+            configurarAlturaFila(row);
+
+            // Columna 1: Nombre y código
+            XWPFTableCell cellNombre = row.getCell(0);
+            configurarAlineacionVertical(cellNombre);
+            cellNombre.removeParagraph(0);
+            XWPFParagraph pNombre = cellNombre.addParagraph();
+            pNombre.setAlignment(ParagraphAlignment.CENTER);
+            eliminarEspaciadoParrafo(pNombre);
+            XWPFRun runNombre = pNombre.createRun();
+            runNombre.setFontSize(8);
+            runNombre.setText(estacion.getNombre());
+            runNombre.addBreak();
+            runNombre.setText("(" + estacion.getCodigo() + ")");
+
+            // Columna 2: Ponderación (coeficiente * 100)
+            XWPFTableCell cellPonderacion = row.getCell(1);
+            configurarAlineacionVertical(cellPonderacion);
+            cellPonderacion.removeParagraph(0);
+            XWPFParagraph pPonderacion = cellPonderacion.addParagraph();
+            pPonderacion.setAlignment(ParagraphAlignment.CENTER);
+            eliminarEspaciadoParrafo(pPonderacion);
+            XWPFRun runPonderacion = pPonderacion.createRun();
+            runPonderacion.setFontSize(8);
+
+            java.math.BigDecimal ponderacion = estacion.getCoeficiente()
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+            runPonderacion.setText(ponderacion.toString());
+
+            // Columna 3: Coordenadas
+            XWPFTableCell cellCoordenadas = row.getCell(2);
+            configurarAlineacionVertical(cellCoordenadas);
+            cellCoordenadas.removeParagraph(0);
+            XWPFParagraph pCoordenadas = cellCoordenadas.addParagraph();
+            pCoordenadas.setAlignment(ParagraphAlignment.LEFT);
+            eliminarEspaciadoParrafo(pCoordenadas);
+            XWPFRun runCoordenadas = pCoordenadas.createRun();
+            runCoordenadas.setFontSize(8);
+
+            String coordenadas = estacion.getCoordenadas();
+            if (coordenadas != null && !coordenadas.trim().isEmpty()) {
+                String[] partes = coordenadas.split(",");
+                if (partes.length == 2) {
+                    runCoordenadas.setText("x = " + partes[0].trim());
+                    runCoordenadas.addBreak();
+                    runCoordenadas.setText("y = " + partes[1].trim());
+                } else {
+                    runCoordenadas.setText(coordenadas);
+                }
+            } else {
+                runCoordenadas.setText("-");
+            }
+
+        }
     }
 
 }

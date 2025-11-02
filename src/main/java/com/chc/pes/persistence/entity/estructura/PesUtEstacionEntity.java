@@ -37,6 +37,9 @@ public class PesUtEstacionEntity extends AuditInsertUpdateEntity {
     @Column(name = "coeficiente", nullable = false, precision = 12, scale = 8)
     private BigDecimal coeficiente;
 
+    @Column(name = "orden")
+    private Integer orden;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pes_id", nullable = false)
     private PesEntity pes;
