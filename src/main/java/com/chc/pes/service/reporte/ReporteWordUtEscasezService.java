@@ -95,10 +95,16 @@ public class ReporteWordUtEscasezService {
             DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
 
             List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
-            String imagePruebaPath = reportDir + "/imagenes-ut/imagenes-ute/ES017UTE1-alerta.png";
 
-            DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, imagePruebaPath);
-            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE ESCASEZ XXX");
+            // Buscar la imagen correspondiente a la UTE y escenario actual del mes
+            String pathImgUtActual = nombreImagenUTActual(demarcacionCodigo, listUTEscenario, utList);
+            String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anio;
+
+            // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
+            DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
+
+
+//            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE ESCASEZ");
 
             XWPFParagraph paraMargenesReducidos = document.createParagraph();
             DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
@@ -117,6 +123,16 @@ public class ReporteWordUtEscasezService {
     }
 
 
+    private String nombreImagenUTActual(String demarcacionCodigo, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
+        String escenarioUt = listUTEscenario.stream()
+                .filter(e -> e.getId().intValue() == utList.getId())
+                .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
+                .findFirst()
+                .orElse("normalidad");
+
+        String nombreImagen = demarcacionCodigo + utList.getCodigo() + "-" + escenarioUt + ".png";
+        return reportDir + "/imagenes-ut/imagenes-ute/" + nombreImagen;
+    }
 
 
 

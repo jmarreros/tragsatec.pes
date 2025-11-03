@@ -647,6 +647,147 @@ public class DocumentWordUtils {
         }
     }
 
+    public static void crearContenido1x2(XWPFDocument document,
+                                         List<EstacionPesUtProjection> estaciones,
+                                         String imagePath,
+                                         String tituloImagen) throws Exception {
+        // Crear tabla contenedora de 1 fila x 2 columnas
+        XWPFTable tablaContenedora = document.createTable(1, 2);
+
+        // Configurar propiedades de la tabla
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
+                tablaContenedora.getCTTbl().getTblPr() != null ?
+                        tablaContenedora.getCTTbl().getTblPr() :
+                        tablaContenedora.getCTTbl().addNewTblPr();
+
+        // Usar AUTO para ocupar 100% del ancho disponible
+        tblPr.addNewTblW().setW(BigInteger.valueOf(0));
+        tblPr.getTblW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.AUTO);
+
+        // Centrar la tabla usando STJcTable
+        tblPr.addNewJc().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STJcTable.CENTER);
+
+        XWPFTableRow row = tablaContenedora.getRow(0);
+
+        // === CELDA IZQUIERDA: Tabla de estaciones (60%) ===
+        XWPFTableCell celdaIzquierda = row.getCell(0);
+        configurarAlineacionVertical(celdaIzquierda);
+
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrIzq =
+                celdaIzquierda.getCTTc().isSetTcPr() ?
+                        celdaIzquierda.getCTTc().getTcPr() :
+                        celdaIzquierda.getCTTc().addNewTcPr();
+
+        // Ancho en porcentaje (60% = 3000 de 5000)
+        tcPrIzq.addNewTcW().setW(BigInteger.valueOf(3000));
+        tcPrIzq.getTcW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.PCT);
+
+        crearTablaEstaciones(celdaIzquierda, estaciones);
+
+        // === CELDA DERECHA: Título + Imagen (40%) ===
+        XWPFTableCell celdaDerecha = row.getCell(1);
+        configurarAlineacionVertical(celdaDerecha);
+
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrDer =
+                celdaDerecha.getCTTc().isSetTcPr() ?
+                        celdaDerecha.getCTTc().getTcPr() :
+                        celdaDerecha.getCTTc().addNewTcPr();
+
+        // Ancho en porcentaje (40% = 2000 de 5000)
+        tcPrDer.addNewTcW().setW(BigInteger.valueOf(2000));
+        tcPrDer.getTcW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.PCT);
+
+        // Limpiar párrafos por defecto
+        for (int i = celdaDerecha.getParagraphs().size() - 1; i >= 0; i--) {
+            celdaDerecha.removeParagraph(i);
+        }
+
+        // Agregar título
+        XWPFParagraph pTitulo = celdaDerecha.addParagraph();
+        pTitulo.setAlignment(ParagraphAlignment.CENTER);
+        eliminarEspaciadoParrafo(pTitulo);
+        pTitulo.setSpacingAfter(100); // Agregar espacio después del título (100 twips ≈ 5pt)
+        XWPFRun runTitulo = pTitulo.createRun();
+        runTitulo.setText(tituloImagen);
+        runTitulo.setBold(false);
+        runTitulo.setFontSize(12);
+        runTitulo.setColor("000000");
+
+
+        // Insertar imagen
+        XWPFParagraph pImg = celdaDerecha.addParagraph();
+        pImg.setAlignment(ParagraphAlignment.CENTER);
+        eliminarEspaciadoParrafo(pImg);
+
+        File imgFile = new File(imagePath);
+        if (!imgFile.exists()) {
+            throw new FileNotFoundException("Imagen no encontrada: " + imagePath);
+        }
+
+        try (FileInputStream fis = new FileInputStream(imgFile)) {
+            XWPFRun runImg = pImg.createRun();
+            runImg.addPicture(fis, Document.PICTURE_TYPE_PNG, imgFile.getName(),
+                    Units.pixelToEMU(380), Units.pixelToEMU(269));
+        }
+
+        eliminarBordesTabla(tablaContenedora);
+        eliminarMargenesInternos(celdaIzquierda);
+        eliminarMargenesInternos(celdaDerecha);
+    }
+
+    private static void eliminarMargenesInternos(XWPFTableCell cell) {
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr =
+                cell.getCTTc().isSetTcPr() ?
+                        cell.getCTTc().getTcPr() :
+                        cell.getCTTc().addNewTcPr();
+
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcMar tcMar =
+                tcPr.isSetTcMar() ? tcPr.getTcMar() : tcPr.addNewTcMar();
+
+        // Reducir márgenes a 50 twips (mínimo recomendado)
+        tcMar.addNewTop().setW(BigInteger.valueOf(50));
+        tcMar.addNewBottom().setW(BigInteger.valueOf(50));
+        tcMar.addNewLeft().setW(BigInteger.valueOf(50));
+        tcMar.addNewRight().setW(BigInteger.valueOf(50));
+    }
+    private static void eliminarBordesTabla(XWPFTable table) {
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
+                table.getCTTbl().getTblPr() != null ?
+                        table.getCTTbl().getTblPr() :
+                        table.getCTTbl().addNewTblPr();
+
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders borders =
+                tblPr.isSetTblBorders() ? tblPr.getTblBorders() : tblPr.addNewTblBorders();
+
+        borders.addNewTop().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+        borders.addNewBottom().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+        borders.addNewLeft().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+        borders.addNewRight().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+        borders.addNewInsideH().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+        borders.addNewInsideV().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+    }
+    public static void configurarMargenes(XWPFParagraph paragraph, int top, int bottom, int left, int right) {
+        CTPPr ppr = paragraph.getCTP().getPPr();
+        if (ppr == null) {
+            ppr = paragraph.getCTP().addNewPPr();
+        }
+
+        CTSectPr sectPr = ppr.getSectPr();
+        if (sectPr == null) {
+            sectPr = ppr.addNewSectPr();
+        }
+
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar pageMar = sectPr.getPgMar();
+        if (pageMar == null) {
+            pageMar = sectPr.addNewPgMar();
+        }
+
+        pageMar.setTop(BigInteger.valueOf(top));
+        pageMar.setBottom(BigInteger.valueOf(bottom));
+        pageMar.setLeft(BigInteger.valueOf(left));
+        pageMar.setRight(BigInteger.valueOf(right));
+    }
+
     private static void configurarBordesTabla(XWPFTable table) {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
                 table.getCTTbl().getTblPr() != null ?
@@ -701,163 +842,5 @@ public class DocumentWordUtils {
         borders.getInsideV().setColor(color);
         borders.getInsideV().setSpace(BigInteger.ZERO);
     }
-
-    public static void crearContenido1x2(XWPFDocument document,
-                                         List<EstacionPesUtProjection> estaciones,
-                                         String imagePath) throws Exception {
-        // Crear tabla contenedora de 1 fila x 2 columnas
-        XWPFTable tablaContenedora = document.createTable(1, 2);
-
-        // Configurar propiedades de la tabla
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
-                tablaContenedora.getCTTbl().getTblPr() != null ?
-                        tablaContenedora.getCTTbl().getTblPr() :
-                        tablaContenedora.getCTTbl().addNewTblPr();
-
-        // Usar AUTO para ocupar 100% del ancho disponible
-        tblPr.addNewTblW().setW(BigInteger.valueOf(0));
-        tblPr.getTblW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.AUTO);
-
-        // Centrar la tabla usando STJcTable
-        tblPr.addNewJc().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STJcTable.CENTER);
-
-        XWPFTableRow row = tablaContenedora.getRow(0);
-
-        // === CELDA IZQUIERDA: Tabla de estaciones (60%) ===
-        XWPFTableCell celdaIzquierda = row.getCell(0);
-        configurarAlineacionVertical(celdaIzquierda);
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrIzq =
-                celdaIzquierda.getCTTc().isSetTcPr() ?
-                        celdaIzquierda.getCTTc().getTcPr() :
-                        celdaIzquierda.getCTTc().addNewTcPr();
-
-        // Ancho en porcentaje (60% = 3000 de 5000)
-        tcPrIzq.addNewTcW().setW(BigInteger.valueOf(3000));
-        tcPrIzq.getTcW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.PCT);
-
-        crearTablaEstaciones(celdaIzquierda, estaciones);
-
-        // === CELDA DERECHA: Imagen (40%) ===
-        XWPFTableCell celdaDerecha = row.getCell(1);
-        configurarAlineacionVertical(celdaDerecha);
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrDer =
-                celdaDerecha.getCTTc().isSetTcPr() ?
-                        celdaDerecha.getCTTc().getTcPr() :
-                        celdaDerecha.getCTTc().addNewTcPr();
-
-        // Ancho en porcentaje (40% = 2000 de 5000)
-        tcPrDer.addNewTcW().setW(BigInteger.valueOf(2000));
-        tcPrDer.getTcW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.PCT);
-
-        // Limpiar párrafos por defecto
-        for (int i = celdaDerecha.getParagraphs().size() - 1; i >= 0; i--) {
-            celdaDerecha.removeParagraph(i);
-        }
-
-        // Insertar imagen
-        XWPFParagraph pImg = celdaDerecha.addParagraph();
-        pImg.setAlignment(ParagraphAlignment.CENTER);
-        eliminarEspaciadoParrafo(pImg);
-
-        File imgFile = new File(imagePath);
-        if (!imgFile.exists()) {
-            throw new FileNotFoundException("Imagen no encontrada: " + imagePath);
-        }
-
-        try (FileInputStream fis = new FileInputStream(imgFile)) {
-            XWPFRun runImg = pImg.createRun();
-            runImg.addPicture(fis, Document.PICTURE_TYPE_PNG, imgFile.getName(),
-                    Units.pixelToEMU(380), Units.pixelToEMU(269));
-        }
-
-        eliminarBordesTabla(tablaContenedora);
-        eliminarMargenesInternos(celdaIzquierda);
-        eliminarMargenesInternos(celdaDerecha);
-    }
-
-
-    private static void eliminarMargenesInternos(XWPFTableCell cell) {
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr =
-                cell.getCTTc().isSetTcPr() ?
-                        cell.getCTTc().getTcPr() :
-                        cell.getCTTc().addNewTcPr();
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcMar tcMar =
-                tcPr.isSetTcMar() ? tcPr.getTcMar() : tcPr.addNewTcMar();
-
-        // Reducir márgenes a 50 twips (mínimo recomendado)
-        tcMar.addNewTop().setW(BigInteger.valueOf(50));
-        tcMar.addNewBottom().setW(BigInteger.valueOf(50));
-        tcMar.addNewLeft().setW(BigInteger.valueOf(50));
-        tcMar.addNewRight().setW(BigInteger.valueOf(50));
-    }
-
-    private static void eliminarBordesTabla(XWPFTable table) {
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
-                table.getCTTbl().getTblPr() != null ?
-                        table.getCTTbl().getTblPr() :
-                        table.getCTTbl().addNewTblPr();
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders borders =
-                tblPr.isSetTblBorders() ? tblPr.getTblBorders() : tblPr.addNewTblBorders();
-
-        borders.addNewTop().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewBottom().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewLeft().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewRight().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewInsideH().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewInsideV().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-    }
-
-
-//
-//    public static void crearContenido1x2ConTabulaciones(XWPFDocument document,
-//                                                        List<EstacionPesUtProjection> estaciones,
-//                                                        String imagePath) throws Exception {
-//        // Crear párrafo con dos columnas simuladas
-//        XWPFParagraph p = document.createParagraph();
-//
-//        // Configurar tabulación central
-//        p.getCTP().addNewPPr().addNewTabs().addNewTab()
-//            .setPos(BigInteger.valueOf(4500)); // Mitad del ancho
-//
-//        XWPFRun run1 = p.createRun();
-//        run1.setText("[Contenido tabla de estaciones aquí]");
-//        run1.addTab();
-//
-//        // Insertar imagen después del tab
-//        File imgFile = new File(imagePath);
-//        try (FileInputStream fis = new FileInputStream(imgFile)) {
-//            run1.addPicture(fis, Document.PICTURE_TYPE_PNG, imgFile.getName(),
-//                Units.pixelToEMU(380), Units.pixelToEMU(269));
-//        }
-//    }
-
-
-    public static void configurarMargenes(XWPFParagraph paragraph, int top, int bottom, int left, int right) {
-        CTPPr ppr = paragraph.getCTP().getPPr();
-        if (ppr == null) {
-            ppr = paragraph.getCTP().addNewPPr();
-        }
-
-        CTSectPr sectPr = ppr.getSectPr();
-        if (sectPr == null) {
-            sectPr = ppr.addNewSectPr();
-        }
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar pageMar = sectPr.getPgMar();
-        if (pageMar == null) {
-            pageMar = sectPr.addNewPgMar();
-        }
-
-        pageMar.setTop(BigInteger.valueOf(top));
-        pageMar.setBottom(BigInteger.valueOf(bottom));
-        pageMar.setLeft(BigInteger.valueOf(left));
-        pageMar.setRight(BigInteger.valueOf(right));
-    }
-
-
 }
 
