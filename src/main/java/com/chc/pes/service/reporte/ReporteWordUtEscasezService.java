@@ -82,27 +82,42 @@ public class ReporteWordUtEscasezService {
             // Configurar orientación horizontal DESPUÉS de la tabla
             XWPFParagraph paraHorizontal = document.createParagraph();
             DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
+
+            DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
-
             UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(0);
+
+            // Agregar un margen superior
+            document.createParagraph();
 
             // Siguiente contenido
             DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
 
             List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
-            DocumentWordUtils.crearTablaEstaciones(document, estacionesPesUt);
-            DocumentWordUtils.crearTablaEstaciones(document, estacionesPesUt);
+            String imagePruebaPath = reportDir + "/imagenes-ut/imagenes-ute/ES017UTE1-alerta.png";
 
-            //            document.createParagraph();
-//            XWPFTable table2 = document.createTable(5, 4);
-//            crearTablaPrincipal(table2);
+            DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, imagePruebaPath);
+            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE ESCASEZ XXX");
+
+            XWPFParagraph paraMargenesReducidos = document.createParagraph();
+            DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
+
+
+            // Aquí continúa tu contenido en páginas verticales con márgenes reducidos
+            DocumentWordUtils.encabezadoH2(document, "Siguiente UT");
+
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
+
+
+
 
 
     private DemarcacionProjection getDemarcacionInfo(String ubicacion) {
