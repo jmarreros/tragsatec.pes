@@ -527,46 +527,55 @@ public class DocumentWordUtils {
         tcPr.getVAlign().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc.CENTER);
     }
 
-    // Tabla de estaciones por Unidad Territorial
-    public static void crearTablaEstaciones(XWPFTableCell parentCell, List<EstacionPesUtProjection> estaciones) {
-        if (parentCell == null || estaciones == null || estaciones.isEmpty()) {
+
+    // Contenido 1x2: tabla de estaciones e imagen
+    public static void crearContenido1x2(XWPFDocument document,
+                                         List<EstacionPesUtProjection> estaciones,
+                                         String imagePath,
+                                         String tituloImagen) throws Exception {
+        if (estaciones == null || estaciones.isEmpty()) {
+            // Si no hay estaciones, simplemente inserta la imagen
+            XWPFParagraph pImg = document.createParagraph();
+            pImg.setAlignment(ParagraphAlignment.CENTER);
+            File imgFile = new File(imagePath);
+            if (imgFile.exists()) {
+                try (FileInputStream fis = new FileInputStream(imgFile)) {
+                    XWPFRun runImg = pImg.createRun();
+                    runImg.addPicture(fis, Document.PICTURE_TYPE_PNG, imgFile.getName(),
+                            Units.pixelToEMU(380), Units.pixelToEMU(269));
+                }
+            }
             return;
         }
+        crearContenidoTablaImagen(document, estaciones, imagePath, tituloImagen);
+    }
 
-        // Limpiar párrafos iniciales de la celda contenedora
-        for (int i = parentCell.getParagraphs().size() - 1; i >= 0; i--) {
-            parentCell.removeParagraph(i);
-        }
+    // Tabla estaciones e imagen
+    private static void crearContenidoTablaImagen(XWPFDocument document,
+                                                  List<EstacionPesUtProjection> estaciones,
+                                                  String imagePath,
+                                                  String tituloImagen) throws Exception {
+        // Total de filas: 1 superior vacía + 1 título + 1 cabecera + N datos + 1 inferior vacía
+        int numFilas = estaciones.size() + 4;
+        // 3 columnas para la tabla de estaciones + 1 para la imagen
+        int numCols = 4;
 
-        // Añadir tabla anidada dentro de la CTTc y envolverla con XWPFTable
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl ctTbl = parentCell.getCTTc().addNewTbl();
-        XWPFTable table = new XWPFTable(ctTbl, parentCell.getTableRow().getTable().getBody());
+        XWPFTable table = document.createTable(numFilas, numCols);
+        configurarBordesInternosHorizontales(table);
+        table.setWidth("100%");
 
-        // Configurar bordes de la tabla
-        configurarBordesTabla(table);
+        // --- Fila 0: Fila vacía superior para alineación ---
+        XWPFTableRow topEmptyRow = table.getRow(0);
+        configurarAlturaFila(topEmptyRow);
 
-        // Asegurar alineación vertical de la celda contenedora
-        configurarAlineacionVertical(parentCell);
-
-        // --- Fila 0: Título (fusionado en 3 columnas) ---
-        XWPFTableRow tituloRow = table.getRow(0);  // USAR getRow(0) en lugar de createRow()
-        if (tituloRow == null) {
-            tituloRow = table.createRow();
-        }
-        while (tituloRow.getTableCells().size() < 3) {
-            tituloRow.addNewTableCell();
-        }
+        // --- Fila 1: Título de la tabla de estaciones ---
+        XWPFTableRow tituloRow = table.getRow(1);
         configurarAlturaFila(tituloRow);
-
+        fusionarCeldasHorizontalmente(tituloRow, 0, 2);
         XWPFTableCell tituloCell = tituloRow.getCell(0);
-        tituloCell.getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
-        tituloRow.getCell(1).getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
-        tituloRow.getCell(2).getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
-
         tituloCell.setColor("4472C4");
         configurarAlineacionVertical(tituloCell);
-        tituloCell.removeParagraph(0);
-        XWPFParagraph pTitulo = tituloCell.addParagraph();
+        XWPFParagraph pTitulo = tituloCell.getParagraphs().get(0);
         pTitulo.setAlignment(ParagraphAlignment.CENTER);
         eliminarEspaciadoParrafo(pTitulo);
         XWPFRun runTitulo = pTitulo.createRun();
@@ -575,182 +584,108 @@ public class DocumentWordUtils {
         runTitulo.setColor("FFFFFF");
         runTitulo.setText("ESTACIONES SELECCIONADAS Y PONDERACIÓN");
 
-        // --- Fila 1: Cabecera ---
-        XWPFTableRow headerRow = table.createRow();
-        while (headerRow.getTableCells().size() < 3) {
-            headerRow.addNewTableCell();
-        }
+        // --- Fila 2: Cabecera de la tabla de estaciones ---
+        XWPFTableRow headerRow = table.getRow(2);
         configurarAlturaFila(headerRow);
         configurarCeldaCabecera(headerRow.getCell(0), "Nombre y código");
         configurarCeldaCabecera(headerRow.getCell(1), "Ponderación (%)");
         configurarCeldaCabecera(headerRow.getCell(2), "Coordenadas");
 
-        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
+        // --- Filas de datos de estaciones ---
+        for (int i = 0; i < estaciones.size(); i++) {
+            EstacionPesUtProjection estacion = estaciones.get(i);
+            XWPFTableRow dataRow = table.getRow(i + 3); // Se ajusta el índice inicial a 3
+            configurarAlturaFila(dataRow);
 
-        // --- Filas de datos ---
-        for (EstacionPesUtProjection estacion : estaciones) {
-            XWPFTableRow row = table.createRow();
-            while (row.getTableCells().size() < 3) {
-                row.addNewTableCell();
-            }
-            configurarAlturaFila(row);
+            configurarCeldaDato(dataRow.getCell(0), estacion.getNombre() + "\n(" + estacion.getCodigo() + ")", ParagraphAlignment.CENTER);
 
-            // Columna 1: Nombre y código
-            XWPFTableCell cellNombre = row.getCell(0);
-            configurarAlineacionVertical(cellNombre);
-            cellNombre.removeParagraph(0);
-            XWPFParagraph pNombre = cellNombre.addParagraph();
-            pNombre.setAlignment(ParagraphAlignment.CENTER);
-            eliminarEspaciadoParrafo(pNombre);
-            XWPFRun runNombre = pNombre.createRun();
-            runNombre.setFontSize(8);
-            runNombre.setText(estacion.getNombre());
-            runNombre.addBreak();
-            runNombre.setText("(" + estacion.getCodigo() + ")");
+            java.math.BigDecimal ponderacion = estacion.getCoeficiente().setScale(2, java.math.RoundingMode.HALF_UP);
+            configurarCeldaDato(dataRow.getCell(1), ponderacion.toString(), ParagraphAlignment.CENTER);
 
-            // Columna 2: Ponderación
-            XWPFTableCell cellPonderacion = row.getCell(1);
-            configurarAlineacionVertical(cellPonderacion);
-            cellPonderacion.removeParagraph(0);
-            XWPFParagraph pPonderacion = cellPonderacion.addParagraph();
-            pPonderacion.setAlignment(ParagraphAlignment.CENTER);
-            eliminarEspaciadoParrafo(pPonderacion);
-            XWPFRun runPonderacion = pPonderacion.createRun();
-            runPonderacion.setFontSize(8);
-            java.math.BigDecimal ponderacion = estacion.getCoeficiente()
-                    .setScale(2, java.math.RoundingMode.HALF_UP);
-            runPonderacion.setText(ponderacion.toString());
-
-            // Columna 3: Coordenadas
-            XWPFTableCell cellCoordenadas = row.getCell(2);
-            configurarAlineacionVertical(cellCoordenadas);
-            cellCoordenadas.removeParagraph(0);
-            XWPFParagraph pCoordenadas = cellCoordenadas.addParagraph();
-            pCoordenadas.setAlignment(ParagraphAlignment.LEFT);
-            eliminarEspaciadoParrafo(pCoordenadas);
-            XWPFRun runCoordenadas = pCoordenadas.createRun();
-            runCoordenadas.setFontSize(8);
-
+            String coordenadasStr = "-";
             String coordenadas = estacion.getCoordenadas();
             if (coordenadas != null && !coordenadas.trim().isEmpty()) {
                 String[] partes = coordenadas.split("\\s*,\\s*");
                 if (partes.length == 2) {
-                    runCoordenadas.setText("x = " + partes[0].trim());
-                    runCoordenadas.addBreak();
-                    runCoordenadas.setText("y = " + partes[1].trim());
+                    coordenadasStr = "x = " + partes[0].trim() + "\ny = " + partes[1].trim();
                 } else {
-                    runCoordenadas.setText(coordenadas);
+                    coordenadasStr = coordenadas;
                 }
-            } else {
-                runCoordenadas.setText("-");
             }
-        }
-    }
-
-    public static void crearContenido1x2(XWPFDocument document,
-                                         List<EstacionPesUtProjection> estaciones,
-                                         String imagePath,
-                                         String tituloImagen) throws Exception {
-        // Crear tabla contenedora de 1 fila x 2 columnas
-        XWPFTable tablaContenedora = document.createTable(1, 2);
-
-        // Configurar propiedades de la tabla
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
-                tablaContenedora.getCTTbl().getTblPr() != null ?
-                        tablaContenedora.getCTTbl().getTblPr() :
-                        tablaContenedora.getCTTbl().addNewTblPr();
-
-        // Usar AUTO para ocupar 100% del ancho disponible
-        tblPr.addNewTblW().setW(BigInteger.valueOf(0));
-        tblPr.getTblW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.AUTO);
-
-        // Centrar la tabla usando STJcTable
-        tblPr.addNewJc().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STJcTable.CENTER);
-
-        XWPFTableRow row = tablaContenedora.getRow(0);
-
-        // === CELDA IZQUIERDA: Tabla de estaciones (60%) ===
-        XWPFTableCell celdaIzquierda = row.getCell(0);
-        configurarAlineacionVertical(celdaIzquierda);
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrIzq =
-                celdaIzquierda.getCTTc().isSetTcPr() ?
-                        celdaIzquierda.getCTTc().getTcPr() :
-                        celdaIzquierda.getCTTc().addNewTcPr();
-
-        // Ancho en porcentaje (60% = 3000 de 5000)
-        tcPrIzq.addNewTcW().setW(BigInteger.valueOf(3000));
-        tcPrIzq.getTcW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.PCT);
-
-        crearTablaEstaciones(celdaIzquierda, estaciones);
-
-        // === CELDA DERECHA: Título + Imagen (40%) ===
-        XWPFTableCell celdaDerecha = row.getCell(1);
-        configurarAlineacionVertical(celdaDerecha);
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrDer =
-                celdaDerecha.getCTTc().isSetTcPr() ?
-                        celdaDerecha.getCTTc().getTcPr() :
-                        celdaDerecha.getCTTc().addNewTcPr();
-
-        // Ancho en porcentaje (40% = 2000 de 5000)
-        tcPrDer.addNewTcW().setW(BigInteger.valueOf(2000));
-        tcPrDer.getTcW().setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.PCT);
-
-        // Limpiar párrafos por defecto
-        for (int i = celdaDerecha.getParagraphs().size() - 1; i >= 0; i--) {
-            celdaDerecha.removeParagraph(i);
+            configurarCeldaDato(dataRow.getCell(2), coordenadasStr, ParagraphAlignment.LEFT);
         }
 
-        // Agregar título
-        XWPFParagraph pTitulo = celdaDerecha.addParagraph();
-        pTitulo.setAlignment(ParagraphAlignment.CENTER);
-        eliminarEspaciadoParrafo(pTitulo);
-        pTitulo.setSpacingAfter(100); // Agregar espacio después del título (100 twips ≈ 5pt)
-        XWPFRun runTitulo = pTitulo.createRun();
-        runTitulo.setText(tituloImagen);
-        runTitulo.setBold(false);
-        runTitulo.setFontSize(12);
-        runTitulo.setColor("000000");
+        // --- Fila extra vacía para absorber altura ---
+        XWPFTableRow bottomEmptyRow = table.getRow(numFilas - 1);
+        configurarAlturaFila(bottomEmptyRow);
 
+        // --- Columna derecha: Título e Imagen (fusionada verticalmente) ---
+        // La celda de la imagen sigue siendo la de la fila 0 para que ocupe todo el espacio vertical
+        XWPFTableCell imagenCell = table.getRow(0).getCell(3);
+        configurarAlineacionVertical(imagenCell);
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrImg = imagenCell.getCTTc().addNewTcPr();
+        tcPrImg.addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
 
-        // Insertar imagen
-        XWPFParagraph pImg = celdaDerecha.addParagraph();
+        XWPFParagraph pTituloImg = imagenCell.getParagraphs().get(0);
+        pTituloImg.setAlignment(ParagraphAlignment.CENTER);
+        eliminarEspaciadoParrafo(pTituloImg);
+        pTituloImg.setSpacingAfter(100);
+        XWPFRun runTituloImg = pTituloImg.createRun();
+        runTituloImg.setText(tituloImagen);
+        runTituloImg.setFontSize(12);
+
+        XWPFParagraph pImg = imagenCell.addParagraph();
         pImg.setAlignment(ParagraphAlignment.CENTER);
         eliminarEspaciadoParrafo(pImg);
-
         File imgFile = new File(imagePath);
-        if (!imgFile.exists()) {
-            throw new FileNotFoundException("Imagen no encontrada: " + imagePath);
+        if (imgFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(imgFile)) {
+                XWPFRun runImg = pImg.createRun();
+                runImg.addPicture(fis, org.apache.poi.xwpf.usermodel.Document.PICTURE_TYPE_PNG, imgFile.getName(), Units.pixelToEMU(380), Units.pixelToEMU(269));
+            }
         }
 
-        try (FileInputStream fis = new FileInputStream(imgFile)) {
-            XWPFRun runImg = pImg.createRun();
-            runImg.addPicture(fis, Document.PICTURE_TYPE_PNG, imgFile.getName(),
-                    Units.pixelToEMU(380), Units.pixelToEMU(269));
+        // Continuar la fusión vertical para las demás filas (incluidas las vacías)
+        for (int i = 1; i < numFilas; i++) {
+            XWPFTableCell cellToMerge = table.getRow(i).getCell(3);
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPrMerge = cellToMerge.getCTTc().isSetTcPr() ? cellToMerge.getCTTc().getTcPr() : cellToMerge.getCTTc().addNewTcPr();
+            tcPrMerge.addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
         }
-
-        eliminarBordesTabla(tablaContenedora);
-        eliminarMargenesInternos(celdaIzquierda);
-        eliminarMargenesInternos(celdaDerecha);
     }
 
-    private static void eliminarMargenesInternos(XWPFTableCell cell) {
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr =
-                cell.getCTTc().isSetTcPr() ?
-                        cell.getCTTc().getTcPr() :
-                        cell.getCTTc().addNewTcPr();
-
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcMar tcMar =
-                tcPr.isSetTcMar() ? tcPr.getTcMar() : tcPr.addNewTcMar();
-
-        // Reducir márgenes a 50 twips (mínimo recomendado)
-        tcMar.addNewTop().setW(BigInteger.valueOf(50));
-        tcMar.addNewBottom().setW(BigInteger.valueOf(50));
-        tcMar.addNewLeft().setW(BigInteger.valueOf(50));
-        tcMar.addNewRight().setW(BigInteger.valueOf(50));
+    private static void fusionarCeldasHorizontalmente(XWPFTableRow row, int startCol, int endCol) {
+        if (startCol >= endCol) return;
+        // Inicia la fusión
+        XWPFTableCell startCell = row.getCell(startCol);
+        startCell.getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
+        // Continúa la fusión para las celdas intermedias
+        for (int i = startCol + 1; i <= endCol; i++) {
+            XWPFTableCell cell = row.getCell(i);
+            cell.getCTTc().addNewTcPr().addNewHMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
+        }
     }
-    private static void eliminarBordesTabla(XWPFTable table) {
+    private static void configurarCeldaDato(XWPFTableCell cell, String texto, ParagraphAlignment alignment) {
+        configurarAlineacionVertical(cell);
+        cell.removeParagraph(0);
+        XWPFParagraph p = cell.addParagraph();
+        p.setAlignment(alignment);
+        eliminarEspaciadoParrafo(p);
+        XWPFRun run = p.createRun();
+        run.setFontSize(8);
+
+        // Manejar saltos de línea manuales
+        if (texto.contains("\n")) {
+            String[] lines = texto.split("\n");
+            run.setText(lines[0], 0);
+            for (int i = 1; i < lines.length; i++) {
+                run.addBreak();
+                run.setText(lines[i]);
+            }
+        } else {
+            run.setText(texto);
+        }
+    }
+    private static void configurarBordesInternosHorizontales(XWPFTable table) {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
                 table.getCTTbl().getTblPr() != null ?
                         table.getCTTbl().getTblPr() :
@@ -759,13 +694,22 @@ public class DocumentWordUtils {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders borders =
                 tblPr.isSetTblBorders() ? tblPr.getTblBorders() : tblPr.addNewTblBorders();
 
+        // Ocultar bordes exteriores
         borders.addNewTop().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewBottom().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+        borders.addNewBottom().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE); // Asegurar que el borde inferior esté oculto
         borders.addNewLeft().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
         borders.addNewRight().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
-        borders.addNewInsideH().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+
+        // Ocultar bordes verticales internos
         borders.addNewInsideV().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.NONE);
+
+        // Configurar bordes horizontales internos
+        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder insideH = borders.addNewInsideH();
+        insideH.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+        insideH.setSz(java.math.BigInteger.valueOf(4)); // Grosor del borde (4 = 0.25pt)
+        insideH.setColor("000000"); // Color negro
     }
+
     public static void configurarMargenes(XWPFParagraph paragraph, int top, int bottom, int left, int right) {
         CTPPr ppr = paragraph.getCTP().getPPr();
         if (ppr == null) {
@@ -788,59 +732,105 @@ public class DocumentWordUtils {
         pageMar.setRight(BigInteger.valueOf(right));
     }
 
-    private static void configurarBordesTabla(XWPFTable table) {
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr =
-                table.getCTTbl().getTblPr() != null ?
-                        table.getCTTbl().getTblPr() :
-                        table.getCTTbl().addNewTblPr();
 
-        org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders borders =
-                tblPr.isSetTblBorders() ? tblPr.getTblBorders() : tblPr.addNewTblBorders();
+// En DocumentWordUtils.java
 
-        BigInteger sz = BigInteger.valueOf(6); // Grosor más visible (6 = 0.75pt)
-        String color = "000000"; // Negro
+    public static void crearTablaDatosEstacionesUT(XWPFDocument document,
+                                                   List<IndicadorUTFechaDataProjection> datosEstaciones,
+                                                   List<IndicadorUTFechaDataProjection> datosTotales,
+                                                   String nombreUT) {
+        if ((datosEstaciones == null || datosEstaciones.isEmpty()) && (datosTotales == null || datosTotales.isEmpty())) {
+            return;
+        }
 
-        // Top
-        if (!borders.isSetTop()) borders.addNewTop();
-        borders.getTop().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
-        borders.getTop().setSz(sz);
-        borders.getTop().setColor(color);
-        borders.getTop().setSpace(BigInteger.ZERO);
+        // 1. Preparar datos y cabeceras de período
+        Map<String, Integer> ordenMeses = new LinkedHashMap<>();
+        List<IndicadorUTFechaDataProjection> allData = new ArrayList<>();
+        if (datosEstaciones != null) allData.addAll(datosEstaciones);
+        if (datosTotales != null) allData.addAll(datosTotales);
 
-        // Bottom
-        if (!borders.isSetBottom()) borders.addNewBottom();
-        borders.getBottom().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
-        borders.getBottom().setSz(sz);
-        borders.getBottom().setColor(color);
-        borders.getBottom().setSpace(BigInteger.ZERO);
+        for (IndicadorUTFechaDataProjection d : allData) {
+            String label = DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes());
+            int orden = d.getAnio() * 100 + d.getMes();
+            ordenMeses.putIfAbsent(label, orden);
+        }
 
-        // Left
-        if (!borders.isSetLeft()) borders.addNewLeft();
-        borders.getLeft().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
-        borders.getLeft().setSz(sz);
-        borders.getLeft().setColor(color);
-        borders.getLeft().setSpace(BigInteger.ZERO);
+        List<String> mesesOrdenados = ordenMeses.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .toList();
 
-        // Right
-        if (!borders.isSetRight()) borders.addNewRight();
-        borders.getRight().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
-        borders.getRight().setSz(sz);
-        borders.getRight().setColor(color);
-        borders.getRight().setSpace(BigInteger.ZERO);
+        // 2. Agrupar datos por estación
+        Map<String, List<IndicadorUTFechaDataProjection>> datosPorEstacion = datosEstaciones.stream()
+                .collect(Collectors.groupingBy(IndicadorUTFechaDataProjection::getNombre, LinkedHashMap::new, Collectors.toList()));
 
-        // Inside Horizontal
-        if (!borders.isSetInsideH()) borders.addNewInsideH();
-        borders.getInsideH().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
-        borders.getInsideH().setSz(sz);
-        borders.getInsideH().setColor(color);
-        borders.getInsideH().setSpace(BigInteger.ZERO);
+        // 3. Crear la tabla
+        int filas = 1 + (datosPorEstacion.size() * 2) + 1; // Cabecera + 2 por cada estación + total
+        int cols = 2 + mesesOrdenados.size(); // Nombre, Tipo + periodos
+        XWPFTable table = document.createTable(filas, cols);
+        table.setWidth("100%");
 
-        // Inside Vertical
-        if (!borders.isSetInsideV()) borders.addNewInsideV();
-        borders.getInsideV().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
-        borders.getInsideV().setSz(sz);
-        borders.getInsideV().setColor(color);
-        borders.getInsideV().setSpace(BigInteger.ZERO);
+        // 4. Llenar cabecera
+        XWPFTableRow headerRow = table.getRow(0);
+        configurarCeldaCabecera(headerRow.getCell(0), "Nombre");
+        configurarCeldaCabecera(headerRow.getCell(1), "Tipo");
+        for (int i = 0; i < mesesOrdenados.size(); i++) {
+            configurarCeldaCabecera(headerRow.getCell(i + 2), mesesOrdenados.get(i));
+        }
+
+        // 5. Llenar filas de datos
+        int filaIdx = 1;
+        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
+
+        for (Map.Entry<String, List<IndicadorUTFechaDataProjection>> entry : datosPorEstacion.entrySet()) {
+            String nombreEstacion = entry.getKey();
+            Map<String, IndicadorUTFechaDataProjection> valoresPorPeriodo = entry.getValue().stream()
+                    .collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), d -> d));
+
+            XWPFTableRow filaIndicador = table.getRow(filaIdx);
+            XWPFTableRow filaValor = table.getRow(filaIdx + 1);
+
+            // Celda de Nombre con fusión vertical
+            XWPFTableCell celdaNombre = filaIndicador.getCell(0);
+            configurarCeldaDato(celdaNombre, nombreEstacion, ParagraphAlignment.LEFT);
+            celdaNombre.getCTTc().addNewTcPr().addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
+            XWPFTableCell celdaNombreContinuacion = filaValor.getCell(0);
+            celdaNombreContinuacion.getCTTc().addNewTcPr().addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
+
+            // Celdas de Tipo
+            configurarCeldaDato(filaIndicador.getCell(1), "Indicador", ParagraphAlignment.CENTER);
+            configurarCeldaDato(filaValor.getCell(1), "Valor", ParagraphAlignment.CENTER);
+
+            // Celdas de datos por período
+            for (int i = 0; i < mesesOrdenados.size(); i++) {
+                String periodo = mesesOrdenados.get(i);
+                IndicadorUTFechaDataProjection dato = valoresPorPeriodo.get(periodo);
+                String indicadorStr = "-";
+                String valorStr = "-";
+                if (dato != null) {
+                    if (dato.getIndicador() != null) indicadorStr = df.format(dato.getIndicador());
+                    if (dato.getValor() != null) valorStr = df.format(dato.getValor());
+                }
+                configurarCeldaDato(filaIndicador.getCell(i + 2), indicadorStr, ParagraphAlignment.CENTER);
+                configurarCeldaDato(filaValor.getCell(i + 2), valorStr, ParagraphAlignment.CENTER);
+            }
+            filaIdx += 2;
+        }
+
+        // 6. Fila de totales
+        XWPFTableRow totalRow = table.getRow(filaIdx);
+        Map<String, Double> totalesPorPeriodo = datosTotales.stream()
+                .collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), IndicadorUTFechaDataProjection::getIndicador));
+
+        configurarCeldaCabecera(totalRow.getCell(0), nombreUT);
+        configurarCeldaCabecera(totalRow.getCell(1), "Indicador");
+        for (int i = 0; i < mesesOrdenados.size(); i++) {
+            String periodo = mesesOrdenados.get(i);
+            Double total = totalesPorPeriodo.get(periodo);
+            String totalStr = (total != null) ? df.format(total) : "-";
+            configurarCeldaCabecera(totalRow.getCell(i + 2), totalStr);
+        }
     }
+
 }
 

@@ -2,6 +2,7 @@ package com.chc.pes.service.reporte;
 
 import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import com.chc.pes.dto.calculo.IndicadorUTEscenarioProjection;
+import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import com.chc.pes.dto.general.DemarcacionProjection;
 import com.chc.pes.dto.general.EstacionPesUtProjection;
 import com.chc.pes.dto.general.UnidadTerritorialProjection;
@@ -50,6 +51,7 @@ public class ReporteWordUtEscasezService {
         String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
         String archivoFinal = reportDir + "/Reporte_UTE_" + tipo + ".docx";
 
+
         try (XWPFDocument document = new XWPFDocument(new FileInputStream(archivoOrigen))) {
 
             // Cambiar mes y año en el documento
@@ -86,6 +88,7 @@ public class ReporteWordUtEscasezService {
             DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
+            // TODO: Obtenemos la primera estación para probar
             UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(0);
 
             // Agregar un margen superior
@@ -103,8 +106,30 @@ public class ReporteWordUtEscasezService {
             // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
             DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
 
+            // TODO: Continuar con el resto del reporte
+            // Obtener detalles de las estaciones por UT y año
+            List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anio);
+            List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anio);
 
-//            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE ESCASEZ");
+            DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE ESCASEZ POR UTE ");
+            DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
+
+//            System.out.println("Datos UT Fecha: " + datosUTFecha.size());
+//            System.out.println("Totales UT Fecha: " + totalesUTFecha.size());
+
+//            // Recorrer los datos para verificar imprimiendo en consola
+//            System.out.println("Data:");
+//            for (IndicadorUTFechaDataProjection data : datosUTFecha) {
+//                System.out.println(data.getAnio() + " - " + data.getMes() + " - " + data.getId() + " - " + data.getCodigo() + " - " + data.getNombre() + " - " + data.getIndicador() + " - " + data.getValor());
+//            }
+//
+//            System.out.println("Totales:");
+//            for (IndicadorUTFechaDataProjection total : totalesUTFecha) {
+//                System.out.println(total.getAnio() + " - " + total.getMes() + " - " + total.getId() + " - " + total.getCodigo() + " - " + total.getNombre() + " - " + total.getIndicador() + " - " + total.getValor());
+//            }
+
+
+
 
             XWPFParagraph paraMargenesReducidos = document.createParagraph();
             DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
@@ -123,6 +148,14 @@ public class ReporteWordUtEscasezService {
     }
 
 
+    private List<IndicadorUTFechaDataProjection> obtenerDatosUTFecha(Integer utId, Integer anio) {
+        return reporteUtEscasezService.getUTEstacionFecha(utId, anio);
+    }
+
+    private List<IndicadorUTFechaDataProjection> obtenerTotalesUTFecha(Integer utId, Integer anio) {
+        return reporteUtEscasezService.getTotalDataUTFecha(utId, anio);
+    }
+
     private String nombreImagenUTActual(String demarcacionCodigo, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
         String escenarioUt = listUTEscenario.stream()
                 .filter(e -> e.getId().intValue() == utList.getId())
@@ -133,8 +166,6 @@ public class ReporteWordUtEscasezService {
         String nombreImagen = demarcacionCodigo + utList.getCodigo() + "-" + escenarioUt + ".png";
         return reportDir + "/imagenes-ut/imagenes-ute/" + nombreImagen;
     }
-
-
 
     private DemarcacionProjection getDemarcacionInfo(String ubicacion) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('E');
