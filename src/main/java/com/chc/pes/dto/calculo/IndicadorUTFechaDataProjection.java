@@ -8,4 +8,5 @@ public interface IndicadorUTFechaDataProjection {
     Integer getMes();
     Double getIndicador();
     Double getValor();
+    String getUnidadMedida();
 }

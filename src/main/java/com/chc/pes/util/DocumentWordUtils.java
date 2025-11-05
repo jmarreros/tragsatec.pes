@@ -502,6 +502,8 @@ public class DocumentWordUtils {
         p.setSpacingAfter(0);
         p.setSpacingBetween(1.0);
     }
+    // En DocumentWordUtils.java
+
     private static void configurarCeldaCabecera(XWPFTableCell cell, String texto) {
         cell.setColor("D9E1F2");
         configurarAlineacionVertical(cell);
@@ -514,8 +516,20 @@ public class DocumentWordUtils {
         XWPFRun run = p.createRun();
         run.setBold(true);
         run.setFontSize(8);
-        run.setText(texto);
+
+        // Manejar saltos de línea manuales
+        if (texto.contains("\n")) {
+            String[] lines = texto.split("\n");
+            run.setText(lines[0], 0);
+            for (int i = 1; i < lines.length; i++) {
+                run.addBreak();
+                run.setText(lines[i]);
+            }
+        } else {
+            run.setText(texto);
+        }
     }
+
     private static void configurarAlineacionVertical(XWPFTableCell cell) {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr = cell.getCTTc().isSetTcPr()
                 ? cell.getCTTc().getTcPr()
@@ -732,78 +746,96 @@ public class DocumentWordUtils {
         pageMar.setRight(BigInteger.valueOf(right));
     }
 
-
 // En DocumentWordUtils.java
+
+// ... (código anterior sin cambios)
 
     public static void crearTablaDatosEstacionesUT(XWPFDocument document,
                                                    List<IndicadorUTFechaDataProjection> datosEstaciones,
                                                    List<IndicadorUTFechaDataProjection> datosTotales,
                                                    String nombreUT) {
+        // Si no hay datos, no se puede determinar el año hidrológico, no hacer nada.
         if ((datosEstaciones == null || datosEstaciones.isEmpty()) && (datosTotales == null || datosTotales.isEmpty())) {
             return;
         }
 
-        // 1. Preparar datos y cabeceras de período
-        Map<String, Integer> ordenMeses = new LinkedHashMap<>();
-        List<IndicadorUTFechaDataProjection> allData = new ArrayList<>();
-        if (datosEstaciones != null) allData.addAll(datosEstaciones);
-        if (datosTotales != null) allData.addAll(datosTotales);
+        // 1. Determinar el año hidrológico a partir de los datos
+        IndicadorUTFechaDataProjection primerDato = (datosEstaciones != null && !datosEstaciones.isEmpty())
+                ? datosEstaciones.get(0)
+                : datosTotales.get(0);
 
-        for (IndicadorUTFechaDataProjection d : allData) {
-            String label = DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes());
-            int orden = d.getAnio() * 100 + d.getMes();
-            ordenMeses.putIfAbsent(label, orden);
+        int anioDato = primerDato.getAnio();
+        int mesDato = primerDato.getMes();
+        int anioHidrologico = (mesDato < 10) ? anioDato - 1 : anioDato;
+
+        // 2. Preparar cabeceras para el año hidrológico completo
+        Map<String, Integer> ordenMeses = new LinkedHashMap<>();
+        for (int i = 0; i < 12; i++) {
+            int mes = (10 + i - 1) % 12 + 1; // Oct=10, Nov=11, ..., Sep=9
+            int anio = anioHidrologico + ((10 + i - 1) / 12);
+            String label = DateUtils.ObtenerPeriodo(anio, mes);
+            int orden = anio * 100 + mes;
+            ordenMeses.put(label, orden);
         }
 
-        List<String> mesesOrdenados = ordenMeses.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .toList();
+        List<String> mesesOrdenados = new ArrayList<>(ordenMeses.keySet());
 
-        // 2. Agrupar datos por estación
-        Map<String, List<IndicadorUTFechaDataProjection>> datosPorEstacion = datosEstaciones.stream()
-                .collect(Collectors.groupingBy(IndicadorUTFechaDataProjection::getNombre, LinkedHashMap::new, Collectors.toList()));
+        // 3. Agrupar datos por estación
+        Map<String, List<IndicadorUTFechaDataProjection>> datosPorEstacion = (datosEstaciones != null)
+                ? datosEstaciones.stream().collect(Collectors.groupingBy(IndicadorUTFechaDataProjection::getNombre, LinkedHashMap::new, Collectors.toList()))
+                : new LinkedHashMap<>();
 
-        // 3. Crear la tabla
+        // 4. Crear la tabla
         int filas = 1 + (datosPorEstacion.size() * 2) + 1; // Cabecera + 2 por cada estación + total
         int cols = 2 + mesesOrdenados.size(); // Nombre, Tipo + periodos
         XWPFTable table = document.createTable(filas, cols);
         table.setWidth("100%");
 
-        // 4. Llenar cabecera
+        // 5. Llenar cabecera
         XWPFTableRow headerRow = table.getRow(0);
         configurarCeldaCabecera(headerRow.getCell(0), "Nombre");
         configurarCeldaCabecera(headerRow.getCell(1), "Tipo");
         for (int i = 0; i < mesesOrdenados.size(); i++) {
-            configurarCeldaCabecera(headerRow.getCell(i + 2), mesesOrdenados.get(i));
+            String cabeceraPeriodo = mesesOrdenados.get(i).replace("-", "\n");
+            configurarCeldaCabecera(headerRow.getCell(i + 2), cabeceraPeriodo);
         }
 
-        // 5. Llenar filas de datos
+        // 6. Llenar filas de datos
         int filaIdx = 1;
         java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
 
         for (Map.Entry<String, List<IndicadorUTFechaDataProjection>> entry : datosPorEstacion.entrySet()) {
             String nombreEstacion = entry.getKey();
-            Map<String, IndicadorUTFechaDataProjection> valoresPorPeriodo = entry.getValue().stream()
+            List<IndicadorUTFechaDataProjection> datosDeLaEstacion = entry.getValue();
+            Map<String, IndicadorUTFechaDataProjection> valoresPorPeriodo = datosDeLaEstacion.stream()
                     .collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), d -> d));
 
-            XWPFTableRow filaIndicador = table.getRow(filaIdx);
-            XWPFTableRow filaValor = table.getRow(filaIdx + 1);
+            // La fila de Valor, luego la de Indicador
+            XWPFTableRow filaValor = table.getRow(filaIdx);
+            XWPFTableRow filaIndicador = table.getRow(filaIdx + 1);
 
             // Celda de Nombre con fusión vertical
-            XWPFTableCell celdaNombre = filaIndicador.getCell(0);
+            XWPFTableCell celdaNombre = filaValor.getCell(0);
             configurarCeldaDato(celdaNombre, nombreEstacion, ParagraphAlignment.LEFT);
             celdaNombre.getCTTc().addNewTcPr().addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.RESTART);
-            XWPFTableCell celdaNombreContinuacion = filaValor.getCell(0);
+            XWPFTableCell celdaNombreContinuacion = filaIndicador.getCell(0);
             celdaNombreContinuacion.getCTTc().addNewTcPr().addNewVMerge().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge.CONTINUE);
 
-            // Celdas de Tipo
+            // Celdas de Tipo (usar unidad de medida para la fila de valor)
+            String unidadMedidaStr = "Valor"; // Valor por defecto
+            if (!datosDeLaEstacion.isEmpty()) {
+                String unidad = datosDeLaEstacion.get(0).getUnidadMedida();
+                if (unidad != null && !unidad.isBlank()) {
+                    unidadMedidaStr = unidad;
+                }
+            }
+            // formatear la celda de unidad de medida
+            configurarCeldaUnidadMedida(filaValor.getCell(1), unidadMedidaStr);
             configurarCeldaDato(filaIndicador.getCell(1), "Indicador", ParagraphAlignment.CENTER);
-            configurarCeldaDato(filaValor.getCell(1), "Valor", ParagraphAlignment.CENTER);
 
             // Celdas de datos por período
             for (int i = 0; i < mesesOrdenados.size(); i++) {
-                String periodo = mesesOrdenados.get(i);
+                String periodo = mesesOrdenados.get(i).replace("\n", "-"); // Revertir para búsqueda
                 IndicadorUTFechaDataProjection dato = valoresPorPeriodo.get(periodo);
                 String indicadorStr = "-";
                 String valorStr = "-";
@@ -811,24 +843,67 @@ public class DocumentWordUtils {
                     if (dato.getIndicador() != null) indicadorStr = df.format(dato.getIndicador());
                     if (dato.getValor() != null) valorStr = df.format(dato.getValor());
                 }
-                configurarCeldaDato(filaIndicador.getCell(i + 2), indicadorStr, ParagraphAlignment.CENTER);
                 configurarCeldaDato(filaValor.getCell(i + 2), valorStr, ParagraphAlignment.CENTER);
+                configurarCeldaDato(filaIndicador.getCell(i + 2), indicadorStr, ParagraphAlignment.CENTER);
             }
             filaIdx += 2;
         }
 
-        // 6. Fila de totales
+        // 7. Fila de totales
         XWPFTableRow totalRow = table.getRow(filaIdx);
-        Map<String, Double> totalesPorPeriodo = datosTotales.stream()
-                .collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), IndicadorUTFechaDataProjection::getIndicador));
+        configurarAlturaFila(totalRow);
 
-        configurarCeldaCabecera(totalRow.getCell(0), nombreUT);
+        Map<String, Double> totalesPorPeriodo = (datosTotales != null)
+                ? datosTotales.stream().collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), IndicadorUTFechaDataProjection::getIndicador))
+                : new HashMap<>();
+
+        configurarCeldaCabecera(totalRow.getCell(0), "UT - " + nombreUT);
         configurarCeldaCabecera(totalRow.getCell(1), "Indicador");
         for (int i = 0; i < mesesOrdenados.size(); i++) {
-            String periodo = mesesOrdenados.get(i);
+            String periodo = mesesOrdenados.get(i).replace("\n", "-"); // Revertir para búsqueda
             Double total = totalesPorPeriodo.get(periodo);
             String totalStr = (total != null) ? df.format(total) : "-";
             configurarCeldaCabecera(totalRow.getCell(i + 2), totalStr);
+        }
+    }
+
+    private static void configurarCeldaUnidadMedida(XWPFTableCell cell, String texto) {
+        configurarAlineacionVertical(cell);
+        cell.removeParagraph(0);
+        XWPFParagraph p = cell.addParagraph();
+        p.setAlignment(ParagraphAlignment.CENTER);
+        eliminarEspaciadoParrafo(p);
+
+        String partePrincipal = texto;
+        String partePequena = "";
+
+        int parentesisIndex = texto.indexOf('(');
+        if (parentesisIndex != -1) {
+            partePrincipal = texto.substring(0, parentesisIndex).trim();
+            partePequena = texto.substring(parentesisIndex).trim();
+        }
+
+        // Run para la parte principal
+        XWPFRun runPrincipal = p.createRun();
+        runPrincipal.setFontSize(8);
+
+        // Reemplazar el primer espacio en la parte principal por un salto de línea
+        if (partePrincipal.contains(" ")) {
+            String[] partes = partePrincipal.split(" ", 2);
+            runPrincipal.setText(partes[0]);
+            runPrincipal.addBreak();
+            runPrincipal.setText(partes[1]);
+        } else {
+            runPrincipal.setText(partePrincipal);
+        }
+
+        // Si hay parte pequeña, añadirla con su propio formato en una nueva línea
+        if (!partePequena.isEmpty()) {
+            runPrincipal.addBreak();
+
+            XWPFRun runPequena = p.createRun();
+            runPequena.setFontSize(5.5);
+            runPequena.setText(partePequena);
         }
     }
 

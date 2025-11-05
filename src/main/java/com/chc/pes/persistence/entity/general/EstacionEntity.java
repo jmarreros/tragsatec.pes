@@ -56,6 +56,9 @@ public class EstacionEntity extends AuditInsertUpdateEntity {
     @Column(length = 255)
     private String coordenadas;
 
+    @Column(length = 50)
+    private String unidadMedida;
+
     @OneToMany(mappedBy = "estacion")
     private Set<EstacionUtEntity> estacionesUt;
 }
