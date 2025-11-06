@@ -400,6 +400,73 @@ public class DocumentWordUtils {
         run.setColor("000000");
     }
 
+    public static void insertarLeyendaTabla(XWPFDocument document, char tipoTabla, Integer anio, Integer mes, Double valor, String escenario) {
+        String ut = "UTS";
+        if (tipoTabla == 'E') {
+            ut = "UTE";
+        }
+
+        String nombreMes = (mes != null) ? DateUtils.obtenerNombreMesCapitalizado(mes) : "-";
+        String anioStr = (anio != null) ? String.valueOf(anio) : "-";
+        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
+        String valorStr = (valor != null) ? df.format(valor) : "-";
+        String escenarioStr = (escenario != null && !escenario.isBlank()) ? escenario.toUpperCase(new Locale("es", "ES")) : "-";
+
+        String templateLeyenda = "En el mes de <mes> de <anio>, el indicador <ut> alcanza un valor de <valor> (ver tabla y gráfico).\nLa <ut> se encuentra en escenario de <escenario> (ver imagen superior).";
+        String texto = templateLeyenda
+                .replace("<mes>", nombreMes)
+                .replace("<anio>", anioStr)
+                .replace("<ut>", ut)
+                .replace("<valor>", valorStr)
+                .replace("<escenario>", escenarioStr);
+
+        XWPFParagraph caption = document.createParagraph();
+        caption.setAlignment(ParagraphAlignment.CENTER);
+        caption.setSpacingAfter(200);
+        caption.setSpacingBefore(400);
+        XWPFRun run = caption.createRun();
+        run.setFontSize(11);
+        run.setColor("000000");
+
+        // Respetar saltos de línea en la plantilla
+        String[] lines = texto.split("\\r?\\n");
+        if (lines.length > 0) {
+            run.setText(lines[0], 0);
+            for (int i = 1; i < lines.length; i++) {
+                run.addBreak();
+                run.setText(lines[i]);
+            }
+        } else {
+            run.setText(texto, 0);
+        }
+    }
+
+    public static void insertarComentarioUt(XWPFDocument document, String comentario) {
+        if (comentario == null || comentario.trim().isEmpty()) {
+            return;
+        }
+
+        XWPFParagraph pComentario = document.createParagraph();
+        pComentario.setAlignment(ParagraphAlignment.LEFT);
+        pComentario.setSpacingAfter(200);
+        pComentario.setSpacingBefore(200);
+        XWPFRun runComentario = pComentario.createRun();
+        runComentario.setFontSize(8);
+        runComentario.setColor("000000");
+
+        // Respetar saltos de línea en el comentario
+        String[] lines = comentario.split("\\r?\\n");
+        if (lines.length > 0) {
+            runComentario.setText(lines[0], 0);
+            for (int i = 1; i < lines.length; i++) {
+                runComentario.addBreak();
+                runComentario.setText(lines[i]);
+            }
+        } else {
+            runComentario.setText(comentario, 0);
+        }
+    }
+
     // Creación de tabla principal
     public static void crearTablaUT(XWPFDocument document, List<IndicadorDemarcacionFechaDataProjection> datos) {
         if (datos == null || datos.isEmpty()) {
@@ -502,8 +569,6 @@ public class DocumentWordUtils {
         p.setSpacingAfter(0);
         p.setSpacingBetween(1.0);
     }
-    // En DocumentWordUtils.java
-
     private static void configurarCeldaCabecera(XWPFTableCell cell, String texto) {
         cell.setColor("D9E1F2");
         configurarAlineacionVertical(cell);
@@ -529,7 +594,6 @@ public class DocumentWordUtils {
             run.setText(texto);
         }
     }
-
     private static void configurarAlineacionVertical(XWPFTableCell cell) {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr = cell.getCTTc().isSetTcPr()
                 ? cell.getCTTc().getTcPr()
@@ -540,7 +604,6 @@ public class DocumentWordUtils {
         }
         tcPr.getVAlign().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc.CENTER);
     }
-
 
     // Contenido 1x2: tabla de estaciones e imagen
     public static void crearContenido1x2(XWPFDocument document,
@@ -723,7 +786,6 @@ public class DocumentWordUtils {
         insideH.setSz(java.math.BigInteger.valueOf(4)); // Grosor del borde (4 = 0.25pt)
         insideH.setColor("000000"); // Color negro
     }
-
     public static void configurarMargenes(XWPFParagraph paragraph, int top, int bottom, int left, int right) {
         CTPPr ppr = paragraph.getCTP().getPPr();
         if (ppr == null) {
@@ -746,10 +808,7 @@ public class DocumentWordUtils {
         pageMar.setRight(BigInteger.valueOf(right));
     }
 
-// En DocumentWordUtils.java
-
-// ... (código anterior sin cambios)
-
+    // Tabla de datos por estación y totales por Unidad Territorial
     public static void crearTablaDatosEstacionesUT(XWPFDocument document,
                                                    List<IndicadorUTFechaDataProjection> datosEstaciones,
                                                    List<IndicadorUTFechaDataProjection> datosTotales,

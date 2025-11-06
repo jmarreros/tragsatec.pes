@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -88,8 +89,8 @@ public class ReporteWordUtEscasezService {
             DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
-            // TODO: Obtenemos la primera estación para probar
-            UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(0);
+
+            UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(0); // TODO: Obtenemos la primera estación para probar
 
             // Agregar un margen superior
             document.createParagraph();
@@ -106,13 +107,19 @@ public class ReporteWordUtEscasezService {
             // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
             DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
 
-            // TODO: Continuar con el resto del reporte
+
             // Obtener detalles de las estaciones por UT y año
             List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anio);
             List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anio);
-
-            DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE ESCASEZ POR UTE ");
+            String escenario = getCurrentUTEscenario(utList.getId(), listUTEscenario);
+            Double valorIndicador = getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
+            DocumentWordUtils.insertarLeyendaTabla(document, 'E', anio, mes ,  valorIndicador, escenario);
             DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
+
+            // Comentario UT inferior
+            String comentarioUT = getCurrentComentarioUT(utList.getId());
+            DocumentWordUtils.insertarComentarioUt(document, comentarioUT);
+
 
 //            System.out.println("Datos UT Fecha: " + datosUTFecha.size());
 //            System.out.println("Totales UT Fecha: " + totalesUTFecha.size());
@@ -147,6 +154,25 @@ public class ReporteWordUtEscasezService {
         }
     }
 
+    private String getCurrentComentarioUT(Integer utId) {
+        return unidadTerritorialRepository.findComentarioById(utId);
+    }
+
+    private String getCurrentUTEscenario(Integer utId, List<IndicadorUTEscenarioProjection> listUTEscenario) {
+        return listUTEscenario.stream()
+                .filter(e -> e.getId().intValue() == utId)
+                .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
+                .findFirst()
+                .orElse("normalidad");
+    }
+
+    private Double getCurrentUTIndicadorTotal(Integer utId, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
+        return totalesUTFecha.stream()
+                .filter(e -> e.getId().intValue() == utId)
+                .map(IndicadorUTFechaDataProjection::getIndicador)
+                .findFirst()
+                .orElse(0.0);
+    }
 
     private List<IndicadorUTFechaDataProjection> obtenerDatosUTFecha(Integer utId, Integer anio) {
         return reporteUtEscasezService.getUTEstacionFecha(utId, anio);

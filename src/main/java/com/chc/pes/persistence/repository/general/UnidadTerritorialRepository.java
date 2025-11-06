@@ -18,7 +18,6 @@ public interface UnidadTerritorialRepository extends JpaRepository<UnidadTerrito
             nativeQuery = true)
     List<UnidadTerritorialProjection> findUnidadesTerritorialesByTipoAndDemarcacion(@Param("tipo") Character tipo, @Param("demarcacion") Integer demarcacion);
 
-
     @Query(value = "SELECT ut.id, ut.codigo, ut.nombre " +
             "FROM pes_demarcacion_ut pdut " +
             "INNER JOIN pes p ON p.id = pdut.pes_id AND p.activo = 1 AND p.aprobado = 1 " +
@@ -29,4 +28,7 @@ public interface UnidadTerritorialRepository extends JpaRepository<UnidadTerrito
             nativeQuery = true)
     List<UnidadTerritorialProjection> findUnidadesTerritorialesByTipoDemarcacionAndPes(@Param("tipo") Character tipo,
                                                                                     @Param("demarcacion") Integer demarcacion);
+    // Obtener el campo de comentario dado el ID de la unidad territorial
+    @Query(value = "SELECT comentario FROM unidad_territorial WHERE id = :id", nativeQuery = true)
+    String findComentarioById(@Param("id") Integer id);
 }
