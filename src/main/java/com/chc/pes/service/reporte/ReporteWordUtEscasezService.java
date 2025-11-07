@@ -13,19 +13,13 @@ import com.chc.pes.service.general.DemarcacionService;
 
 import com.chc.pes.util.DateUtils;
 import com.chc.pes.util.DocumentWordUtils;
-import org.apache.poi.util.Units;
 import org.apache.poi.xwpf.usermodel.*;
-import org.apache.xmlbeans.XmlCursor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -99,13 +93,12 @@ public class ReporteWordUtEscasezService {
             DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
+            int uts = getUTsPorDemarcacionEscasez(demarcacionId).size();
+
             // Recorremos todas las Unidades Territoriales de la demarcación
-            for (int i = 0; i < getUTsPorDemarcacionEscasez(demarcacionId).size(); i++) {
+            for (int i = 0; i < uts ; i++) {
 
                 UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(i);
-
-                // Agregar un margen superior
-                document.createParagraph();
 
                 // Siguiente contenido
                 DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
@@ -135,10 +128,14 @@ public class ReporteWordUtEscasezService {
                 List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
                 DocumentWordUtils.generarGraficoLineas('E', temporalDir, utList.getCodigo(), datosGrafico);
 
-                // Crear una nueva página
-                DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
-                // Insertar un nuevo párrafo para dar un espacio
-                document.createParagraph();
+
+                // Solo agregar salto de página si no es la última UT
+                if (i < uts - 1) {
+                    // Crear una nueva página
+                    DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
+                    // Insertar un nuevo párrafo para dar un espacio
+                    document.createParagraph();
+                }
 
                 // Insertar el gráfico en la nueva página
                 String rutaGrafico = temporalDir + "/grafico_UTE_" + utList.getCodigo() + ".png";
@@ -146,7 +143,7 @@ public class ReporteWordUtEscasezService {
 
                 // Establecer márgenes
                 XWPFParagraph paraMargenesReducidos = document.createParagraph();
-                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
+                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 1800, 720, 720, 720);
             }
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {

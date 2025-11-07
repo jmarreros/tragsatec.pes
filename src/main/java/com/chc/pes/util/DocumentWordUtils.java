@@ -184,6 +184,29 @@ public class DocumentWordUtils {
         pageSize.setW(BigInteger.valueOf(15840)); // Ancho en horizontal
         pageSize.setH(BigInteger.valueOf(11906)); // Alto en horizontal
     }
+    public static void configurarOrientacionVertical(XWPFParagraph paragraph) {
+        CTPPr ppr = paragraph.getCTP().getPPr();
+        if (ppr == null) {
+            ppr = paragraph.getCTP().addNewPPr();
+        }
+
+        CTSectPr sectPr = ppr.getSectPr();
+        if (sectPr == null) {
+            sectPr = ppr.addNewSectPr();
+        }
+
+        CTPageSz pageSize = sectPr.getPgSz();
+        if (pageSize == null) {
+            pageSize = sectPr.addNewPgSz();
+        }
+
+        // Establecer orientación vertical (portrait)
+        pageSize.setOrient(STPageOrientation.PORTRAIT);
+
+        // Restablecer el tamaño de página a A4 vertical
+        pageSize.setW(BigInteger.valueOf(11906)); // Ancho A4 en twips
+        pageSize.setH(BigInteger.valueOf(16838)); // Alto A4 en twips
+    }
 
     public static void agregarSaltoDePagina(XWPFParagraph paragraph) {
         XWPFRun runSalto = paragraph.createRun();
