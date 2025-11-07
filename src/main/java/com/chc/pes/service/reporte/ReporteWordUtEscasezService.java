@@ -52,14 +52,21 @@ public class ReporteWordUtEscasezService {
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
-    public void generarReporteWord(Integer anio, Integer mes, String tipo) throws IOException {
+    public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) throws IOException {
         String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
         String archivoFinal = temporalDir + "/Reporte_UTE_" + tipo + ".docx";
+
+        // Establecer el año real hidrológico si es necesario
+        Integer anioHidrologico = anioPropuesto;
+        if ( mes < 10 ) {
+            anioHidrologico = anioPropuesto - 1;
+        }
+
 
         try (XWPFDocument document = new XWPFDocument(new FileInputStream(archivoOrigen))) {
 
             // Cambiar mes y año en el documento
-            DocumentWordUtils.cambiarMesYAnioEnParrafo(document, mes, anio);
+            DocumentWordUtils.cambiarMesYAnioEnParrafo(document, mes, anioPropuesto);
 
             // Obtener información de la demarcacion
             DemarcacionProjection demarcacionInfo = getDemarcacionInfo(tipo.toLowerCase());
@@ -67,7 +74,7 @@ public class ReporteWordUtEscasezService {
             String demarcacionCodigo = demarcacionInfo.getCodigo();
 
             // Obtenemos los datos de escenario para las UTs de la demarcación para mes/año específicos
-            List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtEscasezRepository.findByAnioMesDemarcacionUTEscenario(anio, mes, demarcacionId);
+            List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtEscasezRepository.findByAnioMesDemarcacionUTEscenario(anioPropuesto, mes, demarcacionId);
 
             // Procesar y reemplazar los SVG en el documento
             String imgUTEs = DocumentWordUtils.procesarSVGFile('E', reportDir, temporalDir, listUTEscenario, demarcacionCodigo);
@@ -80,7 +87,7 @@ public class ReporteWordUtEscasezService {
             document.createParagraph();
 
             // Crear tabla de datos UT principal en el documento
-            List<IndicadorDemarcacionFechaDataProjection> datos = datosDemarcacionUTEscasez(anio, tipo);
+            List<IndicadorDemarcacionFechaDataProjection> datos = datosDemarcacionUTEscasez(anioHidrologico, tipo);
             DocumentWordUtils.crearTablaUT(document, datos);
 
             DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE ESCASEZ POR UTE ");
@@ -92,56 +99,55 @@ public class ReporteWordUtEscasezService {
             DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
+            // Recorremos todas las Unidades Territoriales de la demarcación
+            for (int i = 0; i < getUTsPorDemarcacionEscasez(demarcacionId).size(); i++) {
 
-            UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(0); // TODO: Obtenemos la primera estación para probar
+                UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(i);
 
-            // Agregar un margen superior
-            document.createParagraph();
+                // Agregar un margen superior
+                document.createParagraph();
 
-            // Siguiente contenido
-            DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
+                // Siguiente contenido
+                DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
 
-            List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
+                List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
 
-            // Buscar la imagen correspondiente a la UTE y escenario actual del mes
-            String pathImgUtActual = nombreImagenUTActual(demarcacionCodigo, listUTEscenario, utList);
-            String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anio;
+                // Buscar la imagen correspondiente a la UTE y escenario actual del mes
+                String pathImgUtActual = nombreImagenUTActual(demarcacionCodigo, listUTEscenario, utList);
+                String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
 
-            // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
-            DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
+                // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
+                DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
 
+                // Obtener detalles de las estaciones por UT y año
+                List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
+                List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
 
-            // Obtener detalles de las estaciones por UT y año
-            List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anio);
-            List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anio);
+                String escenario = getCurrentUTEscenario(utList.getId(), listUTEscenario);
+                Double valorIndicador = getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
+                DocumentWordUtils.insertarLeyendaTabla(document, 'E', anioPropuesto, mes ,  valorIndicador, escenario);
+                DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 
-            String escenario = getCurrentUTEscenario(utList.getId(), listUTEscenario);
-            Double valorIndicador = getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
-            DocumentWordUtils.insertarLeyendaTabla(document, 'E', anio, mes ,  valorIndicador, escenario);
-            DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
+                // Comentario UT inferior
+                DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
 
-            // Comentario UT inferior
-            DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
+                // Gráfico
+                List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
+                DocumentWordUtils.generarGraficoLineas('E', temporalDir, utList.getCodigo(), datosGrafico);
 
-            // Gráfico
-            List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
-            DocumentWordUtils.generarGraficoLineas('E', temporalDir, utList.getCodigo(), datosGrafico);
+                // Crear una nueva página
+                DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
+                // Insertar un nuevo párrafo para dar un espacio
+                document.createParagraph();
 
-            // Crear una nueva página
-            DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
-            // Insertar un nuevo párrafo para dar un espacio
-            document.createParagraph();
+                // Insertar el gráfico en la nueva página
+                String rutaGrafico = temporalDir + "/grafico_UTE_" + utList.getCodigo() + ".png";
+                DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
 
-            // Insertar el gráfico en la nueva página
-            String rutaGrafico = temporalDir + "/grafico_UTE_" + utList.getCodigo() + ".png";
-            DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
-
-            // Establecer márgenes
-            XWPFParagraph paraMargenesReducidos = document.createParagraph();
-            DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
-
-            // Aquí continúa tu contenido en páginas verticales con márgenes reducidos
-            DocumentWordUtils.encabezadoH2(document, "Siguiente UT");
+                // Establecer márgenes
+                XWPFParagraph paraMargenesReducidos = document.createParagraph();
+                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
+            }
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);
