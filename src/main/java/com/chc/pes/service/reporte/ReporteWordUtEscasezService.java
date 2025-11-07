@@ -34,6 +34,10 @@ public class ReporteWordUtEscasezService {
 
     @Value("${file.report-dir}")
     private String reportDir;
+
+    @Value("${file.temporal-dir}")
+    private String temporalDir;
+
     private final DemarcacionService demarcacionService;
     private final ReporteUtEscasezService reporteUtEscasezService;
     private final IndicadorUtEscasezRepository indicadorUtEscasezRepository;
@@ -51,7 +55,6 @@ public class ReporteWordUtEscasezService {
     public void generarReporteWord(Integer anio, Integer mes, String tipo) throws IOException {
         String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
         String archivoFinal = reportDir + "/Reporte_UTE_" + tipo + ".docx";
-
 
         try (XWPFDocument document = new XWPFDocument(new FileInputStream(archivoOrigen))) {
 
@@ -111,35 +114,32 @@ public class ReporteWordUtEscasezService {
             // Obtener detalles de las estaciones por UT y año
             List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anio);
             List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anio);
+
             String escenario = getCurrentUTEscenario(utList.getId(), listUTEscenario);
             Double valorIndicador = getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
             DocumentWordUtils.insertarLeyendaTabla(document, 'E', anio, mes ,  valorIndicador, escenario);
             DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 
             // Comentario UT inferior
-            String comentarioUT = getCurrentComentarioUT(utList.getId());
-            DocumentWordUtils.insertarComentarioUt(document, comentarioUT);
+            DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
 
+            // Gráfico
+            List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
+            DocumentWordUtils.generarGraficoLineas('E', temporalDir, utList.getCodigo(), datosGrafico);
 
-//            System.out.println("Datos UT Fecha: " + datosUTFecha.size());
-//            System.out.println("Totales UT Fecha: " + totalesUTFecha.size());
+            // Crear una nueva página
+            DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
+            // Insertar un nuevo párrafo para dar un espacio
+            document.createParagraph();
 
-//            // Recorrer los datos para verificar imprimiendo en consola
-//            System.out.println("Data:");
-//            for (IndicadorUTFechaDataProjection data : datosUTFecha) {
-//                System.out.println(data.getAnio() + " - " + data.getMes() + " - " + data.getId() + " - " + data.getCodigo() + " - " + data.getNombre() + " - " + data.getIndicador() + " - " + data.getValor());
-//            }
-//
-//            System.out.println("Totales:");
-//            for (IndicadorUTFechaDataProjection total : totalesUTFecha) {
-//                System.out.println(total.getAnio() + " - " + total.getMes() + " - " + total.getId() + " - " + total.getCodigo() + " - " + total.getNombre() + " - " + total.getIndicador() + " - " + total.getValor());
-//            }
+            // Insertar el gráfico en la nueva página
+            String rutaGrafico = temporalDir + "/grafico_UTE_" + utList.getCodigo() + ".png";
+            DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
 
-
-
-
+            // Establecer márgenes
             XWPFParagraph paraMargenesReducidos = document.createParagraph();
             DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
+
 
 
             // Aquí continúa tu contenido en páginas verticales con márgenes reducidos
@@ -154,9 +154,6 @@ public class ReporteWordUtEscasezService {
         }
     }
 
-    private String getCurrentComentarioUT(Integer utId) {
-        return unidadTerritorialRepository.findComentarioById(utId);
-    }
 
     private String getCurrentUTEscenario(Integer utId, List<IndicadorUTEscenarioProjection> listUTEscenario) {
         return listUTEscenario.stream()
@@ -190,7 +187,7 @@ public class ReporteWordUtEscasezService {
                 .orElse("normalidad");
 
         String nombreImagen = demarcacionCodigo + utList.getCodigo() + "-" + escenarioUt + ".png";
-        return reportDir + "/imagenes-ut/imagenes-ute/" + nombreImagen;
+        return reportDir + "/png/ute/" + nombreImagen;
     }
 
     private DemarcacionProjection getDemarcacionInfo(String ubicacion) {
@@ -200,7 +197,6 @@ public class ReporteWordUtEscasezService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + ubicacion));
     }
-
 
     private List<IndicadorDemarcacionFechaDataProjection> datosDemarcacionUTEscasez(Integer anio, String tipo) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('E');

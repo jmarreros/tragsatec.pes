@@ -220,30 +220,52 @@ public class DocumentWordUtils {
     }
 
     // Generación de archivo de gráfico
-    public static void generarGraficoLineas(List<Map<String, Object>> datosGrafico) throws IOException {
-        // Crear la serie de datos
-        XYSeries series = new XYSeries("Indicador");
-
-        // Agregar datos a la serie
-        for (int i = 0; i < datosGrafico.size(); i++) {
-            Map<String, Object> dato = datosGrafico.get(i);
-            Double valor = ((Number) dato.get("valor")).doubleValue();
-            series.add(i, valor);
+    public static void generarGraficoLineas(Character tipoGrafico, String temporalDir, String utCodigo, List<Map<String, Object>> datosGrafico) throws IOException {
+        // Si no hay datos, no se puede generar el gráfico.
+        if (datosGrafico == null || datosGrafico.isEmpty()) {
+            return;
         }
 
-        // Crear el dataset
-        XYSeriesCollection dataset = new XYSeriesCollection(series);
+
+        // 1. Determinar el año hidrológico
+        Map<String, Object> primerDato = datosGrafico.get(0);
+        int anioDato = (Integer) primerDato.get("anio");
+        int mesDato = (Integer) primerDato.get("mes");
+        int anioHidrologico = (mesDato < 10) ? anioDato - 1 : anioDato;
+
+        // 2. Crear datos para el año hidrológico completo
+        List<Map<String, Object>> datosCompletos = new ArrayList<>();
+        Map<String, Double> valoresPorPeriodo = datosGrafico.stream()
+                .collect(Collectors.toMap(
+                        d -> (String) d.get("periodo"),
+                        d -> ((Number) d.get("valor")).doubleValue()
+                ));
+
+        for (int i = 0; i < 12; i++) {
+            int mes = (10 + i - 1) % 12 + 1;
+            int anio = anioHidrologico + ((10 + i - 1) / 12);
+            String periodo = DateUtils.ObtenerPeriodo(anio, mes);
+
+            Map<String, Object> punto = new HashMap<>();
+            punto.put("periodo", periodo);
+            punto.put("valor", valoresPorPeriodo.get(periodo));
+            datosCompletos.add(punto);
+        }
+
+        // 3. Crear la serie de datos principal
+        XYSeries seriesPrincipal = new XYSeries("Indicador");
+        for (int i = 0; i < datosCompletos.size(); i++) {
+            Map<String, Object> dato = datosCompletos.get(i);
+            Double valor = (Double) dato.get("valor");
+            seriesPrincipal.add(i, valor);
+        }
+
+        XYSeriesCollection dataset = new XYSeriesCollection(seriesPrincipal);
 
         // Crear el gráfico
         JFreeChart chart = ChartFactory.createXYLineChart(
-                "",
-                "",
-                "",
-                dataset,
-                PlotOrientation.VERTICAL,
-                true,
-                false,
-                false
+                "", "Año Hidrológico", "Valor del Indicador",
+                dataset, PlotOrientation.VERTICAL, true, false, false
         );
 
         // Personalizar el gráfico
@@ -252,7 +274,7 @@ public class DocumentWordUtils {
         plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
         plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
 
-        // Configurar el eje Y con valores específicos
+        // Configurar ejes
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setRange(0.0, 1.0);
         rangeAxis.setTickUnit(new NumberTickUnit(0.25));
@@ -263,45 +285,82 @@ public class DocumentWordUtils {
             @Override
             public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
                 int index = (int) number;
-                if (index >= 0 && index < datosGrafico.size()) {
-                    return toAppendTo.append(datosGrafico.get(index).get("periodo"));
+                if (index >= 0 && index < datosCompletos.size()) {
+                    return toAppendTo.append(datosCompletos.get(index).get("periodo"));
                 }
                 return toAppendTo;
             }
-
             @Override
-            public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) {
-                return format((double) number, toAppendTo, pos);
-            }
-
+            public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) { return format((double) number, toAppendTo, pos); }
             @Override
-            public Number parse(String source, ParsePosition parsePosition) {
-                return null;
-            }
+            public Number parse(String source, ParsePosition parsePosition) { return null; }
         });
 
-        // Configurar el renderer
+        // Configurar el renderer principal
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesPaint(0, Color.BLACK);
         renderer.setSeriesStroke(0, new BasicStroke(2.0f));
         renderer.setSeriesShapesVisible(0, false);
         plot.setRenderer(renderer);
 
-        // Agregar zonas de colores
-        plot.addRangeMarker(createZonaMarker(0.0, 0.15, new Color(255, 182, 193)));
-        plot.addRangeMarker(createZonaMarker(0.15, 0.30, new Color(255, 200, 124)));
-        plot.addRangeMarker(createZonaMarker(0.30, 0.50, new Color(255, 235, 156)));
-        plot.addRangeMarker(createZonaMarker(0.50, 1.0, new Color(169, 223, 191)));
+        // Definir una forma cuadrada y más grande para la leyenda
+        java.awt.Shape legendShape = new java.awt.geom.Rectangle2D.Double(-5, -5, 10, 10);
+
+        // Añadir zonas de colores y leyendas
+        if (tipoGrafico == 'E') {
+            chart.setTitle("Evolución del Indicador de Escasez de la Unidad Territorial " + utCodigo);
+            plot.addRangeMarker(createZonaMarker(0.0, 0.15, new Color(255, 182, 193))); // Emergencia
+            plot.addRangeMarker(createZonaMarker(0.15, 0.30, new Color(255, 200, 124))); // Alerta
+            plot.addRangeMarker(createZonaMarker(0.30, 0.50, new Color(255, 235, 156))); // Pre Alerta
+            plot.addRangeMarker(createZonaMarker(0.50, 1.0, new Color(169, 223, 191))); // Normalidad
+
+            dataset.addSeries(new XYSeries("Normalidad"));
+            dataset.addSeries(new XYSeries("Pre Alerta"));
+            dataset.addSeries(new XYSeries("Alerta"));
+            dataset.addSeries(new XYSeries("Emergencia"));
+
+            renderer.setSeriesPaint(1, new Color(169, 223, 191));
+            renderer.setSeriesPaint(2, new Color(255, 235, 156));
+            renderer.setSeriesPaint(3, new Color(255, 200, 124));
+            renderer.setSeriesPaint(4, new Color(255, 182, 193));
+
+            for (int i = 1; i <= 4; i++) {
+                renderer.setSeriesLinesVisible(i, false);
+                renderer.setSeriesShapesVisible(i, true);
+                renderer.setSeriesShapesFilled(i, true);
+                renderer.setSeriesShape(i, legendShape); // Aplicar forma cuadrada
+            }
+
+        } else if (tipoGrafico == 'S') {
+            chart.setTitle("Evolución del Indicador de Sequía de la Unidad Territorial " + utCodigo);
+            plot.addRangeMarker(createZonaMarker(0.0, 0.30, new Color(255, 182, 193))); // Emergencia
+            plot.addRangeMarker(createZonaMarker(0.30, 1.0, new Color(169, 223, 191))); // Normalidad
+
+            dataset.addSeries(new XYSeries("Normalidad"));
+            dataset.addSeries(new XYSeries("Emergencia"));
+
+            renderer.setSeriesPaint(1, new Color(169, 223, 191));
+            renderer.setSeriesPaint(2, new Color(255, 182, 193));
+
+            for (int i = 1; i <= 2; i++) {
+                renderer.setSeriesLinesVisible(i, false);
+                renderer.setSeriesShapesVisible(i, true);
+                renderer.setSeriesShapesFilled(i, true);
+                renderer.setSeriesShape(i, legendShape); // Aplicar forma cuadrada
+            }
+        }
 
         // Crear directorio y guardar
-        File directorio = new File("reporteWord");
+        File directorio = new File(temporalDir);
         if (!directorio.exists()) {
             directorio.mkdirs();
         }
 
-        File outputFile = new File("reporteWord/Grafico_UT_escasez.png");
+        String nombreGrafico = temporalDir + "/grafico_UT" + tipoGrafico + "_" + utCodigo + ".png";
+        File outputFile = new File(nombreGrafico);
         ChartUtils.saveChartAsPNG(outputFile, chart, 1200, 400);
     }
+
     private static org.jfree.chart.plot.IntervalMarker createZonaMarker(double start, double end, Color color) {
         org.jfree.chart.plot.IntervalMarker marker =
                 new org.jfree.chart.plot.IntervalMarker(start, end);
@@ -310,6 +369,29 @@ public class DocumentWordUtils {
         return marker;
     }
 
+    public static void insertarGraficoUT(XWPFDocument document, String rutaGrafico) {
+        try (InputStream is = new FileInputStream(rutaGrafico)) {
+            BufferedImage img = ImageIO.read(new File(rutaGrafico));
+
+            // Redimensionar manteniendo el aspect ratio
+            int width = 550;
+            int height = (int) (((double) img.getHeight() / img.getWidth()) * width);
+
+            XWPFParagraph paragraph = document.createParagraph();
+            paragraph.setAlignment(ParagraphAlignment.CENTER);
+            XWPFRun run = paragraph.createRun();
+
+            run.addPicture(
+                    is,
+                    XWPFDocument.PICTURE_TYPE_PNG,
+                    rutaGrafico,
+                    Units.toEMU(width),
+                    Units.toEMU(height)
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Error al insertar el gráfico UT: " + rutaGrafico, e);
+        }
+    }
 
     // Cambio de colores SVG en archivo y generación de PNG
     public static String procesarSVGFile(
@@ -319,7 +401,7 @@ public class DocumentWordUtils {
             String demarcacionCodigo) throws IOException {
 
         // Ruta de archivos
-        String pathFile = reportDir + "/plantillas/" + demarcacionCodigo + "_UT" + tipoReporte;
+        String pathFile = reportDir + "/svg/" + demarcacionCodigo + "_UT" + tipoReporte;
         String fileSvg = pathFile + ".svg";
         String outputPngPath = pathFile + ".png";
 
@@ -499,7 +581,7 @@ public class DocumentWordUtils {
         // Cabecera
         XWPFTableRow headerRow = table.getRow(0);
         configurarAlturaFila(headerRow); // 20px ≈ 300 twips
-        configurarCeldaCabecera(headerRow.getCell(0), "UT");
+        configurarCeldaCabecera(headerRow.getCell(0), "Unidades Territoriales");
 
         for (int c = 0; c < mesesOrdenados.size(); c++) {
             XWPFTableCell cell = headerRow.getCell(c + 1);
