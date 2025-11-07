@@ -397,13 +397,14 @@ public class DocumentWordUtils {
     public static String procesarSVGFile(
             Character tipoReporte, //'E' o 'S' (Escasez o Sequia),
             String reportDir,
+            String temporalDir,
             List<IndicadorUTEscenarioProjection> listUTEscenario,
             String demarcacionCodigo) throws IOException {
 
+
         // Ruta de archivos
-        String pathFile = reportDir + "/svg/" + demarcacionCodigo + "_UT" + tipoReporte;
-        String fileSvg = pathFile + ".svg";
-        String outputPngPath = pathFile + ".png";
+        String fileSvg = reportDir + "/svg/" + demarcacionCodigo + "_UT" + tipoReporte + ".svg";
+        String outputPngPath = temporalDir + "/" + demarcacionCodigo + "_UT" + tipoReporte + ".png";
 
         // Eliminar el archivo existente
         Path outputPng = Path.of(outputPngPath);

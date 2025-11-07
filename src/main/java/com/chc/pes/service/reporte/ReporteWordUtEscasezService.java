@@ -54,7 +54,7 @@ public class ReporteWordUtEscasezService {
 
     public void generarReporteWord(Integer anio, Integer mes, String tipo) throws IOException {
         String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
-        String archivoFinal = reportDir + "/Reporte_UTE_" + tipo + ".docx";
+        String archivoFinal = temporalDir + "/Reporte_UTE_" + tipo + ".docx";
 
         try (XWPFDocument document = new XWPFDocument(new FileInputStream(archivoOrigen))) {
 
@@ -70,7 +70,7 @@ public class ReporteWordUtEscasezService {
             List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtEscasezRepository.findByAnioMesDemarcacionUTEscenario(anio, mes, demarcacionId);
 
             // Procesar y reemplazar los SVG en el documento
-            String imgUTEs = DocumentWordUtils.procesarSVGFile('E', reportDir, listUTEscenario, demarcacionCodigo);
+            String imgUTEs = DocumentWordUtils.procesarSVGFile('E', reportDir, temporalDir, listUTEscenario, demarcacionCodigo);
 
             // Insertar la imagen principal en el documento
             DocumentWordUtils.insertaImagenPrincipal(document, imgUTEs);
@@ -140,11 +140,8 @@ public class ReporteWordUtEscasezService {
             XWPFParagraph paraMargenesReducidos = document.createParagraph();
             DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 720, 720, 720, 720);
 
-
-
             // Aquí continúa tu contenido en páginas verticales con márgenes reducidos
             DocumentWordUtils.encabezadoH2(document, "Siguiente UT");
-
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);
