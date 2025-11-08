@@ -4,6 +4,7 @@ import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
 import com.chc.pes.dto.calculo.IndicadorUTEscenarioProjection;
 import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import com.chc.pes.dto.general.EstacionPesUtProjection;
+import com.chc.pes.dto.general.UnidadTerritorialProjection;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -676,7 +677,11 @@ public class DocumentWordUtils {
         p.setSpacingBetween(1.0);
     }
     private static void configurarCeldaCabecera(XWPFTableCell cell, String texto) {
-        cell.setColor("D9E1F2");
+        // Verificar si la celda no tiene color entonces asignar color por defecto
+        if (cell.getColor() == null || cell.getColor().isEmpty()) {
+            cell.setColor("4472C4");
+        }
+
         configurarAlineacionVertical(cell);
 
         cell.removeParagraph(0);
@@ -1018,19 +1023,30 @@ public class DocumentWordUtils {
         XWPFTableRow totalRow = table.getRow(filaIdx);
         configurarAlturaFila(totalRow);
 
-        Map<String, Double> totalesPorPeriodo = (datosTotales != null)
-                ? datosTotales.stream().collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), IndicadorUTFechaDataProjection::getIndicador))
+        Map<String, IndicadorUTFechaDataProjection> totalesPorPeriodo = (datosTotales != null)
+                ? datosTotales.stream().collect(Collectors.toMap(d -> DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes()), d -> d, (d1, d2) -> d1))
                 : new HashMap<>();
 
         configurarCeldaCabecera(totalRow.getCell(0), "UT - " + nombreUT);
         configurarCeldaCabecera(totalRow.getCell(1), "Indicador");
+
         for (int i = 0; i < mesesOrdenados.size(); i++) {
-            String periodo = mesesOrdenados.get(i).replace("\n", "-"); // Revertir para búsqueda
-            Double total = totalesPorPeriodo.get(periodo);
-            String totalStr = (total != null) ? df.format(total) : "-";
-            configurarCeldaCabecera(totalRow.getCell(i + 2), totalStr);
+            String periodo = mesesOrdenados.get(i).replace("\n", "-");
+            IndicadorUTFechaDataProjection datoTotal = totalesPorPeriodo.get(periodo);
+            XWPFTableCell cell = totalRow.getCell(i + 2);
+
+            String totalStr = "-";
+            if (datoTotal != null && datoTotal.getIndicador() != null) {
+                totalStr = df.format(datoTotal.getIndicador());
+                if (datoTotal.getEscenarioFinal() != null && !datoTotal.getEscenarioFinal().isBlank()) {
+                    String colorHex = obtenerColorPorEscenarioUT(datoTotal.getEscenarioFinal());
+                    cell.setColor(colorHex.substring(1)); // Quitar el '#'
+                }
+            }
+            configurarCeldaCabecera(cell, totalStr);
         }
     }
+
 
     private static void configurarCeldaUnidadMedida(XWPFTableCell cell, String texto) {
         configurarAlineacionVertical(cell);
@@ -1072,5 +1088,32 @@ public class DocumentWordUtils {
         }
     }
 
+    // Auxiliares para obtener datos actuales
+    public static String getCurrentUTEscenario(Integer utId, List<IndicadorUTEscenarioProjection> listUTEscenario) {
+        return listUTEscenario.stream()
+                .filter(e -> e.getId().intValue() == utId)
+                .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
+                .findFirst()
+                .orElse("normalidad");
+    }
+
+    public static Double getCurrentUTIndicadorTotal(Integer utId, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
+        return totalesUTFecha.stream()
+                .filter(e -> e.getId().intValue() == utId)
+                .map(IndicadorUTFechaDataProjection::getIndicador)
+                .findFirst()
+                .orElse(0.0);
+    }
+
+    public static String nombreImagenUTActual(String reportDir, String demarcacionCodigo, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
+        String escenarioUt = listUTEscenario.stream()
+                .filter(e -> e.getId().intValue() == utList.getId())
+                .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
+                .findFirst()
+                .orElse("normalidad");
+
+        String nombreImagen = demarcacionCodigo + utList.getCodigo() + "-" + escenarioUt + ".png";
+        return reportDir + "/png/ute/" + nombreImagen;
+    }
 }
 

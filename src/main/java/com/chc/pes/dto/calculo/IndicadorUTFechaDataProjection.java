@@ -9,4 +9,5 @@ public interface IndicadorUTFechaDataProjection {
     Double getIndicador();
     Double getValor();
     String getUnidadMedida();
+    String getEscenarioFinal();
 }

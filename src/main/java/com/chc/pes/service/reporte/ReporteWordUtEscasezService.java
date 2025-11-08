@@ -46,7 +46,7 @@ public class ReporteWordUtEscasezService {
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
-    public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) throws IOException {
+    public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
         String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
         String archivoFinal = temporalDir + "/Reporte_UTE_" + tipo + ".docx";
 
@@ -67,7 +67,7 @@ public class ReporteWordUtEscasezService {
             Integer demarcacionId = demarcacionInfo.getId();
             String demarcacionCodigo = demarcacionInfo.getCodigo();
 
-            // Obtenemos los datos de escenario para las UTs de la demarcación para mes/año específicos
+            // Obtenemos los datos de escenario para las UT de la demarcación para mes/año específicos
             List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtEscasezRepository.findByAnioMesDemarcacionUTEscenario(anioPropuesto, mes, demarcacionId);
 
             // Procesar y reemplazar los SVG en el documento
@@ -106,7 +106,7 @@ public class ReporteWordUtEscasezService {
                 List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
 
                 // Buscar la imagen correspondiente a la UTE y escenario actual del mes
-                String pathImgUtActual = nombreImagenUTActual(demarcacionCodigo, listUTEscenario, utList);
+                String pathImgUtActual = DocumentWordUtils.nombreImagenUTActual(reportDir, demarcacionCodigo, listUTEscenario, utList);
                 String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
 
                 // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
@@ -116,8 +116,8 @@ public class ReporteWordUtEscasezService {
                 List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
                 List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
 
-                String escenario = getCurrentUTEscenario(utList.getId(), listUTEscenario);
-                Double valorIndicador = getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
+                String escenario = DocumentWordUtils.getCurrentUTEscenario(utList.getId(), listUTEscenario);
+                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
                 DocumentWordUtils.insertarLeyendaTabla(document, 'E', anioPropuesto, mes ,  valorIndicador, escenario);
                 DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 
@@ -155,22 +155,6 @@ public class ReporteWordUtEscasezService {
     }
 
 
-    private String getCurrentUTEscenario(Integer utId, List<IndicadorUTEscenarioProjection> listUTEscenario) {
-        return listUTEscenario.stream()
-                .filter(e -> e.getId().intValue() == utId)
-                .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
-                .findFirst()
-                .orElse("normalidad");
-    }
-
-    private Double getCurrentUTIndicadorTotal(Integer utId, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
-        return totalesUTFecha.stream()
-                .filter(e -> e.getId().intValue() == utId)
-                .map(IndicadorUTFechaDataProjection::getIndicador)
-                .findFirst()
-                .orElse(0.0);
-    }
-
     private List<IndicadorUTFechaDataProjection> obtenerDatosUTFecha(Integer utId, Integer anio) {
         return reporteUtEscasezService.getUTEstacionFecha(utId, anio);
     }
@@ -179,15 +163,8 @@ public class ReporteWordUtEscasezService {
         return reporteUtEscasezService.getTotalDataUTFecha(utId, anio);
     }
 
-    private String nombreImagenUTActual(String demarcacionCodigo, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
-        String escenarioUt = listUTEscenario.stream()
-                .filter(e -> e.getId().intValue() == utList.getId())
-                .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
-                .findFirst()
-                .orElse("normalidad");
-
-        String nombreImagen = demarcacionCodigo + utList.getCodigo() + "-" + escenarioUt + ".png";
-        return reportDir + "/png/ute/" + nombreImagen;
+    private List<UnidadTerritorialProjection> getUTsPorDemarcacionEscasez(Integer demarcacionId) {
+        return unidadTerritorialRepository.findUnidadesTerritorialesByTipoDemarcacionAndPes('E', demarcacionId);
     }
 
     private DemarcacionProjection getDemarcacionInfo(String ubicacion) {
@@ -208,10 +185,6 @@ public class ReporteWordUtEscasezService {
         Integer demarcacionId = demarcacionTipo.getId();
 
         return reporteUtEscasezService.getAllDataFechaDemarcacion(demarcacionId, anio);
-    }
-
-    private List<UnidadTerritorialProjection> getUTsPorDemarcacionEscasez(Integer demarcacionId) {
-        return unidadTerritorialRepository.findUnidadesTerritorialesByTipoDemarcacionAndPes('E', demarcacionId);
     }
 
 }

@@ -56,7 +56,7 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
             @Param("endMonth") Integer endMonth
     );
 
-    @Query(value = "SELECT ut.id, ut.codigo, ut.nombre, anio, mes, ie indicador, dato valor " +
+    @Query(value = "SELECT ut.id, ut.codigo, ut.nombre, anio, mes, ie indicador, dato valor, iut.escenario_final " +
             "FROM indicador_ut_escasez iut " +
             "INNER JOIN unidad_territorial ut ON iut.unidad_territorial_id = ut.id " +
             "WHERE ut.id = :utId AND ((iut.anio = :startYear AND iut.mes >= :startMonth) OR (iut.anio = :endYear AND iut.mes <= :endMonth)) " +
