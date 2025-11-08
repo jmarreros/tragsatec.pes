@@ -1,14 +1,11 @@
 package com.chc.pes.persistence.repository.calculo;
 
+import com.chc.pes.dto.calculo.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import com.chc.pes.dto.calculo.IndicadorDataProjection;
-import com.chc.pes.dto.calculo.IndicadorDemarcacionFechaDataProjection;
-import com.chc.pes.dto.calculo.IndicadorFechaDataProjection;
-import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import com.chc.pes.persistence.entity.calculo.IndicadorUtSequiaEntity;
 
 import java.util.List;
@@ -132,4 +129,16 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
     @Modifying
     @Query("DELETE FROM IndicadorUtSequiaEntity i WHERE i.medicionId = :medicionId")
     void deleteByMedicionId(@Param("medicionId") Integer medicionId);
+
+
+    @Query(value = "SELECT ut.id AS id, ut.codigo_dh AS codigoDh, ut.nombre AS nombre, iut.escenario_final AS escenarioFinal " +
+            "FROM indicador_ut_sequia iut " +
+            "INNER JOIN unidad_territorial ut ON iut.unidad_territorial_id = ut.id " +
+            "WHERE iut.anio = :anio AND iut.mes = :mes AND ut.demarcacion_id = :demarcacionId",
+            nativeQuery = true)
+    List<IndicadorUTEscenarioProjection> findByAnioMesDemarcacionUTEscenario(
+            @Param("anio") Integer anio,
+            @Param("mes") Integer mes,
+            @Param("demarcacionId") Integer demarcacionId
+    );
 }

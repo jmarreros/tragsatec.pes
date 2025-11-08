@@ -93,12 +93,13 @@ public class ReporteWordUtEscasezService {
             DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
-            int uts = getUTsPorDemarcacionEscasez(demarcacionId).size();
+            List<UnidadTerritorialProjection> utsPorDemarcacionEscasez = getUTsPorDemarcacionEscasez(demarcacionId);
+            int uts = utsPorDemarcacionEscasez.size();
 
             // Recorremos todas las Unidades Territoriales de la demarcación
             for (int i = 0; i < uts ; i++) {
 
-                UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(i);
+                UnidadTerritorialProjection utList = utsPorDemarcacionEscasez.get(i);
 
                 // Siguiente contenido
                 DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());

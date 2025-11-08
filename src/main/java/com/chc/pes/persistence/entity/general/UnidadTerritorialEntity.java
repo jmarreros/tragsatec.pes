@@ -49,6 +49,9 @@ package com.chc.pes.persistence.entity.general;
         @Column(length = 250)
         private String imagen;
 
+        @Column(name = "orden")
+        private Integer orden;
+
         @ManyToOne
         @JoinColumn(name = "demarcacion_id", nullable = false)
         private DemarcacionEntity demarcacion;

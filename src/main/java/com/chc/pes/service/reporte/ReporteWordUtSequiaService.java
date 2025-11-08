@@ -64,46 +64,43 @@ public class ReporteWordUtSequiaService {
             Integer demarcacionId = demarcacionInfo.getId();
             String demarcacionCodigo = demarcacionInfo.getCodigo();
 
-            System.out.println("Generando reporte de UTS de sequía para la demarcación: " + demarcacionInfo.getNombre());
+            // Obtenemos los datos de escenario para las UT de la demarcación para mes/año específicos
+            List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtSequiaRepository.findByAnioMesDemarcacionUTEscenario(anioPropuesto, mes, demarcacionId);
 
-//            // Obtenemos los datos de escenario para las UT de la demarcación para mes/año específicos
-//            List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtSequiaRepository.findByAnioMesDemarcacionUTEscenario(anioPropuesto, mes, demarcacionId);
-//
-//            // Procesar y reemplazar los SVG en el documento
-//            String imgUTEs = DocumentWordUtils.procesarSVGFile('E', reportDir, temporalDir, listUTEscenario, demarcacionCodigo);
-//
-//            // Insertar la imagen principal en el documento
-//            DocumentWordUtils.insertaImagenPrincipal(document, imgUTEs);
-//            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE ESCASEZ");
-//
-//            // Crear un párrafo vacío después de la imagen
-//            document.createParagraph();
+            // Procesar y reemplazar los SVG en el documento
+            String imgUTSs = DocumentWordUtils.procesarSVGFile('S', reportDir, temporalDir, listUTEscenario, demarcacionCodigo);
 
+            // Insertar la imagen principal en el documento
+            DocumentWordUtils.insertaImagenPrincipal(document, imgUTSs);
+            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE SEQUIA");
 
-//
-//            // Crear tabla de datos UT principal en el documento
-//            List<IndicadorDemarcacionFechaDataProjection> datos = datosDemarcacionUTEscasez(anioHidrologico, tipo);
-//            DocumentWordUtils.crearTablaUT(document, datos);
-//
-//            DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE ESCASEZ POR UTE ");
-//
-//            // Configurar orientación horizontal DESPUÉS de la tabla
-//            XWPFParagraph paraHorizontal = document.createParagraph();
-//            DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
-//
-//            DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
-//            DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
-//
-//            int uts = getUTsPorDemarcacionEscasez(demarcacionId).size();
-//
-//            // Recorremos todas las Unidades Territoriales de la demarcación
-//            for (int i = 0; i < uts ; i++) {
-//
-//                UnidadTerritorialProjection utList = getUTsPorDemarcacionEscasez(demarcacionId).get(i);
-//
-//                // Siguiente contenido
-//                DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
-//
+            // Crear un párrafo vacío después de la imagen
+            document.createParagraph();
+
+            // Crear tabla de datos UT principal en el documento
+            List<IndicadorDemarcacionFechaDataProjection> datos = datosDemarcacionUTSequia(anioHidrologico, tipo);
+            DocumentWordUtils.crearTablaUT(document, datos);
+
+            DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE SEQUIA POR UTE ");
+
+            // Configurar orientación horizontal DESPUÉS de la tabla
+            XWPFParagraph paraHorizontal = document.createParagraph();
+            DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
+
+            DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
+            DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
+
+            List<UnidadTerritorialProjection> uTsPorDemarcacionSequia = getUTsPorDemarcacionSequia(demarcacionId);
+            int uts = uTsPorDemarcacionSequia.size();
+
+            // Recorremos todas las Unidades Territoriales de la demarcación
+            for (int i = 0; i < uts ; i++) {
+
+                UnidadTerritorialProjection utList = uTsPorDemarcacionSequia.get(i);
+
+                // Siguiente contenido
+                DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
+
 //                List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
 //
 //                // Buscar la imagen correspondiente a la UTE y escenario actual del mes
@@ -145,7 +142,7 @@ public class ReporteWordUtSequiaService {
 //                // Establecer márgenes
 //                XWPFParagraph paraMargenesReducidos = document.createParagraph();
 //                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 1800, 720, 720, 720);
-//            }
+            }
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);
@@ -163,7 +160,7 @@ public class ReporteWordUtSequiaService {
         return reporteUtSequiaService.getTotalDataUTFecha(utId, anio);
     }
 
-    private List<UnidadTerritorialProjection> getUTsPorDemarcacionEscasez(Integer demarcacionId) {
+    private List<UnidadTerritorialProjection> getUTsPorDemarcacionSequia(Integer demarcacionId) {
         return unidadTerritorialRepository.findUnidadesTerritorialesByTipoDemarcacionAndPes('S', demarcacionId);
     }
 
@@ -175,7 +172,7 @@ public class ReporteWordUtSequiaService {
                 .orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + ubicacion));
     }
 
-    private List<IndicadorDemarcacionFechaDataProjection> datosDemarcacionUTEscasez(Integer anio, String tipo) {
+    private List<IndicadorDemarcacionFechaDataProjection> datosDemarcacionUTSequia(Integer anio, String tipo) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('S');
         // Buscar en la lista de demarcaciones en el campo de nombre que tenga el texto: "oriental" u "occidental" según el tipo
         DemarcacionProjection demarcacionTipo = demarcacionesEscasez.stream()
@@ -184,6 +181,6 @@ public class ReporteWordUtSequiaService {
                 .orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + tipo));
         Integer demarcacionId = demarcacionTipo.getId();
 
-        return reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio, "prep1");
+        return reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio, "prep3");
     }
 }
