@@ -84,7 +84,6 @@ public class ReporteUtEscasezController {
         }
     }
 
-
     @GetMapping("/reporte-word/{tipo}/{anio}/{mes}")
     public ResponseEntity<?> generarReporteWord(
             @PathVariable Integer anio,
@@ -101,5 +100,4 @@ public class ReporteUtEscasezController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
 }

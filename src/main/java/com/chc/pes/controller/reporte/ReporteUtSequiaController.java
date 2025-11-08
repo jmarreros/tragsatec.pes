@@ -1,5 +1,6 @@
 package com.chc.pes.controller.reporte;
 
+import com.chc.pes.service.reporte.ReporteWordUtSequiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,12 @@ import java.util.List;
 public class ReporteUtSequiaController {
 
     private final ReporteUtSequiaService reporteUtSequiaService;
+    private final ReporteWordUtSequiaService reporteWordUtSequiaService;
 
     @Autowired
-    public ReporteUtSequiaController(ReporteUtSequiaService reporteUtSequiaService) {
+    public ReporteUtSequiaController(ReporteUtSequiaService reporteUtSequiaService, ReporteWordUtSequiaService reporteWordUtSequiaService) {
         this.reporteUtSequiaService = reporteUtSequiaService;
+        this.reporteWordUtSequiaService = reporteWordUtSequiaService;
     }
 
     @GetMapping("/{utId}")
@@ -79,6 +82,23 @@ public class ReporteUtSequiaController {
         try {
             List<IndicadorUTFechaDataProjection> datos = reporteUtSequiaService.getUTEstacionFecha(utId, anio);
             return ResponseEntity.ok(datos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/reporte-word/{tipo}/{anio}/{mes}")
+    public ResponseEntity<?> generarReporteWord(
+            @PathVariable Integer anio,
+            @PathVariable Integer mes,
+            @PathVariable String tipo) {
+        try {
+            if (!tipo.equals("oriental") && !tipo.equals("occidental")) {
+                return ResponseEntity.badRequest().body("El tipo debe ser 'oriental' u 'occidental'");
+            }
+
+            reporteWordUtSequiaService.generarReporteWord(anio, mes, tipo);
+            return ResponseEntity.ok("Reporte generado exitosamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
