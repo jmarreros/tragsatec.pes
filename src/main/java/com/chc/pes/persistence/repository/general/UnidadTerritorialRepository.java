@@ -18,7 +18,7 @@ public interface UnidadTerritorialRepository extends JpaRepository<UnidadTerrito
             nativeQuery = true)
     List<UnidadTerritorialProjection> findUnidadesTerritorialesByTipoAndDemarcacion(@Param("tipo") Character tipo, @Param("demarcacion") Integer demarcacion);
 
-    @Query(value = "SELECT ut.id, ut.codigo, ut.nombre, ut.comentario " +
+    @Query(value = "SELECT ut.id, ut.codigo, ut.codigo_dh, ut.nombre, ut.comentario " +
             "FROM pes_demarcacion_ut pdut " +
             "INNER JOIN pes p ON p.id = pdut.pes_id AND p.activo = 1 AND p.aprobado = 1 " +
             "INNER JOIN unidad_territorial ut ON ut.id = pdut.unidad_territorial_id " +

@@ -101,24 +101,24 @@ public class ReporteWordUtSequiaService {
                 // Siguiente contenido
                 DocumentWordUtils.encabezadoH2(document, utList.getCodigo() + " - " + utList.getNombre());
 
-//                List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
-//
-//                // Buscar la imagen correspondiente a la UTE y escenario actual del mes
-//                String pathImgUtActual = DocumentWordUtils.nombreImagenUTActual(reportDir, demarcacionCodigo, listUTEscenario, utList);
-//                String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
-//
-//                // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
-//                DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
-//
-//                // Obtener detalles de las estaciones por UT y año
-//                List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
-//                List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
-//
-//                String escenario = DocumentWordUtils.getCurrentUTEscenario(utList.getId(), listUTEscenario);
-//                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
-//                DocumentWordUtils.insertarLeyendaTabla(document, 'E', anioPropuesto, mes ,  valorIndicador, escenario);
-//                DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
-//
+                List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('S', utList.getId());
+
+                // Buscar la imagen correspondiente a la UTE y escenario actual del mes
+                String pathImgUtActual = DocumentWordUtils.nombreImagenUTActual(reportDir, 'S', listUTEscenario, utList);
+                String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
+
+                // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
+                DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
+
+                // Obtener detalles de las estaciones por UT y año
+                List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
+                List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
+
+                String escenario = DocumentWordUtils.getCurrentUTEscenario(utList.getId(), listUTEscenario);
+                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
+                DocumentWordUtils.insertarLeyendaTabla(document, 'S', anioPropuesto, mes ,  valorIndicador, escenario);
+                DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
+
 //                // Comentario UT inferior
 //                DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
 //
@@ -126,22 +126,22 @@ public class ReporteWordUtSequiaService {
 //                List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
 //                DocumentWordUtils.generarGraficoLineas('E', temporalDir, utList.getCodigo(), datosGrafico);
 //
-//
-//                // Solo agregar salto de página si no es la última UT
-//                if (i < uts - 1) {
-//                    // Crear una nueva página
-//                    DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
-//                    // Insertar un nuevo párrafo para dar un espacio
-//                    document.createParagraph();
-//                }
-//
+
+                // Solo agregar salto de página si no es la última UT
+                if (i < uts - 1) {
+                    // Crear una nueva página
+                    DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
+                    // Insertar un nuevo párrafo para dar un espacio
+                    document.createParagraph();
+                }
+
 //                // Insertar el gráfico en la nueva página
 //                String rutaGrafico = temporalDir + "/grafico_UTE_" + utList.getCodigo() + ".png";
 //                DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
 //
-//                // Establecer márgenes
-//                XWPFParagraph paraMargenesReducidos = document.createParagraph();
-//                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 1800, 720, 720, 720);
+                // Establecer márgenes
+                XWPFParagraph paraMargenesReducidos = document.createParagraph();
+                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 1800, 720, 720, 720);
             }
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {

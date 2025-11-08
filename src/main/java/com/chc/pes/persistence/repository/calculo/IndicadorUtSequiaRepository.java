@@ -96,7 +96,7 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             @Param("endMonth") Integer endMonth
     );
 
-    @Query(value = "SELECT ut.id, ut.codigo, ut.nombre, iut.anio, iut.mes, iut.ie_b1 indicador, iut.prep1 valor, iut.escenario_final " +
+    @Query(value = "SELECT ut.id, ut.codigo, ut.nombre, iut.anio, iut.mes, iut.ie_b3 indicador, iut.prep3 valor, iut.escenario_final " +
             "FROM indicador_ut_sequia iut " +
             "INNER JOIN unidad_territorial ut ON iut.unidad_territorial_id = ut.id " +
             "WHERE ut.id = :utId AND ((iut.anio = :startYear AND iut.mes >= :startMonth) OR (iut.anio = :endYear AND iut.mes <= :endMonth)) " +
@@ -109,7 +109,7 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             @Param("endMonth") Integer endMonth
     );
 
-    @Query(value = "SELECT e.id, e.codigo, e.nombre, i.anio, i.mes, i.ie_b1 indicador, i.prep1 valor " +
+    @Query(value = "SELECT e.id, e.codigo, e.nombre, i.anio, i.mes, i.ie_b3 indicador, i.prep1 valor " +
             "FROM pes_ut_estacion pesut " +
             "INNER JOIN estacion e ON pesut.estacion_id = e.id " +
             "INNER JOIN indicador_sequia i ON i.estacion_id = e.id " +

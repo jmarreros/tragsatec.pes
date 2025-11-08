@@ -1105,15 +1105,17 @@ public class DocumentWordUtils {
                 .orElse(0.0);
     }
 
-    public static String nombreImagenUTActual(String reportDir, String demarcacionCodigo, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
+    public static String nombreImagenUTActual(String reportDir, char tipoReporte, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
         String escenarioUt = listUTEscenario.stream()
                 .filter(e -> e.getId().intValue() == utList.getId())
                 .map(IndicadorUTEscenarioProjection::getEscenarioFinal)
                 .findFirst()
                 .orElse("normalidad");
 
-        String nombreImagen = demarcacionCodigo + utList.getCodigo() + "-" + escenarioUt + ".png";
-        return reportDir + "/png/ute/" + nombreImagen;
+        String directory = reportDir + "/png/ut" + Character.toLowerCase(tipoReporte) + "/";
+        String nombreImagen = utList.getCodigoDh() + "-" + escenarioUt + ".png";
+
+        return directory + nombreImagen;
     }
 }
 

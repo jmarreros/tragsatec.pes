@@ -107,7 +107,7 @@ public class ReporteWordUtEscasezService {
                 List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('E', utList.getId());
 
                 // Buscar la imagen correspondiente a la UTE y escenario actual del mes
-                String pathImgUtActual = DocumentWordUtils.nombreImagenUTActual(reportDir, demarcacionCodigo, listUTEscenario, utList);
+                String pathImgUtActual = DocumentWordUtils.nombreImagenUTActual(reportDir, 'E', listUTEscenario, utList);
                 String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
 
                 // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
