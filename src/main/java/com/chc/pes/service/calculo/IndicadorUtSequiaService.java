@@ -135,14 +135,14 @@ public class IndicadorUtSequiaService {
     }
 
 
-    // Si ieB3 < 0.3 => Escenario Final: "Sequia prolongada"
-    // Si ieB3 >= 0.3  => Escenario Final: "Condiciones normales"
+    // Si ieB3 < 0.3 => Escenario Final: "Sequia prolongada" - emergencia
+    // Si ieB3 >= 0.3  => Escenario Final: "Condiciones normales" - normalidad
     public void calcularEscenario(IndicadorUtSequiaEntity indicadorUtSequiaEntity) {
         BigDecimal umbral = new BigDecimal("0.3");
         String escenarioFinal = "";
         if (indicadorUtSequiaEntity.getIeB3() != null) {
             if (indicadorUtSequiaEntity.getIeB3().compareTo(umbral) < 0) {
-                escenarioFinal = "sequia";
+                escenarioFinal = "emergencia";
             } else {
                 escenarioFinal = "normalidad";
             }

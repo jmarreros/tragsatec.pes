@@ -250,7 +250,6 @@ public class DocumentWordUtils {
             return;
         }
 
-
         // 1. Determinar el año hidrológico
         Map<String, Object> primerDato = datosGrafico.get(0);
         int anioDato = (Integer) primerDato.get("anio");
@@ -1046,7 +1045,6 @@ public class DocumentWordUtils {
             configurarCeldaCabecera(cell, totalStr);
         }
     }
-
 
     private static void configurarCeldaUnidadMedida(XWPFTableCell cell, String texto) {
         configurarAlineacionVertical(cell);

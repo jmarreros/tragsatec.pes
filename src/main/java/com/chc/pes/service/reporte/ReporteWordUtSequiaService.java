@@ -119,13 +119,13 @@ public class ReporteWordUtSequiaService {
                 DocumentWordUtils.insertarLeyendaTabla(document, 'S', anioPropuesto, mes ,  valorIndicador, escenario);
                 DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 
-//                // Comentario UT inferior
-//                DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
-//
-//                // Gráfico
-//                List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
-//                DocumentWordUtils.generarGraficoLineas('E', temporalDir, utList.getCodigo(), datosGrafico);
-//
+                // Comentario UT inferior
+                DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
+
+                // Gráfico
+                List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
+                DocumentWordUtils.generarGraficoLineas('S', temporalDir, utList.getCodigo(), datosGrafico);
+
 
                 // Solo agregar salto de página si no es la última UT
                 if (i < uts - 1) {
@@ -135,10 +135,10 @@ public class ReporteWordUtSequiaService {
                     document.createParagraph();
                 }
 
-//                // Insertar el gráfico en la nueva página
-//                String rutaGrafico = temporalDir + "/grafico_UTE_" + utList.getCodigo() + ".png";
-//                DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
-//
+                // Insertar el gráfico en la nueva página
+                String rutaGrafico = temporalDir + "/grafico_UTS_" + utList.getCodigo() + ".png";
+                DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
+
                 // Establecer márgenes
                 XWPFParagraph paraMargenesReducidos = document.createParagraph();
                 DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 1800, 720, 720, 720);
