@@ -52,7 +52,8 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "ut.nombre ut_nombre, " +
             "iuts.anio, " +
             "iuts.mes, " +
-            "iuts.ie_b1 indicador " +
+            "iuts.ie_b1 indicador, " +
+            "iuts.escenario_final " +
             "FROM " +
             "pes_demarcacion_ut pdut " +
             "INNER JOIN demarcacion d ON pdut.demarcacion_id = d.id " +
@@ -78,7 +79,8 @@ public interface IndicadorUtSequiaRepository extends JpaRepository<IndicadorUtSe
             "ut.nombre ut_nombre, " +
             "iuts.anio, " +
             "iuts.mes, " +
-            "iuts.ie_b3 indicador " +
+            "iuts.ie_b3 indicador, " +
+            "iuts.escenario_final " +
             "FROM " +
             "pes_demarcacion_ut pdut " +
             "INNER JOIN demarcacion d ON pdut.demarcacion_id = d.id " +

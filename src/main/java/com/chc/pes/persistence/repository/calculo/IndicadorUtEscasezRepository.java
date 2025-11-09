@@ -38,7 +38,8 @@ public interface IndicadorUtEscasezRepository extends JpaRepository<IndicadorUtE
             "ut.nombre ut_nombre, " +
             "iute.anio, " +
             "iute.mes, " +
-            "iute.ie indicador " +
+            "iute.ie indicador, " +
+            "iute.escenario_final " +
             "FROM " +
             "pes_demarcacion_ut pdut " +
             "INNER JOIN demarcacion d ON pdut.demarcacion_id = d.id " +

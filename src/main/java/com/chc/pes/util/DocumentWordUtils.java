@@ -579,7 +579,8 @@ public class DocumentWordUtils {
             return;
         }
 
-        java.util.Map<String, java.util.Map<String, Double>> datosPorUT = new java.util.LinkedHashMap<>();
+        // Almacenar el objeto completo
+        java.util.Map<String, java.util.Map<String, IndicadorDemarcacionFechaDataProjection>> datosPorUT = new java.util.LinkedHashMap<>();
         java.util.Map<String, Integer> ordenMeses = new java.util.HashMap<>();
 
         for (IndicadorDemarcacionFechaDataProjection d : datos) {
@@ -588,7 +589,7 @@ public class DocumentWordUtils {
             int orden = d.getAnio() * 100 + d.getMes();
 
             ordenMeses.putIfAbsent(label, orden);
-            datosPorUT.computeIfAbsent(ut, k -> new java.util.HashMap<>()).put(label, d.getIndicador());
+            datosPorUT.computeIfAbsent(ut, k -> new java.util.HashMap<>()).put(label, d);
         }
 
         java.util.List<String> mesesOrdenados = ordenMeses.entrySet().stream()
@@ -616,9 +617,9 @@ public class DocumentWordUtils {
 
         // Filas por UT
         int filaIdx = 1;
-        for (java.util.Map.Entry<String, java.util.Map<String, Double>> entry : datosPorUT.entrySet()) {
+        for (java.util.Map.Entry<String, java.util.Map<String, IndicadorDemarcacionFechaDataProjection>> entry : datosPorUT.entrySet()) {
             String ut = entry.getKey();
-            java.util.Map<String, Double> valores = entry.getValue();
+            java.util.Map<String, IndicadorDemarcacionFechaDataProjection> valores = entry.getValue();
 
             XWPFTableRow row = table.getRow(filaIdx);
             configurarAlturaFila(row); // 20px ≈ 300 twips
@@ -648,16 +649,23 @@ public class DocumentWordUtils {
                 XWPFRun run = p.createRun();
                 run.setFontSize(8);
 
-                Double val = valores.get(mesLabel);
-                if (val == null) {
+                IndicadorDemarcacionFechaDataProjection dato = valores.get(mesLabel);
+                if (dato == null || dato.getIndicador() == null) {
                     run.setText("-");
                 } else {
-                    run.setText(df.format(val));
+                    run.setText(df.format(dato.getIndicador()));
+                    // Pintar celda según el escenario
+                    if (dato.getEscenarioFinal() != null && !dato.getEscenarioFinal().isBlank()) {
+                        String colorHex = obtenerColorPorEscenarioUT(dato.getEscenarioFinal());
+                        cell.setColor(colorHex.substring(1)); // Quitar el '#'
+                    }
                 }
             }
             filaIdx++;
         }
     }
+
+
     private static void configurarAlturaFila(XWPFTableRow row) {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTrPr trPr = row.getCtRow().isSetTrPr()
                 ? row.getCtRow().getTrPr()
@@ -971,7 +979,7 @@ public class DocumentWordUtils {
 
         // 6. Llenar filas de datos
         int filaIdx = 1;
-        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
+        java.text.DecimalFormat df = new java.text.DecimalFormat("0.000");
 
         for (Map.Entry<String, List<IndicadorUTFechaDataProjection>> entry : datosPorEstacion.entrySet()) {
             String nombreEstacion = entry.getKey();

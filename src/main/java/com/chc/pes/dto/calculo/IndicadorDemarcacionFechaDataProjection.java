@@ -9,4 +9,5 @@ public interface IndicadorDemarcacionFechaDataProjection {
     Integer getAnio();
     Integer getMes();
     Double getIndicador();
+    String getEscenarioFinal();
 }
