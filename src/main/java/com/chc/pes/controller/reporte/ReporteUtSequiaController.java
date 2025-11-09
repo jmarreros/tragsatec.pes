@@ -2,6 +2,10 @@ package com.chc.pes.controller.reporte;
 
 import com.chc.pes.service.reporte.ReporteWordUtSequiaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.chc.pes.dto.calculo.IndicadorDataProjection;
@@ -10,6 +14,9 @@ import com.chc.pes.dto.calculo.IndicadorFechaDataProjection;
 import com.chc.pes.dto.calculo.IndicadorUTFechaDataProjection;
 import com.chc.pes.service.reporte.ReporteUtSequiaService;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -98,9 +105,33 @@ public class ReporteUtSequiaController {
             }
 
             reporteWordUtSequiaService.generarReporteWord(anio, mes, tipo);
-            return ResponseEntity.ok("Reporte generado exitosamente");
+            return ResponseEntity.ok().body("Reporte generado exitosamente.");
+
+//            String pathToDownload = reporteWordUtSequiaService.downloadReporteWord(anio, mes, tipo);
+//
+//            Path path = Paths.get(pathToDownload);
+//            Resource resource;
+//            try {
+//                resource = new UrlResource(path.toUri());
+//            } catch (MalformedURLException e) {
+//                throw new RuntimeException("Error al leer el archivo.", e);
+//            }
+//
+//            if (!resource.exists() || !resource.isReadable()) {
+//                throw new RuntimeException("No se pudo encontrar o leer el archivo: " + pathToDownload);
+//            }
+//
+//            String filename = path.getFileName().toString();
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+//
+//            return ResponseEntity.ok()
+//                    .headers(headers)
+//                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+//                    .body(resource);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.internalServerError().body("Error al generar el reporte: " + e.getMessage());
         }
     }
 }

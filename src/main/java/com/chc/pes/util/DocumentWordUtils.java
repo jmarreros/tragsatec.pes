@@ -1104,6 +1104,19 @@ public class DocumentWordUtils {
     }
 
     public static Double getCurrentUTIndicadorTotal(Integer utId, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
+
+        System.out.println("Buscando indicador para UT ID: " + utId);
+        // Imprimir los IDs disponibles en totalesUTFecha
+        System.out.println("IDs disponibles en totalesUTFecha: " +
+                totalesUTFecha.stream()
+                        .map(e -> e.getId().toString())
+                        .collect(Collectors.joining(", ")));
+        // Imprimir los totales indicadores
+        System.out.println("Totales indicadores disponibles: " +
+                totalesUTFecha.stream()
+                        .map(e -> "ID: " + e.getId() + ", Indicador: " + e.getIndicador())
+                        .collect(Collectors.joining("; ")));
+
         return totalesUTFecha.stream()
                 .filter(e -> e.getId().intValue() == utId)
                 .map(IndicadorUTFechaDataProjection::getIndicador)

@@ -46,6 +46,12 @@ public class ReporteWordUtEscasezService {
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
+    public String downloadReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
+        generarReporteWord(anioPropuesto, mes, tipo);
+        return temporalDir + "/Reporte_UTE_" + tipo + ".docx";
+    }
+
+
     public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
         String archivoOrigen = reportDir + "/UTE_" + tipo + ".docx";
         String archivoFinal = temporalDir + "/Reporte_UTE_" + tipo + ".docx";
