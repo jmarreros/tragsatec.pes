@@ -92,7 +92,7 @@ public class ReporteWordUtSequiaService {
             XWPFParagraph paraHorizontal = document.createParagraph();
             DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
 
-            DocumentWordUtils.configurarMargenes(paraHorizontal, 720, 720, 720, 720);
+            DocumentWordUtils.configurarMargenes(paraHorizontal, 1800, 720, 720, 720);
             DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
 
             List<UnidadTerritorialProjection> uTsPorDemarcacionSequia = getUTsPorDemarcacionSequia(demarcacionId);
@@ -118,9 +118,8 @@ public class ReporteWordUtSequiaService {
                 // Obtener detalles de las estaciones por UT y año
                 List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
                 List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
-
                 String escenario = DocumentWordUtils.getCurrentUTEscenario(utList.getId(), listUTEscenario);
-                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
+                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotalMes(utList.getId(), mes, totalesUTFecha);
                 DocumentWordUtils.insertarLeyendaTabla(document, 'S', anioPropuesto, mes ,  valorIndicador, escenario);
                 DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 

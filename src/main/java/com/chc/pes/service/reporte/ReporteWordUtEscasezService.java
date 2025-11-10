@@ -124,7 +124,7 @@ public class ReporteWordUtEscasezService {
                 List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
 
                 String escenario = DocumentWordUtils.getCurrentUTEscenario(utList.getId(), listUTEscenario);
-                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotal(utList.getId(), totalesUTFecha);
+                Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotalMes(utList.getId(), mes, totalesUTFecha);
                 DocumentWordUtils.insertarLeyendaTabla(document, 'E', anioPropuesto, mes ,  valorIndicador, escenario);
                 DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 

@@ -1103,22 +1103,9 @@ public class DocumentWordUtils {
                 .orElse("normalidad");
     }
 
-    public static Double getCurrentUTIndicadorTotal(Integer utId, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
-
-        System.out.println("Buscando indicador para UT ID: " + utId);
-        // Imprimir los IDs disponibles en totalesUTFecha
-        System.out.println("IDs disponibles en totalesUTFecha: " +
-                totalesUTFecha.stream()
-                        .map(e -> e.getId().toString())
-                        .collect(Collectors.joining(", ")));
-        // Imprimir los totales indicadores
-        System.out.println("Totales indicadores disponibles: " +
-                totalesUTFecha.stream()
-                        .map(e -> "ID: " + e.getId() + ", Indicador: " + e.getIndicador())
-                        .collect(Collectors.joining("; ")));
-
+    public static Double getCurrentUTIndicadorTotalMes(Integer utId,Integer mes, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
         return totalesUTFecha.stream()
-                .filter(e -> e.getId().intValue() == utId)
+                .filter(e -> e.getId().intValue() == utId && e.getMes().intValue() == mes.intValue())
                 .map(IndicadorUTFechaDataProjection::getIndicador)
                 .findFirst()
                 .orElse(0.0);

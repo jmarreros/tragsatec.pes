@@ -101,31 +101,28 @@ public class ReporteUtEscasezController {
                 return ResponseEntity.badRequest().body("El tipo debe ser 'oriental' u 'occidental'");
             }
 
-            reporteWordUtEscasezService.generarReporteWord(anio, mes, tipo);
-            return ResponseEntity.ok().body("Reporte generado exitosamente.");
+            String rutaArchivoDescargar = reporteWordUtEscasezService.downloadReporteWord(anio, mes, tipo);
 
-//            String rutaArchivoDescargar = reporteWordUtEscasezService.downloadReporteWord(anio, mes, tipo);
-//
-//            Path path = Paths.get(rutaArchivoDescargar);
-//            Resource resource;
-//            try {
-//                resource = new UrlResource(path.toUri());
-//            } catch (MalformedURLException e) {
-//                throw new RuntimeException("Error al leer el archivo.", e);
-//            }
-//
-//            if (!resource.exists() || !resource.isReadable()) {
-//                throw new RuntimeException("No se pudo encontrar o leer el archivo: " + rutaArchivoDescargar);
-//            }
-//
-//            String filename = path.getFileName().toString();
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
-//
-//            return ResponseEntity.ok()
-//                    .headers(headers)
-//                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-//                    .body(resource);
+            Path path = Paths.get(rutaArchivoDescargar);
+            Resource resource;
+            try {
+                resource = new UrlResource(path.toUri());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException("Error al leer el archivo.", e);
+            }
+
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RuntimeException("No se pudo encontrar o leer el archivo: " + rutaArchivoDescargar);
+            }
+
+            String filename = path.getFileName().toString();
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                    .body(resource);
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al generar el reporte: " + e.getMessage());
