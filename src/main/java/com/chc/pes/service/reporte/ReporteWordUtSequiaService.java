@@ -45,6 +45,8 @@ public class ReporteWordUtSequiaService {
     }
 
     public String downloadReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
+        DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
+
         generarReporteWord(anioPropuesto, mes, tipo);
         return temporalDir + "/Reporte_UTS_" + tipo + ".docx";
     }

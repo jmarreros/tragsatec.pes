@@ -1123,5 +1123,12 @@ public class DocumentWordUtils {
 
         return directory + nombreImagen;
     }
+
+    public static void crearDirectorioSiNoExiste(String temporalDirectory){
+        File directory = new File(temporalDirectory);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+    }
 }
 
