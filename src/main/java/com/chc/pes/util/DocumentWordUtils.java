@@ -245,6 +245,14 @@ public class DocumentWordUtils {
 
     // Generación de archivo de gráfico
     public static void generarGraficoLineas(Character tipoGrafico, String temporalDir, String utCodigo, List<Map<String, Object>> datosGrafico) throws IOException {
+        String nombreGrafico = temporalDir + "/grafico_UT" + tipoGrafico + "_" + utCodigo + ".png";
+
+        // Si existe el archivo eliminarlo
+        File archivoExistente = new File(nombreGrafico);
+        if (archivoExistente.exists()) {
+            archivoExistente.delete();
+        }
+
         // Si no hay datos, no se puede generar el gráfico.
         if (datosGrafico == null || datosGrafico.isEmpty()) {
             return;
@@ -379,9 +387,9 @@ public class DocumentWordUtils {
             directorio.mkdirs();
         }
 
-        String nombreGrafico = temporalDir + "/grafico_UT" + tipoGrafico + "_" + utCodigo + ".png";
         File outputFile = new File(nombreGrafico);
         ChartUtils.saveChartAsPNG(outputFile, chart, 1200, 400);
+
     }
 
     private static org.jfree.chart.plot.IntervalMarker createZonaMarker(double start, double end, Color color) {
@@ -393,6 +401,11 @@ public class DocumentWordUtils {
     }
 
     public static void insertarGraficoUT(XWPFDocument document, String rutaGrafico) {
+        // Verificar si el archivo existe
+        if (!new File(rutaGrafico).exists()) {
+            return;
+        }
+
         try (InputStream is = new FileInputStream(rutaGrafico)) {
             BufferedImage img = ImageIO.read(new File(rutaGrafico));
 
