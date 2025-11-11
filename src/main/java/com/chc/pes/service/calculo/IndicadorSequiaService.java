@@ -90,17 +90,21 @@ public class IndicadorSequiaService {
             BigDecimal valorIndice1 = calcularIndicadorSequia(valorPre1, umbralEstacionActual, 1);
 
             BigDecimal valorPrep3;
-            if (acumulados.getPre3() == null || valorPre1 == null) {
+            BigDecimal acumuladoPre3 = acumulados.getPre3();
+            if (acumuladoPre3 == null && valorPre1 == null) {
                 valorPrep3 = null;
             } else {
-                valorPrep3 = acumulados.getPre3().add(valorPre1);
+                valorPrep3 = Optional.ofNullable(acumuladoPre3).orElse(BigDecimal.ZERO)
+                        .add(Optional.ofNullable(valorPre1).orElse(BigDecimal.ZERO));
             }
 
             BigDecimal valorPrep6;
-            if (acumulados.getPre6() == null || valorPre1 == null) {
+            BigDecimal acumuladoPre6 = acumulados.getPre6();
+            if (acumuladoPre6 == null && valorPre1 == null) {
                 valorPrep6 = null;
             } else {
-                valorPrep6 = acumulados.getPre6().add(valorPre1);
+                valorPrep6 = Optional.ofNullable(acumuladoPre6).orElse(BigDecimal.ZERO)
+                        .add(Optional.ofNullable(valorPre1).orElse(BigDecimal.ZERO));
             }
 
             BigDecimal valorIndice3 = calcularIndicadorSequia(valorPrep3, umbralEstacionActual, 3);

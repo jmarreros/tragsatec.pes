@@ -29,8 +29,8 @@ public interface IndicadorSequiaRepository extends JpaRepository<IndicadorSequia
             "SELECT " +
             "    estacion_id, " +
             "    CASE " +
-            "        WHEN COUNT(CASE WHEN prep1 IS NULL THEN 1 END) > 0 THEN NULL " +
-            "        ELSE SUM(prep1) " +
+            "        WHEN COUNT(prep1) = 0 THEN NULL " +
+            "        ELSE SUM(ISNULL(prep1, 0)) " +
             "    END AS suma_ultimos_n_prep1 " +
             "FROM " +
             "    RankedIndicadores " +
