@@ -696,10 +696,12 @@ public class DocumentWordUtils {
         p.setSpacingAfter(0);
         p.setSpacingBetween(1.0);
     }
-    private static void configurarCeldaCabecera(XWPFTableCell cell, String texto) {
+    public static void configurarCeldaCabecera(XWPFTableCell cell, String texto) {
         // Verificar si la celda no tiene color entonces asignar color por defecto
+        boolean asignoFondoPorDefecto = false;
         if (cell.getColor() == null || cell.getColor().isEmpty()) {
             cell.setColor("4472C4");
+            asignoFondoPorDefecto = true;
         }
 
         configurarAlineacionVertical(cell);
@@ -713,6 +715,10 @@ public class DocumentWordUtils {
         run.setBold(true);
         run.setFontSize(8);
 
+        if (asignoFondoPorDefecto) {
+            run.setColor("FFFFFF");
+        }
+
         // Manejar saltos de línea manuales
         if (texto.contains("\n")) {
             String[] lines = texto.split("\n");
@@ -725,6 +731,7 @@ public class DocumentWordUtils {
             run.setText(texto);
         }
     }
+
     private static void configurarAlineacionVertical(XWPFTableCell cell) {
         org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr = cell.getCTTc().isSetTcPr()
                 ? cell.getCTTc().getTcPr()
