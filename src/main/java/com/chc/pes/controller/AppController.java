@@ -11,12 +11,23 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/app")
 public class AppController {
+    @Value("${app.name}")
+    private String appName;
 
     @Value("${app.version}")
     private String appVersion;
 
-    @GetMapping("/version")
-    public Map<String, String> getVersion() {
-        return Collections.singletonMap("version", appVersion);
+    @Value("${app.year}")
+    private String appYear;
+
+    @GetMapping("/info")
+    public Map<String, String> getAppInfo() {
+        return Collections.unmodifiableMap(
+                Map.of(
+                        "name", appName,
+                        "version", appVersion,
+                        "year", appYear
+                )
+        );
     }
 }

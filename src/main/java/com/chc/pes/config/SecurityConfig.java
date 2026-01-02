@@ -38,6 +38,8 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/assets/**", "/app-config.js", "/css/**", "/js/**", "/img/**").permitAll()
                         // Login: permitir POST y OPTIONS
                         .requestMatchers(HttpMethod.OPTIONS, "/api/v1/login").permitAll().requestMatchers(HttpMethod.POST, "/api/v1/login").permitAll()
+                        // Información de la aplicación: permitir GET
+                        .requestMatchers("/api/v1/app/info").permitAll()
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated())
                 // Stateless session (JWT)

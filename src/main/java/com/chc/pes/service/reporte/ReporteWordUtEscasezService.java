@@ -64,7 +64,6 @@ public class ReporteWordUtEscasezService {
             anioHidrologico = anioPropuesto - 1;
         }
 
-
         try (XWPFDocument document = new XWPFDocument(new FileInputStream(archivoOrigen))) {
 
             // Cambiar mes y año en el documento
