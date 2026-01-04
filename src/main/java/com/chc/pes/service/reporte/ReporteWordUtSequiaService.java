@@ -11,6 +11,7 @@ import com.chc.pes.persistence.repository.estructura.PesUtEstacionRepository;
 import com.chc.pes.persistence.repository.general.UnidadTerritorialRepository;
 import com.chc.pes.service.general.DemarcacionService;
 import com.chc.pes.util.DateUtils;
+import com.chc.pes.util.DocumentPDFUtils;
 import com.chc.pes.util.DocumentWordUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -48,7 +49,18 @@ public class ReporteWordUtSequiaService {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
 
         generarReporteWord(anioPropuesto, mes, tipo);
-        return temporalDir + "/Reporte_UTS_" + tipo + ".docx";
+
+        String pdfPath = temporalDir + "/Reporte_UTS_" + tipo + ".pdf";
+        String docxPath = temporalDir + "/Reporte_UTS_" + tipo + ".docx";
+
+        DocumentPDFUtils documentPDFUtils = new DocumentPDFUtils();
+        try {
+            documentPDFUtils.convertDocxToPdf(docxPath, pdfPath);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al convertir el documento a PDF: " + e.getMessage(), e);
+        }
+
+        return docxPath;
     }
 
     public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
