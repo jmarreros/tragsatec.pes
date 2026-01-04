@@ -12,6 +12,7 @@ import com.chc.pes.persistence.repository.general.UnidadTerritorialRepository;
 import com.chc.pes.service.general.DemarcacionService;
 
 import com.chc.pes.util.DateUtils;
+import com.chc.pes.util.DocumentPDFUtils;
 import com.chc.pes.util.DocumentWordUtils;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +51,22 @@ public class ReporteWordUtEscasezService {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
 
         generarReporteWord(anioPropuesto, mes, tipo);
-        return temporalDir + "/Reporte_UTE_" + tipo + ".docx";
+
+        String pdfPath = temporalDir + "/Reporte_UTE_" + tipo + ".pdf";
+        String docxPath = temporalDir + "/Reporte_UTE_" + tipo + ".docx";
+
+        DocumentPDFUtils documentPDFUtils = new DocumentPDFUtils();
+        try {
+            documentPDFUtils.convertDocxToPdf( docxPath, pdfPath);
+//            // Abrir el archivo PDF automáticamente después de la conversión (opcional)
+//            if (Desktop.isDesktopSupported()) {
+//                Desktop.getDesktop().open(new File(pdfPath));
+//            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al convertir el documento a PDF: " + e.getMessage(), e);
+        }
+
+        return docxPath;
     }
 
 
