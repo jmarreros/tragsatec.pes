@@ -134,7 +134,7 @@ public class ReporteWordUtEscasezService {
                 String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
 
                 // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
-                DocumentWordUtils.crearContenido1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
+                DocumentWordUtils.crearContenidoSimple1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
 
                 // Obtener detalles de las estaciones por UT y año
                 List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
