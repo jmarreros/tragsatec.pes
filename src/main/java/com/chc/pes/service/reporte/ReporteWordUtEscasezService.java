@@ -50,21 +50,6 @@ public class ReporteWordUtEscasezService {
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
-    @PostConstruct
-    public void init() throws Exception {
-        // Registrar fuentes Calibri desde resources
-        URL calibriUrl = getClass().getClassLoader().getResource("fonts/calibri.ttf");
-        URL calibriBoldUrl = getClass().getClassLoader().getResource("fonts/calibri_bold.ttf");
-
-        if (calibriUrl != null) {
-            PhysicalFonts.addPhysicalFont(calibriUrl.toURI());
-        }
-        if (calibriBoldUrl != null) {
-            PhysicalFonts.addPhysicalFont(calibriBoldUrl.toURI());
-        }
-    }
-
-
     public String downloadReportePDF(Integer anioPropuesto, Integer mes, String tipo) {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
 
