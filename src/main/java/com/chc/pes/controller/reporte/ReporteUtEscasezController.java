@@ -91,8 +91,8 @@ public class ReporteUtEscasezController {
         }
     }
 
-    @GetMapping("/reporte-word/{tipo}/{anio}/{mes}")
-    public ResponseEntity<?> generarReporteWord(
+    @GetMapping("/reporte-pdf/{tipo}/{anio}/{mes}")
+    public ResponseEntity<?> generarReportePDF(
             @PathVariable Integer anio,
             @PathVariable Integer mes,
             @PathVariable String tipo) {
@@ -101,7 +101,8 @@ public class ReporteUtEscasezController {
                 return ResponseEntity.badRequest().body("El tipo debe ser 'oriental' u 'occidental'");
             }
 
-            String rutaArchivoDescargar = reporteWordUtEscasezService.downloadReporteWord(anio, mes, tipo);
+            // El servicio debe devolver la ruta al archivo PDF
+            String rutaArchivoDescargar = reporteWordUtEscasezService.downloadReportePDF(anio, mes, tipo);
 
             Path path = Paths.get(rutaArchivoDescargar);
             Resource resource;
@@ -121,7 +122,7 @@ public class ReporteUtEscasezController {
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                    .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
 
         } catch (Exception e) {

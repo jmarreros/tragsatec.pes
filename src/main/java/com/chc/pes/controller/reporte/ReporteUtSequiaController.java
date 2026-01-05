@@ -94,8 +94,8 @@ public class ReporteUtSequiaController {
         }
     }
 
-    @GetMapping("/reporte-word/{tipo}/{anio}/{mes}")
-    public ResponseEntity<?> generarReporteWord(
+    @GetMapping("/reporte-pdf/{tipo}/{anio}/{mes}")
+    public ResponseEntity<?> generarReportePDF(
             @PathVariable Integer anio,
             @PathVariable Integer mes,
             @PathVariable String tipo) {
@@ -104,7 +104,8 @@ public class ReporteUtSequiaController {
                 return ResponseEntity.badRequest().body("El tipo debe ser 'oriental' u 'occidental'");
             }
 
-            String pathToDownload = reporteWordUtSequiaService.downloadReporteWord(anio, mes, tipo);
+            // El servicio debe devolver la ruta al archivo PDF
+            String pathToDownload = reporteWordUtSequiaService.downloadReportePDF(anio, mes, tipo);
 
             Path path = Paths.get(pathToDownload);
             Resource resource;
@@ -124,7 +125,7 @@ public class ReporteUtSequiaController {
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                    .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
 
         } catch (Exception e) {

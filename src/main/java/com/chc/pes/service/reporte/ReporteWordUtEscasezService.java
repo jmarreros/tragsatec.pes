@@ -47,9 +47,10 @@ public class ReporteWordUtEscasezService {
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
-    public String downloadReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
+    public String downloadReportePDF(Integer anioPropuesto, Integer mes, String tipo) {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
 
+        // Primero generamos el reporte en Word, luego lo convertimos a PDF -- Archivo Word fue solicitado inicialmente
         generarReporteWord(anioPropuesto, mes, tipo);
 
         String pdfPath = temporalDir + "/Reporte_UTE_" + tipo + ".pdf";
@@ -58,15 +59,15 @@ public class ReporteWordUtEscasezService {
         DocumentPDFUtils documentPDFUtils = new DocumentPDFUtils();
         try {
             documentPDFUtils.convertDocxToPdf( docxPath, pdfPath);
-//            // Abrir el archivo PDF automáticamente después de la conversión (opcional)
-//            if (Desktop.isDesktopSupported()) {
-//                Desktop.getDesktop().open(new File(pdfPath));
-//            }
+            // Abrir el archivo PDF automáticamente después de la conversión (opcional)
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(new File(pdfPath));
+            }
         } catch (Exception e) {
             throw new RuntimeException("Error al convertir el documento a PDF: " + e.getMessage(), e);
         }
 
-        return docxPath;
+        return pdfPath;
     }
 
 

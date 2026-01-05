@@ -45,9 +45,10 @@ public class ReporteWordUtSequiaService {
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
 
-    public String downloadReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
+    public String downloadReportePDF(Integer anioPropuesto, Integer mes, String tipo) {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
 
+        // Primero generamos el reporte en Word, luego lo convertimos a PDF -- Archivo Word fue solicitado inicialmente
         generarReporteWord(anioPropuesto, mes, tipo);
 
         String pdfPath = temporalDir + "/Reporte_UTS_" + tipo + ".pdf";
@@ -60,7 +61,7 @@ public class ReporteWordUtSequiaService {
             throw new RuntimeException("Error al convertir el documento a PDF: " + e.getMessage(), e);
         }
 
-        return docxPath;
+        return pdfPath;
     }
 
     public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
