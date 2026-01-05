@@ -14,13 +14,16 @@ import com.chc.pes.service.general.DemarcacionService;
 import com.chc.pes.util.DateUtils;
 import com.chc.pes.util.DocumentPDFUtils;
 import com.chc.pes.util.DocumentWordUtils;
+import jakarta.annotation.PostConstruct;
 import org.apache.poi.xwpf.usermodel.*;
+import org.docx4j.fonts.PhysicalFonts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.io.*;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +49,21 @@ public class ReporteWordUtEscasezService {
         this.unidadTerritorialRepository = unidadTerritorialRepository;
         this.pesUtEstacionRepository = pesUtEstacionRepository;
     }
+
+    @PostConstruct
+    public void init() throws Exception {
+        // Registrar fuentes Calibri desde resources
+        URL calibriUrl = getClass().getClassLoader().getResource("fonts/calibri.ttf");
+        URL calibriBoldUrl = getClass().getClassLoader().getResource("fonts/calibri_bold.ttf");
+
+        if (calibriUrl != null) {
+            PhysicalFonts.addPhysicalFont(calibriUrl.toURI());
+        }
+        if (calibriBoldUrl != null) {
+            PhysicalFonts.addPhysicalFont(calibriBoldUrl.toURI());
+        }
+    }
+
 
     public String downloadReportePDF(Integer anioPropuesto, Integer mes, String tipo) {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
