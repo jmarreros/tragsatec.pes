@@ -211,11 +211,7 @@ public class ProcesarMedicionService {
                 return parseCsv(file);
             }
 
-            if (filename.toLowerCase().endsWith(".xlsx")) {
-                return parseXlsx(file);
-            }
-
-            throw new ArchivoValidationException("Tipo de archivo no soportado. Solo se permiten archivos CSV o XLSX.");
+            throw new ArchivoValidationException("Tipo de archivo no soportado. Solo se permiten archivos CSV.");
         } catch (IOException e) {
             throw new RuntimeException("Error al leer el archivo de medición: " + e.getMessage(), e);
         } catch (IllegalArgumentException e) {
@@ -236,39 +232,24 @@ public class ProcesarMedicionService {
                 if (line.trim().isEmpty()) {
                     continue;
                 }
-                String[] values = line.split(",", -1); // -1 para no limitar el número de splits, permitiendo valores con comas vacios
+                String[] values = line.split(",", -1); // -1 para no limitar el número de splits, permitiendo valores con comas vacíos
 
                 if (values.length >= 2) { // Asegura que hay al menos nombre de estación y algo para el valor
                     String nombreEstacion = values[0].trim();
-                    String primerComponenteValor = values[1].trim();
-                    String valorNumericoOriginalStr;
-
-                    // Comprobar si el valor numérico (que es el segundo campo lógico)
-                    // está entrecomillado y contiene una coma, lo que causaría que split(",") lo divida.
-                    // Ejemplo: "58,70" se divide en values[1]="\"58" y values[2]="70\""
-                    if (values.length > 2 && primerComponenteValor.startsWith("\"") && !primerComponenteValor.endsWith("\"") && // La primera parte no termina con comilla
-                            values[2].trim().endsWith("\"")) {       // La segunda parte sí termina con comilla
-                        // Reconstruir el valor original que estaba entre comillas
-                        valorNumericoOriginalStr = primerComponenteValor + "," + values[2].trim();
-                    } else {
-                        // El valor está completamente en values[1] (puede o no estar entrecomillado)
-                        valorNumericoOriginalStr = primerComponenteValor;
-                    }
+                    // Obtener el último valor de la fila (última columna)
+                    final String valorNumericoOriginalStr = extraerValorUltimaColumna(values);
 
                     try {
                         // Limpiar comillas dobles y reemplazar la coma decimal por un punto
                         String valorLimpio = valorNumericoOriginalStr.replace("\"", "").replace(',', '.');
 
-                        if (valorLimpio.isEmpty()) {
-                            if (!nombreEstacion.isEmpty()) {
-                                throw new ArchivoValidationException("Fila CSV con valor de medición vacío para la estación '" + nombreEstacion + "'. Línea: " + line);
-                            } else {
-                                continue;
-                            }
-                        } else {
-                            if (nombreEstacion.isEmpty()) {
-                                throw new ArchivoValidationException("Fila CSV con nombre de estación vacío pero con valor de medición '" + valorLimpio + "'. Línea: " + line);
-                            }
+                        if (nombreEstacion.isEmpty() && !valorLimpio.isEmpty()) {
+                            throw new ArchivoValidationException("Fila CSV con nombre de estación vacío pero con valor de medición '" + valorLimpio + "'. Línea: " + line);
+                        }
+
+                        // Si no hay valor, se omite la medicion para esa estación
+                        if ( valorLimpio.isEmpty()) {
+                         continue;
                         }
 
                         BigDecimal valorMedicion = new BigDecimal(valorLimpio);
@@ -286,50 +267,21 @@ public class ProcesarMedicionService {
         return datos;
     }
 
-    private List<MedicionDatoDTO> parseXlsx(MultipartFile file) throws IOException {
-        List<MedicionDatoDTO> datos = new ArrayList<>();
-        DataFormatter dataFormatter = new DataFormatter(); // Útil para obtener el valor de la celda como String
+    private static String extraerValorUltimaColumna(String[] values) {
+        String ultimoComponenteValor = values[values.length - 1].trim();
+        String valorNumericoOriginalStr;
 
-        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
-            Sheet sheet = workbook.getSheetAt(0); // Asume datos en la primera hoja
-
-            // Omitir la primera línea de encabezado si existe
-            int startRow = sheet.getFirstRowNum();
-            if (startRow == 0 && sheet.getRow(0) != null) {
-                startRow = 1;
-            }
-
-            for (int i = startRow; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue; // Omitir filas completamente vacías
-
-                Cell cellEstacion = row.getCell(0, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL); // Primera columna
-                Cell cellMedicion = row.getCell(1, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL); // Segunda columna
-
-                String nombreEstacion = null;
-                if (cellEstacion != null) {
-                    nombreEstacion = dataFormatter.formatCellValue(cellEstacion).trim();
-                }
-
-                BigDecimal valorMedicion = null;
-                if (cellMedicion != null) {
-                    String cellValueStr = dataFormatter.formatCellValue(cellMedicion).trim().replace(',', '.');
-                    if (!cellValueStr.isEmpty()) {
-                        try {
-                            valorMedicion = new BigDecimal(cellValueStr);
-                        } catch (NumberFormatException e) {
-                            throw new ArchivoValidationException("Formato XLSX inválido. Error al parsear el valor numérico: '" + cellValueStr + "'. Asegúrese de que sea un número válido en la fila: " + (row.getRowNum() + 1));
-                        }
-                    }
-                }
-
-                if (nombreEstacion != null && !nombreEstacion.isEmpty() && valorMedicion != null) {
-                    datos.add(new MedicionDatoDTO(nombreEstacion, valorMedicion));
-                } else if (nombreEstacion != null && !nombreEstacion.isEmpty() && cellMedicion != null) {
-                    throw new ArchivoValidationException("Fila XLSX con nombre de estación '" + nombreEstacion + "' pero con valor de medición vacío en la fila: " + (row.getRowNum() + 1));
-                }
-            }
+        // Comprobar si el valor numérico (que es el último campo lógico)
+        // está entrecomillado y contiene una coma, lo que causaría que split(",") lo divida.
+        // Ejemplo: "58,70" se divide en values[n-1]="\"58" y values[n]="70\""
+        if (values.length > 2 && !ultimoComponenteValor.startsWith("\"") && ultimoComponenteValor.endsWith("\"") &&
+                values[values.length - 2].trim().startsWith("\"") && !values[values.length - 2].trim().endsWith("\"")) {
+            // Reconstruir el valor original que estaba entre comillas
+            valorNumericoOriginalStr = values[values.length - 2].trim() + "," + ultimoComponenteValor;
+        } else {
+            // El valor está completamente en la última columna (puede o no estar entrecomillado)
+            valorNumericoOriginalStr = ultimoComponenteValor;
         }
-        return datos;
+        return valorNumericoOriginalStr;
     }
 }

@@ -9,6 +9,7 @@ import com.chc.pes.exception.TipoArchivoNoSoportadoException;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -18,11 +19,8 @@ public class ValidacionArchivoService {
     private String maxFileSizeConfig;
 
 
-    public static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(".xlsx", ".csv"));
-    public static final Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-            "text/csv" // .csv
-    ));
+    public static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(List.of(".csv"));
+    public static final Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(List.of("text/csv"));
 
     private long parseSize(String size) {
         String lowerSize = size.toLowerCase().trim();
@@ -69,7 +67,7 @@ public class ValidacionArchivoService {
         String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
 
         if (!ALLOWED_EXTENSIONS.contains(fileExtension) || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new TipoArchivoNoSoportadoException("Tipo de archivo no permitido. Sólo se permiten archivos Excel (.xls, .xlsx) o CSV (.csv). Extensión: '" + fileExtension + "', ContentType: '" + contentType + "'");
+            throw new TipoArchivoNoSoportadoException("Tipo de archivo no permitido. Sólo se permiten archivos CSV (.csv). Extensión: '" + fileExtension + "', ContentType: '" + contentType + "'");
         }
     }
 }

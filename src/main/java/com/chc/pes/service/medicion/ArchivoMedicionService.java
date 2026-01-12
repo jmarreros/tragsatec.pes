@@ -33,13 +33,6 @@ public class ArchivoMedicionService {
     private final MedicionRepository medicionRepository;
     private final Path fileStorageLocation;
 
-    public static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".xls", ".xlsx", ".csv");
-    public static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "text/csv"
-    );
-
     public ArchivoMedicionService(ArchivoMedicionRepository archivoMedicionRepository,
                                   MedicionRepository medicionRepository,
                                   @Value("${file.upload-dir}") String uploadDir) {
