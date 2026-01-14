@@ -20,13 +20,17 @@ public class AppController {
     @Value("${app.year}")
     private String appYear;
 
+    @Value("${app.footer}")
+    private String appFooter;
+
     @GetMapping("/info")
     public Map<String, String> getAppInfo() {
         return Collections.unmodifiableMap(
                 Map.of(
                         "name", appName,
                         "version", appVersion,
-                        "year", appYear
+                        "year", appYear,
+                        "footer", appFooter
                 )
         );
     }
