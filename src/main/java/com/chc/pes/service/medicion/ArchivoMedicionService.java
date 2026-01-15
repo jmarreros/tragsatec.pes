@@ -15,6 +15,10 @@ import com.chc.pes.persistence.repository.medicion.ArchivoMedicionRepository;
 import com.chc.pes.persistence.repository.medicion.MedicionRepository;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -140,5 +144,75 @@ public class ArchivoMedicionService {
         return archivoMedicionRepository.findById(fileId)
                 .map(ArchivoMedicionEntity::getFileName)
                 .orElseThrow(() -> new EntityNotFoundException("Archivo no encontrado con ID: " + fileId));
+    }
+
+    /**
+     * Carga un archivo desde el directorio de uploads como MultipartFile
+     *
+     * @param fileName nombre del archivo a cargar
+     * @return MultipartFile con el contenido del archivo
+     */
+    public MultipartFile loadFileAsMultipart(String fileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            File file = filePath.toFile();
+
+            if (!file.exists() || !file.canRead()) {
+                throw new RuntimeException("No se pudo leer el archivo: " + fileName);
+            }
+
+            byte[] content = Files.readAllBytes(filePath);
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            final String finalContentType = contentType;
+            final String finalFileName = fileName;
+
+            return new MultipartFile() {
+                @Override
+                public String getName() {
+                    return finalFileName;
+                }
+
+                @Override
+                public String getOriginalFilename() {
+                    return finalFileName;
+                }
+
+                @Override
+                public String getContentType() {
+                    return finalContentType;
+                }
+
+                @Override
+                public boolean isEmpty() {
+                    return content.length == 0;
+                }
+
+                @Override
+                public long getSize() {
+                    return content.length;
+                }
+
+                @Override
+                public byte[] getBytes() {
+                    return content;
+                }
+
+                @Override
+                public InputStream getInputStream() {
+                    return new ByteArrayInputStream(content);
+                }
+
+                @Override
+                public void transferTo(File dest) throws IOException {
+                    Files.write(dest.toPath(), content);
+                }
+            };
+        } catch (IOException ex) {
+            throw new RuntimeException("Error al cargar el archivo " + fileName + " como MultipartFile.", ex);
+        }
     }
 }

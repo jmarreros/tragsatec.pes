@@ -69,5 +69,6 @@ public class ValidacionArchivoService {
         if (!ALLOWED_EXTENSIONS.contains(fileExtension) || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new TipoArchivoNoSoportadoException("Tipo de archivo no permitido. Sólo se permiten archivos CSV (.csv). Extensión: '" + fileExtension + "', ContentType: '" + contentType + "'");
         }
+
     }
 }

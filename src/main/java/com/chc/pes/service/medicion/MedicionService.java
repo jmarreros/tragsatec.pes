@@ -214,4 +214,31 @@ public class MedicionService {
     public List<MedicionHistorialProjection> getUltimas5MedicionesPorTipo(Character tipo) {
         return medicionRepository.findTop5ByTipo(tipo);
     }
+
+    /**
+     * Obtiene la primera medición no procesada o crea una nueva medición basada en la siguiente fecha disponible.
+     *
+     * @param tipo el tipo de medición
+     * @return MedicionDTO con la medición pendiente o la nueva medición, null si no hay datos disponibles
+     */
+    @Transactional(readOnly = true)
+    public MedicionDTO obtenerMedicionPendienteONueva(Character tipo) {
+        // Buscar primera medición no procesada
+        MedicionDTO medicion = findFirstNotProcessedMedicionByTipo(tipo);
+        if (medicion != null) {
+            return medicion;
+        }
+
+        // Si no hay pendiente, buscar siguiente medición nueva
+        SiguienteMedicionDTO siguienteMedicion = findSiguienteMedicion(tipo);
+        if (siguienteMedicion != null) {
+            MedicionDTO medicionNueva = new MedicionDTO();
+            medicionNueva.setTipo(tipo);
+            medicionNueva.setAnio(siguienteMedicion.getAnio());
+            medicionNueva.setMes(siguienteMedicion.getMes());
+            return medicionNueva;
+        }
+
+        return null;
+    }
 }

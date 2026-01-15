@@ -62,4 +62,16 @@ public class ProcesarMedicionController {
         }
     }
 
+    @GetMapping("/ftp")
+    public ResponseEntity<String> procesarMedicionesDesdeFTP(
+            @RequestParam("tipo") Character tipo) {
+        try{
+            procesarMedicionService.procesarMedicionesDesdeFTP(tipo);
+            return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al procesar las mediciones desde FTP: " + e.getMessage());
+        }
+    }
+
 }

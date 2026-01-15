@@ -38,9 +38,6 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-
-//    implementation 'org.apache.poi:poi:5.2.3'
-//    implementation 'org.apache.poi:poi-ooxml:5.4.0'
     implementation("org.apache.poi:poi:5.4.1")
     implementation("org.apache.poi:poi-ooxml:5.4.1")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.18")
@@ -52,7 +49,9 @@ dependencies {
 
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
-//    implementation 'org.docx4j:docx4j-export-fo:8.3.10'
+
+    implementation("org.apache.commons:commons-vfs2:2.10.0")
+    implementation("com.jcraft:jsch:0.1.55")
 }
 
 tasks.named('test') {

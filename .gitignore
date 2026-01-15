@@ -42,3 +42,4 @@ fileUploads
 fileUploads/**
 temporalFiles
 temporalFiles/**
+logs/**
