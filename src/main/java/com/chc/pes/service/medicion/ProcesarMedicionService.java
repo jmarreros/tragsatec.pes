@@ -2,7 +2,6 @@ package com.chc.pes.service.medicion;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +41,7 @@ public class ProcesarMedicionService {
     private final FTPService ftpService;
 
     // Procesa una medición manual con los detalles proporcionados
+    @Transactional
     public void procesarMedicionManual(Character tipo, Short anio, Byte mes, List<DetalleMedicionDTO> detallesMedicion) {
 
         // 1- Validar los parámetros de entrada
@@ -91,6 +92,7 @@ public class ProcesarMedicionService {
     }
 
     // Procesa una medición a partir de un archivo cargado
+    @Transactional
     public void procesarArchivoMedicion(Character tipo, Short anio, Byte mes, MultipartFile file) {
 
         // 1- Validar los parámetros de entrada
@@ -319,7 +321,7 @@ public class ProcesarMedicionService {
         validacionArchivoService.validarArchivo(archivoMedicion);
         logger.info("Archivo '{}' validado correctamente.", nombreArchivo);
 
-//        // 7- Procesar el archivo de medición
-//        procesarArchivoMedicion(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes(), archivoMedicion);
+        // 7- Procesar el archivo de medición
+        procesarArchivoMedicion(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes(), archivoMedicion);
     }
 }
