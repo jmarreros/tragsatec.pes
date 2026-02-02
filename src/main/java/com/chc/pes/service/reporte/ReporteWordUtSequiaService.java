@@ -51,17 +51,17 @@ public class ReporteWordUtSequiaService {
         // Primero generamos el reporte en Word, luego lo convertimos a PDF -- Archivo Word fue solicitado inicialmente
         generarReporteWord(anioPropuesto, mes, tipo);
 
-        String pdfPath = temporalDir + "/Reporte_UTS_" + tipo + ".pdf";
+       // String pdfPath = temporalDir + "/Reporte_UTS_" + tipo + ".pdf";
         String docxPath = temporalDir + "/Reporte_UTS_" + tipo + ".docx";
-
+/*
         DocumentPDFUtils documentPDFUtils = new DocumentPDFUtils();
         try {
             documentPDFUtils.convertDocxToPdf(docxPath, pdfPath);
         } catch (Exception e) {
             throw new RuntimeException("Error al convertir el documento a PDF: " + e.getMessage(), e);
         }
-
-        return pdfPath;
+ */
+        return docxPath;
     }
 
     public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
@@ -103,12 +103,9 @@ public class ReporteWordUtSequiaService {
 
             DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE SEQUIA POR UTE ");
 
-            // Configurar orientación horizontal DESPUÉS de la tabla
-            XWPFParagraph paraHorizontal = document.createParagraph();
-            DocumentWordUtils.configurarOrientacionHorizontal(paraHorizontal);
 
-            DocumentWordUtils.configurarMargenes(paraHorizontal, 1800, 720, 720, 720);
-            DocumentWordUtils.agregarSaltoDePagina(paraHorizontal);
+
+
 
             List<UnidadTerritorialProjection> uTsPorDemarcacionSequia = getUTsPorDemarcacionSequia(demarcacionId);
             int uts = uTsPorDemarcacionSequia.size();
@@ -128,7 +125,7 @@ public class ReporteWordUtSequiaService {
                 String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
 
                 // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
-                DocumentWordUtils.crearContenidoSimple1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual);
+                DocumentWordUtils.crearContenidoSimple1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual,i);
 
                 // Obtener detalles de las estaciones por UT y año
                 List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
@@ -146,22 +143,17 @@ public class ReporteWordUtSequiaService {
                 DocumentWordUtils.generarGraficoLineas('S', temporalDir, utList.getCodigo(), datosGrafico);
 
 
-                // Solo agregar salto de página si no es la última UT
-                if (i < uts - 1) {
-                    // Crear una nueva página
-                    DocumentWordUtils.agregarSaltoDePagina(document.createParagraph());
-                    // Insertar un nuevo párrafo para dar un espacio
-                    document.createParagraph();
-                }
-
                 // Insertar el gráfico en la nueva página
                 String rutaGrafico = temporalDir + "/grafico_UTS_" + utList.getCodigo() + ".png";
                 DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
 
-                // Establecer márgenes
-                XWPFParagraph paraMargenesReducidos = document.createParagraph();
-                DocumentWordUtils.configurarMargenes(paraMargenesReducidos, 1800, 720, 720, 720);
+              
+
+                // Forzar actualización de la tabla de contenidos
+                DocumentWordUtils.finalizarDocumento(document);
             }
+            
+            
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);

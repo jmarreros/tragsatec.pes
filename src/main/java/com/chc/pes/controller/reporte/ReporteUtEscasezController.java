@@ -122,7 +122,6 @@ public class ReporteUtEscasezController {
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
 
         } catch (Exception e) {

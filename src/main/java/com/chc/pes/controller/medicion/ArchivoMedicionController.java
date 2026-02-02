@@ -3,6 +3,8 @@ package com.chc.pes.controller.medicion;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,9 +18,13 @@ import com.chc.pes.exception.TipoArchivoNoSoportadoException;
 import com.chc.pes.service.medicion.ArchivoMedicionService;
 import com.chc.pes.service.medicion.ValidacionArchivoService;
 
+import ch.qos.logback.core.util.StringUtil;
+import io.micrometer.common.util.StringUtils;
+
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/archivo-medicion")
 @RequiredArgsConstructor
@@ -46,12 +52,15 @@ public class ArchivoMedicionController {
             return ResponseEntity.status(HttpStatus.CREATED).body(storedFileDto);
 
         } catch (ArchivoMuyGrandeException | TipoArchivoNoSoportadoException e) {
+            log.error("Error al procesar archivo de mediciones",e);
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (ArchivoValidationException e) { // Captura genérica
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (EntityNotFoundException e) {
+            log.error("Error al procesar archivo de mediciones",e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (RuntimeException e) {
+            log.error("Error al subir el archivo",e);           
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir el archivo: " + e.getMessage());
         }
     }
@@ -68,18 +77,20 @@ public class ArchivoMedicionController {
             try {
                 contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
             } catch (IOException ex) {
-                // Tipo por defecto si no se puede determinar
-                contentType = "application/octet-stream";
-            }
 
+            }
+            if (StringUtils.isEmpty(contentType))
+                contentType = "application/octet-stream";
             return ResponseEntity.ok()
                     .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalFilename + "\"")
                     .body(resource);
 
         } catch (EntityNotFoundException e) {
+              log.error("Error al procesar descarga de archivos de mediciones",e);
             return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
+              log.error("Error al procesar descarga de archivos de mediciones",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

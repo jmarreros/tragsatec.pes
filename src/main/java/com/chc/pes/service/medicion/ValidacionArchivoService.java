@@ -20,7 +20,6 @@ public class ValidacionArchivoService {
 
 
     public static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(List.of(".csv"));
-    public static final Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(List.of("text/csv"));
 
     private long parseSize(String size) {
         String lowerSize = size.toLowerCase().trim();
@@ -66,7 +65,7 @@ public class ValidacionArchivoService {
 
         String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
 
-        if (!ALLOWED_EXTENSIONS.contains(fileExtension) || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+        if (!ALLOWED_EXTENSIONS.contains(fileExtension) ) {
             throw new TipoArchivoNoSoportadoException("Tipo de archivo no permitido. Sólo se permiten archivos CSV (.csv). Extensión: '" + fileExtension + "', ContentType: '" + contentType + "'");
         }
 
