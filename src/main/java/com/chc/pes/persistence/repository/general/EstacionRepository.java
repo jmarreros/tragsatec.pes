@@ -13,7 +13,7 @@ public interface EstacionRepository extends JpaRepository<EstacionEntity, Intege
     boolean existsByCodigo(String codigo);
 
     // A nivel de relación con PES
-    @Query(value = "SELECT DISTINCT pe.estacion_id as id, e.codigo as codigo " +
+    @Query(value = "SELECT DISTINCT pe.estacion_id as id, e.nombre as nombre, e.codigo as codigo " +
             "FROM pes_ut_estacion pe " +
             "INNER JOIN estacion e ON pe.estacion_id = e.id " +
             "WHERE pe.tipo = :tipo AND pe.pes_id = :pesId ORDER BY e.codigo",

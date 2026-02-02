@@ -13,7 +13,7 @@ import java.util.List;
 public interface DetalleMedicionRepository extends JpaRepository<DetalleMedicionEntity, Long> {
     List<DetalleMedicionEntity> findByMedicionId(Integer medicionId);
 
-    @Query(value = "SELECT e.codigo as codigo, dm.valor as valor " +
+    @Query(value = "SELECT e.codigo as codigo, e.nombre as nombre, dm.valor as valor " +
             "FROM detalle_medicion dm " +
             "INNER JOIN estacion e ON dm.estacion_id = e.id " +
             "WHERE dm.medicion_id = :medicionId " +
