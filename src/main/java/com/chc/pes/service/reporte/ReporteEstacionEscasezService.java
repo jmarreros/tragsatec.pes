@@ -133,26 +133,30 @@ public class ReporteEstacionEscasezService {
                     }
                     dto.setDesviacionEstandar(desviacionEstandar);
 
-                    Map<String, BigDecimal> umbralesDelMes = umbralesPorMes.getOrDefault(mes, Collections.emptyMap());
-                    BigDecimal xpre = umbralesDelMes.get("XPRE");
-                    BigDecimal xemerg = umbralesDelMes.get("XEMERG");
 
-                    dto.setXemerg(xemerg);
-                    dto.setXpre(xpre);
-                    dto.setXmax(umbralesDelMes.get("XMAX"));
-                    dto.setXmin(umbralesDelMes.get("XMIN"));
+                    Map<String, BigDecimal> umbralesDelMes = umbralesPorMes.getOrDefault(mes, Collections.emptyMap());
+                    BigDecimal xpre = umbralesDelMes.get(ConstantUtils.ESCASEZ_FACTOR_XPRE);
+                    BigDecimal xemerg = umbralesDelMes.get(ConstantUtils.ESCASEZ_FACTOR_XEMERG);
+                    BigDecimal xAlerta = umbralesDelMes.get(ConstantUtils.ESCASEZ_FACTOR_XALERTA);
+                    BigDecimal xMax = umbralesDelMes.get(ConstantUtils.ESCASEZ_FACTOR_XMAX);
+                    BigDecimal xMin = umbralesDelMes.get(ConstantUtils.ESCASEZ_FACTOR_XMIN);
 
                     // Calcular XALERTA
-                    if (xpre != null && xemerg != null) {
+                    if (xAlerta==null && xpre != null && xemerg != null) {
                         BigDecimal numerador = ConstantUtils.ESCASEZ_IND_ESTADO_ALERTA.subtract(ConstantUtils.ESCASEZ_IND_ESTADO_EMERGENCIA)
                                 .multiply(xpre.subtract(xemerg));
                         BigDecimal denominador = ConstantUtils.ESCASEZ_IND_ESTADO_PRE.subtract(ConstantUtils.ESCASEZ_IND_ESTADO_EMERGENCIA);
 
                         if (denominador.compareTo(BigDecimal.ZERO) != 0) {
-                            BigDecimal xalerta = numerador.divide(denominador, SCALE, ROUNDING_MODE).add(xemerg);
-                            dto.setXalerta(xalerta);
+                            xAlerta = numerador.divide(denominador, SCALE, ROUNDING_MODE).add(xemerg);
                         }
                     }
+
+                    dto.setXemerg(xemerg);
+                    dto.setXpre(xpre);
+                    dto.setXmax(xMax);
+                    dto.setXmin(xMin);
+                    dto.setXalerta(xAlerta);
 
                     // Calcular ocurrencias
                     if (desviacionEstandar.compareTo(BigDecimal.ZERO) > 0) {

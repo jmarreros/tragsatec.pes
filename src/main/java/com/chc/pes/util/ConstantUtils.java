@@ -17,6 +17,7 @@ public class ConstantUtils {
 
     // Deben coincidir con los valores generados por `escenario + estadistico` en la consulta.
     public static final String ESCASEZ_FACTOR_XPRE = "XPRE"; // EstrésMínimo
+    public static final String ESCASEZ_FACTOR_XALERTA = "XALERTA"; // EstrésMaximo
     public static final String ESCASEZ_FACTOR_XMAX = "XMAX"; // NormalidadMínimo
     public static final String ESCASEZ_FACTOR_XEMERG = "XEMERG"; // NormalidadMáximo
     public static final String ESCASEZ_FACTOR_XMIN = "XMIN"; // Caso E_EBRO, E_ULLIVARRIURRUNAGA_EBRO

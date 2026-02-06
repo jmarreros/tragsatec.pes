@@ -95,7 +95,7 @@ public class IndicadorEscasezService {
             }
         }
 
-        // 7- Calcular los indicadores de escasez por unidad territorial
+        // 7- Calcular los indicadores de escasez Por Unidad Territorial
         indicadorUtEscasezService.calcularYGuardarIndicadoresUtEscasez(medicionId, pesId);
 
         // 8- Calcular los indicadores de escasez por demarcación
@@ -137,12 +137,18 @@ public class IndicadorEscasezService {
         }
 
         BigDecimal xPre = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XPRE);
+        BigDecimal xAlerta = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XALERTA);
         BigDecimal xMax = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XMAX);
         BigDecimal xEmerg = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XEMERG);
         BigDecimal xMin = (BigDecimal) umbralesParaEstacion.get(ESCASEZ_FACTOR_XMIN);
 
         if (xMin == null) {
             xMin = BigDecimal.ZERO; // Asignar un valor por defecto si es nulo
+        }
+
+        if (xAlerta != null) {
+            return IndicadorUtils.IE_LinealMult(valorMedicion, xPre, xAlerta, xEmerg, xMin, xMax);
+
         }
 
         return IndicadorUtils.IE_LinealC(valorMedicion, xPre, xEmerg, xMax, xMin);
