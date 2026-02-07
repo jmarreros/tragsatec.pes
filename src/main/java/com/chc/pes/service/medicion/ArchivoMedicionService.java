@@ -215,4 +215,77 @@ public class ArchivoMedicionService {
             throw new RuntimeException("Error al cargar el archivo " + fileName + " como MultipartFile.", ex);
         }
     }
+
+
+
+    /**
+     * Busca el archivo más reciente en el directorio de uploads considerando sufijos numéricos.
+     * Si existen archivos como: escasez_05_2025.csv, escasez_05_2025_1.csv, escasez_05_2025_2.csv
+     * retornará escasez_05_2025_2.csv (el que tiene el número más alto).
+     *
+     * @param nombreArchivoBase nombre base del archivo (ej: escasez_05_2025.csv)
+     * @return nombre del archivo más reciente, o null si no existe ninguno
+     */
+    public String buscarArchivoMasReciente(String nombreArchivoBase) {
+        File directorio = this.fileStorageLocation.toFile();
+
+        if (!directorio.exists() || !directorio.isDirectory()) {
+            return null;
+        }
+
+        // Extraer nombre base y extensión
+        String baseName = StringUtils.stripFilenameExtension(nombreArchivoBase);
+        String extension = StringUtils.getFilenameExtension(nombreArchivoBase);
+
+        // Buscar todos los archivos que coincidan con el patrón
+        File[] archivosCoincidentes = directorio.listFiles((dir, name) -> {
+            if (name.equals(nombreArchivoBase)) {
+                return true; // Coincide exactamente
+            }
+            // Verificar si coincide con el patrón nombreBase_N.extension
+            if (extension != null && name.endsWith("." + extension)) {
+                String nameWithoutExt = StringUtils.stripFilenameExtension(name);
+                if (nameWithoutExt.startsWith(baseName + "_")) {
+                    String sufijo = nameWithoutExt.substring(baseName.length() + 1);
+                    return sufijo.matches("\\d+"); // Solo dígitos
+                }
+            }
+            return false;
+        });
+
+        if (archivosCoincidentes == null || archivosCoincidentes.length == 0) {
+            return null;
+        }
+
+        // Encontrar el archivo con el número más alto
+        String archivoMasReciente = null;
+        int numeroMasAlto = -1;
+
+        for (File archivo : archivosCoincidentes) {
+            String nombre = archivo.getName();
+
+            if (nombre.equals(nombreArchivoBase)) {
+                // Archivo sin sufijo, equivale a número 0
+                if (numeroMasAlto < 0) {
+                    numeroMasAlto = 0;
+                    archivoMasReciente = nombre;
+                }
+            } else {
+                // Extraer el número del sufijo
+                String nameWithoutExt = StringUtils.stripFilenameExtension(nombre);
+                String sufijoStr = nameWithoutExt.substring(baseName.length() + 1);
+                try {
+                    int numero = Integer.parseInt(sufijoStr);
+                    if (numero > numeroMasAlto) {
+                        numeroMasAlto = numero;
+                        archivoMasReciente = nombre;
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignorar si no es un número válido
+                }
+            }
+        }
+
+        return archivoMasReciente;
+    }
 }

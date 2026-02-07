@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.chc.pes.dto.medicion.PrevisualizacionFTPDTO;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -293,7 +294,15 @@ public class ProcesarMedicionService {
         return valorNumericoOriginalStr;
     }
 
-    public void procesarMedicionesDesdeFTP(Character tipo) {
+
+    /**
+     * Previsualiza los datos de un archivo de medición desde FTP sin procesarlos.
+     * Descarga el archivo, lo valida y retorna los datos para revisión del usuario.
+     *
+     * @param tipo Tipo de medición ('S' para Sequía, 'E' para Escasez)
+     * @return DTO con los datos de previsualización
+     */
+    public PrevisualizacionFTPDTO previsualizarDatosFTP(Character tipo) {
         // 1- Validar el parámetro de entrada
         validarTipoMedicion(tipo);
 
@@ -301,27 +310,125 @@ public class ProcesarMedicionService {
         MedicionDTO medicionPendiente = medicionService.obtenerMedicionPendienteONueva(tipo);
 
         // 3- Definir el nombre del archivo a buscar en el servidor FTP/SFTP
-        String nombreMes = String.format("%02d", medicionPendiente.getMes());
-        String nombreAnio = String.valueOf(medicionPendiente.getAnio());
-        String nombreTipo = tipo == 'S' ? "sequia" : "escasez";
-
-        String nombreArchivo = nombreTipo + "_" + nombreMes + "_" + nombreAnio + ".csv";
+        String nombreArchivoBase = construirNombreArchivoFTP(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes());
 
         // 4- Buscar y copiar el archivo desde el servidor FTP/SFTP
-        boolean archivoCopiado = ftpService.buscarYCopiarArchivo(nombreArchivo);
+        boolean archivoCopiado = ftpService.buscarYCopiarArchivo(nombreArchivoBase);
         if (!archivoCopiado) {
-            throw new ArchivoValidationException("No se encontró el archivo '" + nombreArchivo + "' en el servidor FTP/SFTP.");
+            throw new ArchivoValidationException("No se encontró el archivo '" + nombreArchivoBase + "' en el servidor FTP/SFTP.");
         }
-        logger.info("Archivo '{}' copiado exitosamente desde el servidor FTP/SFTP.", nombreArchivo);
+        logger.info("Archivo '{}' copiado exitosamente desde el servidor FTP/SFTP.", nombreArchivoBase);
 
-        // 5- Cargar el archivo copiado como MultipartFile
-        MultipartFile archivoMedicion = archivoMedicionService.loadFileAsMultipart(nombreArchivo);
+        // 5- Buscar el archivo más reciente (puede tener sufijo numérico si ya existía)
+        String nombreArchivoReal = archivoMedicionService.buscarArchivoMasReciente(nombreArchivoBase);
+        if (nombreArchivoReal == null) {
+            throw new ArchivoValidationException("No se pudo encontrar el archivo descargado '" + nombreArchivoBase + "' en el directorio local.");
+        }
+        logger.info("Archivo más reciente encontrado: '{}'", nombreArchivoReal);
+
+        // 6- Cargar el archivo copiado como MultipartFile
+        MultipartFile archivoMedicion = archivoMedicionService.loadFileAsMultipart(nombreArchivoReal);
+
+        // 7- Validar el archivo usando ValidacionArchivoService
+        validacionArchivoService.validarArchivo(archivoMedicion);
+        logger.info("Archivo '{}' validado correctamente.", nombreArchivoReal);
+
+        // 8- Obtener los datos del archivo sin procesarlos
+        List<MedicionDatoDTO> datosMedicion = get_datos_medicion(archivoMedicion);
+        if (datosMedicion.isEmpty()) {
+            throw new ArchivoValidationException("El archivo de medición está vacío o no contiene datos válidos.");
+        }
+
+        // 9- Crear y retornar el DTO de previsualización
+        PrevisualizacionFTPDTO previsualizacion = new PrevisualizacionFTPDTO();
+        previsualizacion.setAnio(medicionPendiente.getAnio());
+        previsualizacion.setMes(medicionPendiente.getMes());
+        previsualizacion.setTipo(tipo);
+        previsualizacion.setNombreArchivo(nombreArchivoReal);
+        previsualizacion.setDatos(datosMedicion);
+        previsualizacion.setTotalRegistros(datosMedicion.size());
+
+        return previsualizacion;
+    }
+
+    /**
+     * Procesa el archivo de medición previamente descargado desde FTP.
+     * Se asume que el archivo ya fue descargado y validado en la previsualización.
+     *
+     * @param tipo Tipo de medición ('S' para Sequía, 'E' para Escasez)
+     */
+    @Transactional
+    public void procesarArchivoFTPDescargado(Character tipo) {
+        // 1- Validar el parámetro de entrada
+        validarTipoMedicion(tipo);
+
+        // 2- Obtener la medición pendiente o nueva
+        MedicionDTO medicionPendiente = medicionService.obtenerMedicionPendienteONueva(tipo);
+
+        // 3- Definir el nombre base del archivo esperado
+        String nombreArchivoBase = construirNombreArchivoFTP(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes());
+
+        // 4- Buscar el archivo más reciente (puede tener sufijo numérico)
+        String nombreArchivoReal = archivoMedicionService.buscarArchivoMasReciente(nombreArchivoBase);
+        if (nombreArchivoReal == null) {
+            throw new ArchivoValidationException("El archivo '" + nombreArchivoBase + "' no ha sido descargado previamente. Por favor, primero previsualice los datos.");
+        }
+        logger.info("Archivo más reciente encontrado para procesar: '{}'", nombreArchivoReal);
+
+        // 5- Cargar el archivo como MultipartFile
+        MultipartFile archivoMedicion = archivoMedicionService.loadFileAsMultipart(nombreArchivoReal);
 
         // 6- Validar el archivo usando ValidacionArchivoService
         validacionArchivoService.validarArchivo(archivoMedicion);
-        logger.info("Archivo '{}' validado correctamente.", nombreArchivo);
+        logger.info("Archivo '{}' validado correctamente para procesamiento.", nombreArchivoReal);
 
         // 7- Procesar el archivo de medición
         procesarArchivoMedicion(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes(), archivoMedicion);
+
+        logger.info("Archivo '{}' procesado exitosamente.", nombreArchivoReal);
     }
+
+    /**
+     * Construye el nombre del archivo FTP basado en el tipo, año y mes.
+     */
+    private String construirNombreArchivoFTP(Character tipo, Short anio, Byte mes) {
+        String nombreMes = String.format("%02d", mes);
+        String nombreAnio = String.valueOf(anio);
+        String nombreTipo = tipo == 'S' ? "sequia" : "escasez";
+        return nombreTipo + "_" + nombreMes + "_" + nombreAnio + ".csv";
+    }
+
+
+//    public void DescargarYProcesarMedicionesDesdeFTP(Character tipo) {
+//        // 1- Validar el parámetro de entrada
+//        validarTipoMedicion(tipo);
+//
+//        // 2- Obtener la medición pendiente o nueva
+//        MedicionDTO medicionPendiente = medicionService.obtenerMedicionPendienteONueva(tipo);
+//
+//        // 3- Definir el nombre del archivo a buscar en el servidor FTP/SFTP
+//        String nombreMes = String.format("%02d", medicionPendiente.getMes());
+//        String nombreAnio = String.valueOf(medicionPendiente.getAnio());
+//        String nombreTipo = tipo == 'S' ? "sequia" : "escasez";
+//
+//        String nombreArchivo = nombreTipo + "_" + nombreMes + "_" + nombreAnio + ".csv";
+//
+//        // 4- Buscar y copiar el archivo desde el servidor FTP/SFTP
+//        boolean archivoCopiado = ftpService.buscarYCopiarArchivo(nombreArchivo);
+//        if (!archivoCopiado) {
+//            throw new ArchivoValidationException("No se encontró el archivo '" + nombreArchivo + "' en el servidor FTP/SFTP.");
+//        }
+//        logger.info("Archivo '{}' copiado exitosamente desde el servidor FTP/SFTP.", nombreArchivo);
+//
+//        // 5- Cargar el archivo copiado como MultipartFile
+//        MultipartFile archivoMedicion = archivoMedicionService.loadFileAsMultipart(nombreArchivo);
+//
+//        // 6- Validar el archivo usando ValidacionArchivoService
+//        validacionArchivoService.validarArchivo(archivoMedicion);
+//        logger.info("Archivo '{}' validado correctamente.", nombreArchivo);
+//
+//        // 7- Procesar el archivo de medición
+//        procesarArchivoMedicion(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes(), archivoMedicion);
+//    }
+
 }

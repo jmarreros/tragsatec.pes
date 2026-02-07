@@ -4,14 +4,12 @@ import com.chc.pes.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.chc.pes.dto.medicion.MedicionManualDTO;
-import com.chc.pes.service.medicion.FTPService;
+import com.chc.pes.dto.medicion.PrevisualizacionFTPDTO;
 import com.chc.pes.service.medicion.ProcesarMedicionService;
 
 @Slf4j
@@ -75,17 +73,71 @@ public class ProcesarMedicionController {
         }
     }
 
-    @GetMapping("/ftp")
-    public ResponseEntity<String> procesarMedicionesDesdeFTP(
-            @RequestParam("tipo") Character tipo) {
-        try{
-            procesarMedicionService.procesarMedicionesDesdeFTP(tipo);
-            return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
+    /**
+     * Endpoint para previsualizar los datos de un archivo de medición desde FTP.
+     * Descarga el archivo del servidor FTP/SFTP y retorna los datos para revisión del usuario
+     * sin procesarlos ni guardarlos en la base de datos.
+     *
+     * @param tipo Tipo de medición ('S' para Sequía, 'E' para Escasez)
+     * @return DTO con los datos de previsualización
+     */
+    @GetMapping("/ftp/previsualizar")
+    public ResponseEntity<?> previsualizarDatosFTP(@RequestParam("tipo") Character tipo) {
+        try {
+            PrevisualizacionFTPDTO previsualizacion = procesarMedicionService.previsualizarDatosFTP(tipo);
+            return ResponseEntity.ok(previsualizacion);
+        } catch (ArchivoValidationException e) {
+            log.error("Error al previsualizar archivo de mediciones desde FTP/SFTP", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("Error en los parámetros al previsualizar datos FTP", e);
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Error al procesar archivo de mediciones desde FTP/SFTP",e);
+            log.error("Error al previsualizar archivo de mediciones desde FTP/SFTP", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al previsualizar las mediciones desde FTP: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint para procesar el archivo de medición previamente descargado desde FTP.
+     * Este endpoint debe llamarse después de haber previsualizado los datos con /ftp/previsualizar.
+     *
+     * @param tipo Tipo de medición ('S' para Sequía, 'E' para Escasez)
+     * @return Mensaje de confirmación del procesamiento
+     */
+    @PostMapping("/ftp/procesar")
+    public ResponseEntity<String> procesarArchivoFTPDescargado(@RequestParam("tipo") Character tipo) {
+        try {
+            procesarMedicionService.procesarArchivoFTPDescargado(tipo);
+            return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
+        } catch (ArchivoValidationException e) {
+            log.error("Error al procesar archivo de mediciones desde FTP/SFTP", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("Error en los parámetros al procesar datos FTP", e);
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error al procesar archivo de mediciones desde FTP/SFTP", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al procesar las mediciones desde FTP: " + e.getMessage());
         }
     }
+
+
+
+//    @GetMapping("/ftp")
+//    public ResponseEntity<String> DescargarYProcesarMedicionesDesdeFTP(
+//            @RequestParam("tipo") Character tipo) {
+//        try{
+//            procesarMedicionService.DescargarYProcesarMedicionesDesdeFTP(tipo);
+//            return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
+//        } catch (Exception e) {
+//            log.error("Error al procesar archivo de mediciones desde FTP/SFTP",e);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Error al procesar las mediciones desde FTP: " + e.getMessage());
+//        }
+//    }
+
 
 }
