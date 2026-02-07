@@ -36,17 +36,21 @@ public class ArchivoMedicionService {
     private final ArchivoMedicionRepository archivoMedicionRepository;
     private final MedicionRepository medicionRepository;
     private final Path fileStorageLocation;
+    private final Path temporalStorageLocation;
 
     public ArchivoMedicionService(ArchivoMedicionRepository archivoMedicionRepository,
                                   MedicionRepository medicionRepository,
-                                  @Value("${file.upload-dir}") String uploadDir) {
+                                  @Value("${file.upload-dir}") String uploadDir,
+                                  @Value("${file.temporal-dir}") String temporalDir) {
         this.archivoMedicionRepository = archivoMedicionRepository;
         this.medicionRepository = medicionRepository;
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.temporalStorageLocation = Paths.get(temporalDir).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);
+            Files.createDirectories(this.temporalStorageLocation);
         } catch (Exception ex) {
-            throw new RuntimeException("No se pudo crear el directorio donde se almacenarán los archivos subidos.", ex);
+            throw new RuntimeException("No se pudo crear los directorios de almacenamiento.", ex);
         }
     }
 
@@ -227,9 +231,26 @@ public class ArchivoMedicionService {
      * @return nombre del archivo más reciente, o null si no existe ninguno
      */
     public String buscarArchivoMasReciente(String nombreArchivoBase) {
-        File directorio = this.fileStorageLocation.toFile();
+        return buscarArchivoMasRecienteEnDirectorio(nombreArchivoBase, this.fileStorageLocation);
+    }
 
-        if (!directorio.exists() || !directorio.isDirectory()) {
+    /**
+     * Busca el archivo más reciente en el directorio temporal considerando sufijos numéricos.
+     *
+     * @param nombreArchivoBase nombre base del archivo (ej: escasez_05_2025.csv)
+     * @return nombre del archivo más reciente, o null si no existe ninguno
+     */
+    public String buscarArchivoMasRecienteEnTemporal(String nombreArchivoBase) {
+        return buscarArchivoMasRecienteEnDirectorio(nombreArchivoBase, this.temporalStorageLocation);
+    }
+
+    /**
+     * Busca el archivo más reciente en un directorio específico considerando sufijos numéricos.
+     */
+    private String buscarArchivoMasRecienteEnDirectorio(String nombreArchivoBase, Path directorio) {
+        File dir = directorio.toFile();
+
+        if (!dir.exists() || !dir.isDirectory()) {
             return null;
         }
 
@@ -238,7 +259,7 @@ public class ArchivoMedicionService {
         String extension = StringUtils.getFilenameExtension(nombreArchivoBase);
 
         // Buscar todos los archivos que coincidan con el patrón
-        File[] archivosCoincidentes = directorio.listFiles((dir, name) -> {
+        File[] archivosCoincidentes = dir.listFiles((d, name) -> {
             if (name.equals(nombreArchivoBase)) {
                 return true; // Coincide exactamente
             }
@@ -287,5 +308,103 @@ public class ArchivoMedicionService {
         }
 
         return archivoMasReciente;
+    }
+
+    /**
+     * Carga un archivo desde el directorio temporal como MultipartFile.
+     *
+     * @param fileName nombre del archivo a cargar
+     * @return MultipartFile con el contenido del archivo
+     */
+    public MultipartFile loadFileFromTemporalAsMultipart(String fileName) {
+        return loadFileFromPathAsMultipart(fileName, this.temporalStorageLocation);
+    }
+
+    /**
+     * Verifica si un archivo existe en el directorio temporal.
+     *
+     * @param fileName nombre del archivo a verificar
+     * @return true si el archivo existe y es legible, false en caso contrario
+     */
+    public boolean existeArchivoEnTemporal(String fileName) {
+        Path filePath = this.temporalStorageLocation.resolve(fileName).normalize();
+        File file = filePath.toFile();
+        return file.exists() && file.canRead();
+    }
+
+    /**
+     * Carga un archivo desde una ruta específica como MultipartFile.
+     */
+    private MultipartFile loadFileFromPathAsMultipart(String fileName, Path storagePath) {
+        try {
+            Path filePath = storagePath.resolve(fileName).normalize();
+            File file = filePath.toFile();
+
+            if (!file.exists() || !file.canRead()) {
+                throw new RuntimeException("No se pudo leer el archivo: " + fileName);
+            }
+
+            byte[] content = Files.readAllBytes(filePath);
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            final String finalContentType = contentType;
+            final String finalFileName = fileName;
+
+            return new MultipartFile() {
+                @Override
+                public String getName() {
+                    return finalFileName;
+                }
+
+                @Override
+                public String getOriginalFilename() {
+                    return finalFileName;
+                }
+
+                @Override
+                public String getContentType() {
+                    return finalContentType;
+                }
+
+                @Override
+                public boolean isEmpty() {
+                    return content.length == 0;
+                }
+
+                @Override
+                public long getSize() {
+                    return content.length;
+                }
+
+                @Override
+                public byte[] getBytes() {
+                    return content;
+                }
+
+                @Override
+                public InputStream getInputStream() {
+                    return new ByteArrayInputStream(content);
+                }
+
+                @Override
+                public void transferTo(File dest) throws IOException {
+                    Files.write(dest.toPath(), content);
+                }
+            };
+        } catch (IOException ex) {
+            throw new RuntimeException("Error al cargar el archivo " + fileName + " como MultipartFile.", ex);
+        }
+    }
+
+    /**
+     * Obtiene la ruta del directorio temporal.
+     *
+     * @return ruta absoluta del directorio temporal
+     */
+    public String getTemporalDir() {
+        return this.temporalStorageLocation.toString();
     }
 }

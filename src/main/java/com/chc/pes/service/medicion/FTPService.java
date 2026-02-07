@@ -6,9 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Service
 public class FTPService {
@@ -30,10 +32,6 @@ public class FTPService {
     @Value("${ftp.password}")
     private String ftpPassword;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
-
-
     /**
      * Obtiene el protocolo según la configuración (ftp o sftp)
      */
@@ -52,14 +50,15 @@ public class FTPService {
     }
 
     /**
-     * Busca un archivo por nombre en el servidor FTP/SFTP y lo copia a la carpeta fileUploads
+     * Busca un archivo por nombre en el servidor FTP/SFTP y lo copia a la carpeta especificada.
+     * Si el archivo ya existe en el destino, será reemplazado.
      *
      * @param nombreArchivo nombre del archivo a buscar
+     * @param uploadDir directorio de destino donde se copiará el archivo
      * @return true si el archivo fue encontrado y copiado exitosamente, false en caso contrario
      */
-    public boolean buscarYCopiarArchivo(String nombreArchivo) {
+    public boolean buscarYCopiarArchivo(String nombreArchivo, String uploadDir) {
         FileObject archivoRemoto = null;
-        FileObject archivoLocal = null;
         String directorioRemoto = "/";
 
         try {
@@ -82,12 +81,13 @@ public class FTPService {
 
             // Ruta completa del archivo de destino
             Path rutaArchivoDestino = directorioDestino.resolve(nombreArchivo);
-            archivoLocal = manager.resolveFile(rutaArchivoDestino.toUri());
 
-            // Copiar el archivo remoto al local
-            archivoLocal.copyFrom(archivoRemoto, Selectors.SELECT_SELF);
+            // Copiar el archivo remoto al local, reemplazando si existe
+            try (InputStream inputStream = archivoRemoto.getContent().getInputStream()) {
+                Files.copy(inputStream, rutaArchivoDestino, StandardCopyOption.REPLACE_EXISTING);
+            }
 
-            logger.info("Archivo '{}' copiado exitosamente a '{}'", nombreArchivo, rutaArchivoDestino);
+            logger.info("Archivo '{}' copiado exitosamente a '{}' (reemplazando si existía)", nombreArchivo, rutaArchivoDestino);
             return true;
 
         } catch (FileSystemException e) {
@@ -98,7 +98,6 @@ public class FTPService {
             return false;
         } finally {
             cerrarFileObject(archivoRemoto);
-            cerrarFileObject(archivoLocal);
         }
     }
 
