@@ -17,14 +17,12 @@ import com.chc.pes.persistence.repository.medicion.MedicionRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,16 +63,6 @@ public class ArchivoMedicionService {
         return dto;
     }
 
-    private void mapToEntity(ArchivoMedicionDTO dto, ArchivoMedicionEntity entity) {
-        if (dto.getMedicionId() != null) {
-            MedicionEntity medicion = medicionRepository.findById(dto.getMedicionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Medición no encontrada con id: " + dto.getMedicionId()));
-            entity.setMedicion(medicion);
-        } else if (entity.getMedicion() == null) {
-            throw new IllegalArgumentException("medicionId no puede ser nulo para ArchivoMedicion si no está ya establecida.");
-        }
-    }
-
     public List<ArchivoMedicionDTO> findAll() {
         return archivoMedicionRepository.findAll().stream()
                 .map(this::mapToDTO)
@@ -89,8 +77,8 @@ public class ArchivoMedicionService {
     @Transactional
     public ArchivoMedicionDTO storeFile(MultipartFile file, Integer medicionId) {
         String originalFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-        String uniqueFileName = generateUniqueFileName(originalFileName);
-        Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
+
+        Path targetLocation = this.fileStorageLocation.resolve(originalFileName);
 
         try {
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -99,7 +87,7 @@ public class ArchivoMedicionService {
                     .orElseThrow(() -> new EntityNotFoundException("Medición no encontrada con ID: " + medicionId));
 
             ArchivoMedicionEntity archivoMedicion = new ArchivoMedicionEntity();
-            archivoMedicion.setFileName(uniqueFileName);
+            archivoMedicion.setFileName(originalFileName);
             archivoMedicion.setMedicion(medicion);
 
             ArchivoMedicionEntity savedFile = archivoMedicionRepository.save(archivoMedicion);
@@ -107,20 +95,6 @@ public class ArchivoMedicionService {
         } catch (IOException ex) {
             throw new RuntimeException("No se pudo almacenar el archivo " + originalFileName + ". Por favor, inténtalo de nuevo.", ex);
         }
-    }
-
-    private String generateUniqueFileName(String originalFileName) {
-        String baseName = StringUtils.stripFilenameExtension(originalFileName);
-        String extension = StringUtils.getFilenameExtension(originalFileName);
-        String uniqueFileName = originalFileName;
-        Path targetPath = this.fileStorageLocation.resolve(uniqueFileName);
-        int count = 0;
-        while (Files.exists(targetPath)) {
-            count++;
-            uniqueFileName = baseName + "_" + count + "." + extension;
-            targetPath = this.fileStorageLocation.resolve(uniqueFileName);
-        }
-        return uniqueFileName;
     }
 
     public Resource loadFileAsResource(Integer fileId) {
@@ -143,7 +117,7 @@ public class ArchivoMedicionService {
         }
     }
 
-    // Necesitas un método para obtener el nombre del archivo
+    // Para obtener el nombre del archivo
     public String getFileName(Integer fileId) {
         return archivoMedicionRepository.findById(fileId)
                 .map(ArchivoMedicionEntity::getFileName)
@@ -222,93 +196,6 @@ public class ArchivoMedicionService {
 
 
 
-    /**
-     * Busca el archivo más reciente en el directorio de uploads considerando sufijos numéricos.
-     * Si existen archivos como: escasez_05_2025.csv, escasez_05_2025_1.csv, escasez_05_2025_2.csv
-     * retornará escasez_05_2025_2.csv (el que tiene el número más alto).
-     *
-     * @param nombreArchivoBase nombre base del archivo (ej: escasez_05_2025.csv)
-     * @return nombre del archivo más reciente, o null si no existe ninguno
-     */
-    public String buscarArchivoMasReciente(String nombreArchivoBase) {
-        return buscarArchivoMasRecienteEnDirectorio(nombreArchivoBase, this.fileStorageLocation);
-    }
-
-    /**
-     * Busca el archivo más reciente en el directorio temporal considerando sufijos numéricos.
-     *
-     * @param nombreArchivoBase nombre base del archivo (ej: escasez_05_2025.csv)
-     * @return nombre del archivo más reciente, o null si no existe ninguno
-     */
-    public String buscarArchivoMasRecienteEnTemporal(String nombreArchivoBase) {
-        return buscarArchivoMasRecienteEnDirectorio(nombreArchivoBase, this.temporalStorageLocation);
-    }
-
-    /**
-     * Busca el archivo más reciente en un directorio específico considerando sufijos numéricos.
-     */
-    private String buscarArchivoMasRecienteEnDirectorio(String nombreArchivoBase, Path directorio) {
-        File dir = directorio.toFile();
-
-        if (!dir.exists() || !dir.isDirectory()) {
-            return null;
-        }
-
-        // Extraer nombre base y extensión
-        String baseName = StringUtils.stripFilenameExtension(nombreArchivoBase);
-        String extension = StringUtils.getFilenameExtension(nombreArchivoBase);
-
-        // Buscar todos los archivos que coincidan con el patrón
-        File[] archivosCoincidentes = dir.listFiles((d, name) -> {
-            if (name.equals(nombreArchivoBase)) {
-                return true; // Coincide exactamente
-            }
-            // Verificar si coincide con el patrón nombreBase_N.extension
-            if (extension != null && name.endsWith("." + extension)) {
-                String nameWithoutExt = StringUtils.stripFilenameExtension(name);
-                if (nameWithoutExt.startsWith(baseName + "_")) {
-                    String sufijo = nameWithoutExt.substring(baseName.length() + 1);
-                    return sufijo.matches("\\d+"); // Solo dígitos
-                }
-            }
-            return false;
-        });
-
-        if (archivosCoincidentes == null || archivosCoincidentes.length == 0) {
-            return null;
-        }
-
-        // Encontrar el archivo con el número más alto
-        String archivoMasReciente = null;
-        int numeroMasAlto = -1;
-
-        for (File archivo : archivosCoincidentes) {
-            String nombre = archivo.getName();
-
-            if (nombre.equals(nombreArchivoBase)) {
-                // Archivo sin sufijo, equivale a número 0
-                if (numeroMasAlto < 0) {
-                    numeroMasAlto = 0;
-                    archivoMasReciente = nombre;
-                }
-            } else {
-                // Extraer el número del sufijo
-                String nameWithoutExt = StringUtils.stripFilenameExtension(nombre);
-                String sufijoStr = nameWithoutExt.substring(baseName.length() + 1);
-                try {
-                    int numero = Integer.parseInt(sufijoStr);
-                    if (numero > numeroMasAlto) {
-                        numeroMasAlto = numero;
-                        archivoMasReciente = nombre;
-                    }
-                } catch (NumberFormatException e) {
-                    // Ignorar si no es un número válido
-                }
-            }
-        }
-
-        return archivoMasReciente;
-    }
 
     /**
      * Carga un archivo desde el directorio temporal como MultipartFile.

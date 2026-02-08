@@ -398,36 +398,36 @@ public class ProcesarMedicionService {
     }
 
 
-    public void DescargarYProcesarMedicionesDesdeFTP(Character tipo) {
-        // 1- Validar el parámetro de entrada
-        validarTipoMedicion(tipo);
-
-        // 2- Obtener la medición pendiente o nueva
-        MedicionDTO medicionPendiente = medicionService.obtenerMedicionPendienteONueva(tipo);
-
-        // 3- Definir el nombre del archivo a buscar en el servidor FTP/SFTP
-        String nombreMes = String.format("%02d", medicionPendiente.getMes());
-        String nombreAnio = String.valueOf(medicionPendiente.getAnio());
-        String nombreTipo = tipo == 'S' ? "sequia" : "escasez";
-
-        String nombreArchivo = nombreTipo + "_" + nombreMes + "_" + nombreAnio + ".csv";
-
-        // 4- Buscar y copiar el archivo desde el servidor FTP/SFTP
-        boolean archivoCopiado = ftpService.buscarYCopiarArchivo(nombreArchivo, uploadDir);
-        if (!archivoCopiado) {
-            throw new ArchivoValidationException("No se encontró el archivo '" + nombreArchivo + "' en el servidor FTP/SFTP.");
-        }
-        logger.info("Archivo '{}' copiado exitosamente desde el servidor FTP/SFTP.", nombreArchivo);
-
-        // 5- Cargar el archivo copiado como MultipartFile
-        MultipartFile archivoMedicion = archivoMedicionService.loadFileAsMultipart(nombreArchivo);
-
-        // 6- Validar el archivo usando ValidacionArchivoService
-        validacionArchivoService.validarArchivo(archivoMedicion);
-        logger.info("Archivo '{}' validado correctamente.", nombreArchivo);
-
-        // 7- Procesar el archivo de medición
-        procesarArchivoMedicion(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes(), archivoMedicion);
-    }
+//    public void DescargarYProcesarMedicionesDesdeFTP(Character tipo) {
+//        // 1- Validar el parámetro de entrada
+//        validarTipoMedicion(tipo);
+//
+//        // 2- Obtener la medición pendiente o nueva
+//        MedicionDTO medicionPendiente = medicionService.obtenerMedicionPendienteONueva(tipo);
+//
+//        // 3- Definir el nombre del archivo a buscar en el servidor FTP/SFTP
+//        String nombreMes = String.format("%02d", medicionPendiente.getMes());
+//        String nombreAnio = String.valueOf(medicionPendiente.getAnio());
+//        String nombreTipo = tipo == 'S' ? "sequia" : "escasez";
+//
+//        String nombreArchivo = nombreTipo + "_" + nombreMes + "_" + nombreAnio + ".csv";
+//
+//        // 4- Buscar y copiar el archivo desde el servidor FTP/SFTP
+//        boolean archivoCopiado = ftpService.buscarYCopiarArchivo(nombreArchivo, uploadDir);
+//        if (!archivoCopiado) {
+//            throw new ArchivoValidationException("No se encontró el archivo '" + nombreArchivo + "' en el servidor FTP/SFTP.");
+//        }
+//        logger.info("Archivo '{}' copiado exitosamente desde el servidor FTP/SFTP.", nombreArchivo);
+//
+//        // 5- Cargar el archivo copiado como MultipartFile
+//        MultipartFile archivoMedicion = archivoMedicionService.loadFileAsMultipart(nombreArchivo);
+//
+//        // 6- Validar el archivo usando ValidacionArchivoService
+//        validacionArchivoService.validarArchivo(archivoMedicion);
+//        logger.info("Archivo '{}' validado correctamente.", nombreArchivo);
+//
+//        // 7- Procesar el archivo de medición
+//        procesarArchivoMedicion(tipo, medicionPendiente.getAnio(), medicionPendiente.getMes(), archivoMedicion);
+//    }
 
 }

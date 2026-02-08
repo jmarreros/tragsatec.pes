@@ -124,20 +124,17 @@ public class ProcesarMedicionController {
         }
     }
 
-
-
-    @GetMapping("/ftp")
-    public ResponseEntity<String> DescargarYProcesarMedicionesDesdeFTP(
-            @RequestParam("tipo") Character tipo) {
-        try{
-            procesarMedicionService.DescargarYProcesarMedicionesDesdeFTP(tipo);
-            return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
-        } catch (Exception e) {
-            log.error("Error al procesar archivo de mediciones desde FTP/SFTP",e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar las mediciones desde FTP: " + e.getMessage());
-        }
-    }
-
+//    @GetMapping("/ftp")
+//    public ResponseEntity<String> DescargarYProcesarMedicionesDesdeFTP(
+//            @RequestParam("tipo") Character tipo) {
+//        try{
+//            procesarMedicionService.DescargarYProcesarMedicionesDesdeFTP(tipo);
+//            return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
+//        } catch (Exception e) {
+//            log.error("Error al procesar archivo de mediciones desde FTP/SFTP",e);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Error al procesar las mediciones desde FTP: " + e.getMessage());
+//        }
+//    }
 
 }
