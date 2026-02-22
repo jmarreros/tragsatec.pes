@@ -2,6 +2,7 @@ package com.chc.pes.controller.medicion;
 
 import com.chc.pes.dto.medicion.DetalleMedicionDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.chc.pes.dto.medicion.DetalleMedicionProjection;
@@ -12,14 +13,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/detalles-medicion")
 @RequiredArgsConstructor
+@Slf4j
 public class DetalleMedicionController {
 
     private final DetalleMedicionService detalleMedicionService;
 
     @GetMapping("/{medicionId}/reporte-detalles")
     public ResponseEntity<List<DetalleMedicionProjection>> getReporteDetallesPorMedicionId(@PathVariable Integer medicionId) {
-        List<DetalleMedicionProjection> reporte = detalleMedicionService.findReporteByMedicionId(medicionId);
-        return ResponseEntity.ok(reporte);
+        try {
+            List<DetalleMedicionProjection> reporte = detalleMedicionService.findReporteByMedicionId(medicionId);
+            return ResponseEntity.ok(reporte);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // Grabar o actualizar detalle de medicion por medicionId y estacionId
@@ -29,9 +36,14 @@ public class DetalleMedicionController {
             @PathVariable Integer estacionId,
             @RequestBody DetalleMedicionDTO detalleMedicionDTO) {
 
-        DetalleMedicionDTO detalleActualizado = detalleMedicionService.actualizarDetalleMedicion(
-                medicionId, estacionId, detalleMedicionDTO);
+        try {
+            DetalleMedicionDTO detalleActualizado = detalleMedicionService.actualizarDetalleMedicion(
+                    medicionId, estacionId, detalleMedicionDTO);
+            return ResponseEntity.ok(detalleActualizado);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
 
-        return ResponseEntity.ok(detalleActualizado);
     }
 }

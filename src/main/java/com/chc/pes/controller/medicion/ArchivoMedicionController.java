@@ -53,15 +53,16 @@ public class ArchivoMedicionController {
 
         } catch (ArchivoMuyGrandeException | TipoArchivoNoSoportadoException e) {
             log.error("Error al procesar archivo de mediciones",e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al procesar archivo de mediciones");
         } catch (ArchivoValidationException e) { // Captura genérica
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error("Error al procesar archivo de mediciones",e);
+            return ResponseEntity.badRequest().body("Error al procesar archivo de mediciones");
         } catch (EntityNotFoundException e) {
             log.error("Error al procesar archivo de mediciones",e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error al procesar archivo de mediciones");
         } catch (RuntimeException e) {
-            log.error("Error al subir el archivo",e);           
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir el archivo: " + e.getMessage());
+            log.error("Error al subir el archivo",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir el archivo: ");
         }
     }
 

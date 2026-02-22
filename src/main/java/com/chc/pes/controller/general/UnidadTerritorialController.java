@@ -1,6 +1,7 @@
 package com.chc.pes.controller.general;
 
 import jakarta.persistence.EntityNotFoundException; // Importar si se maneja aquí
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import com.chc.pes.service.general.UnidadTerritorialService;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/unidades-territoriales")
 public class UnidadTerritorialController {
@@ -41,9 +43,11 @@ public class UnidadTerritorialController {
             UnidadTerritorialResponseDTO createdDto = unidadTerritorialService.createUnidadTerritorial(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdDto);
         } catch (EntityNotFoundException e) { // Si alguna entidad referenciada no se encuentra
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al crear la unidad territorial" );
         } catch (Exception e) { // Manejo genérico de otras posibles excepciones
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la unidad territorial: " + e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la unidad territorial");
         }
     }
 
@@ -53,9 +57,11 @@ public class UnidadTerritorialController {
             UnidadTerritorialResponseDTO updatedDto = unidadTerritorialService.updateUnidadTerritorial(id, requestDTO);
             return ResponseEntity.ok(updatedDto);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró la unidad territorial con ID: " + id);
         } catch (Exception e) { // Manejo genérico
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la unidad territorial: " + e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la unidad territorial");
         }
     }
 

@@ -1,6 +1,7 @@
 package com.chc.pes.controller.general;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/estaciones")
+@Slf4j
 public class EstacionController {
     private final EstacionService estacionService;
     private final MedicionService medicionService;
@@ -45,9 +47,11 @@ public class EstacionController {
             EstacionResponseDTO createdEstacion = estacionService.createEstacionAndUnidadesTerritoriales(dto); // Recibe DTO
             return ResponseEntity.status(HttpStatus.CREATED).body(createdEstacion);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error de integridad de datos");
         } catch (IllegalArgumentException | EntityNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al crear la estación ");
         }
     }
 
@@ -59,11 +63,14 @@ public class EstacionController {
             EstacionResponseDTO updatedEstacion = estacionService.updateEstacionAndUnidadesTerritoriales(id, dto); // Recibe DTO
             return ResponseEntity.ok(updatedEstacion);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error al actualizar");
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error de integridad de datos");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al actualizar la estacion");
         }
     }
 

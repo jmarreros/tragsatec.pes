@@ -33,14 +33,14 @@ public class ProcesarMedicionController {
             return ResponseEntity.ok("Medición manual guardada correctamente.");
         } catch (MedicionValidationException | PesNoValidoException | ArchivoValidationException e) {
             log.error("Error al procesar medición manual",e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al procesar medición manual");
         } catch (IllegalArgumentException e) {
             log.error("Error al procesar medición manual",e);
-            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados");
         } catch (Exception e) {
             log.error("Error al procesar medición manual",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar la medición manual: " + e.getMessage());
+                    .body("Error al procesar la medición manual");
         }
     }
 
@@ -59,17 +59,17 @@ public class ProcesarMedicionController {
 
         } catch (ArchivoMuyGrandeException | TipoArchivoNoSoportadoException e) {
             log.error("Error al procesar archivo de mediciones",e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al procesar archivo de mediciones");
         } catch (ArchivoValidationException e) { // Captura genérica
             log.error("Error al procesar archivo de mediciones",e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al procesar archivo de mediciones");
         } catch (IllegalArgumentException e) { // Para errores de parámetros como 'tipo', 'anio', 'mes'
-           log.error("Error al procesar archivo de mediciones",e);        
-            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
+            log.error("Error al procesar archivo de mediciones", e);
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados");
         } catch (Exception e) {
             log.error("Error al procesar archivo de mediciones",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar el archivo: " + e.getMessage());
+                    .body("Error al procesar el archivo");
         }
     }
 
@@ -88,14 +88,14 @@ public class ProcesarMedicionController {
             return ResponseEntity.ok(previsualizacion);
         } catch (ArchivoValidationException e) {
             log.error("Error al previsualizar archivo de mediciones desde FTP/SFTP", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al previsualizar las mediciones desde FTP");
         } catch (IllegalArgumentException e) {
             log.error("Error en los parámetros al previsualizar datos FTP", e);
-            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados");
         } catch (Exception e) {
             log.error("Error al previsualizar archivo de mediciones desde FTP/SFTP", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al previsualizar las mediciones desde FTP: " + e.getMessage());
+                    .body("Error al previsualizar las mediciones desde FTP");
         }
     }
 
@@ -113,14 +113,14 @@ public class ProcesarMedicionController {
             return ResponseEntity.ok("Mediciones desde FTP procesadas correctamente.");
         } catch (ArchivoValidationException e) {
             log.error("Error al procesar archivo de mediciones desde FTP/SFTP", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al procesar las mediciones desde FTP");
         } catch (IllegalArgumentException e) {
             log.error("Error en los parámetros al procesar datos FTP", e);
-            return ResponseEntity.badRequest().body("Error en los datos proporcionados: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error en los datos proporcionados");
         } catch (Exception e) {
             log.error("Error al procesar archivo de mediciones desde FTP/SFTP", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar las mediciones desde FTP: " + e.getMessage());
+                    .body("Error al procesar las mediciones desde FTP");
         }
     }
 
