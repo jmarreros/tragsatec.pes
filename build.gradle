@@ -50,8 +50,9 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
 
-    implementation("org.apache.commons:commons-vfs2:2.10.0")
-    implementation("com.jcraft:jsch:0.1.55")
+	implementation 'commons-net:commons-net:3.9.0'
+	implementation 'com.jcraft:jsch:0.1.55'
+
 }
 
 tasks.named('test') {

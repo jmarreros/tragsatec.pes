@@ -1,6 +1,7 @@
 package com.chc.pes.controller.reporte;
 
 import com.chc.pes.service.reporte.ReporteWordUtSequiaService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/reportes/ut-sequia")
+@Slf4j
 public class ReporteUtSequiaController {
 
     private final ReporteUtSequiaService reporteUtSequiaService;
@@ -40,7 +42,8 @@ public class ReporteUtSequiaController {
             List<IndicadorDataProjection> datos = reporteUtSequiaService.getAllDataIndicadorAnioMes(utId, tipoPrep);
             return ResponseEntity.ok(datos);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores");
         }
     }
 
@@ -52,7 +55,8 @@ public class ReporteUtSequiaController {
             List<IndicadorFechaDataProjection> datos = reporteUtSequiaService.getAllDataFecha(anio, tipoPrep);
             return ResponseEntity.ok(datos);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha");
         }
     }
 
@@ -66,7 +70,8 @@ public class ReporteUtSequiaController {
             List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio, prepTipo);
             return ResponseEntity.ok(datos);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha y demarcación");
         }
     }
 
@@ -78,7 +83,8 @@ public class ReporteUtSequiaController {
             List<IndicadorUTFechaDataProjection> datos = reporteUtSequiaService.getTotalDataUTFecha(utId, anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores totales por fecha y UT");
         }
     }
 
@@ -90,11 +96,12 @@ public class ReporteUtSequiaController {
             List<IndicadorUTFechaDataProjection> datos = reporteUtSequiaService.getUTEstacionFecha(utId, anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha y UT para estaciones");
         }
     }
 
-    @GetMapping("/reporte-pdf/{tipo}/{anio}/{mes}")
+    @GetMapping("/reporte-word/{tipo}/{anio}/{mes}")
     public ResponseEntity<?> generarReportePDF(
             @PathVariable Integer anio,
             @PathVariable Integer mes,
@@ -129,7 +136,8 @@ public class ReporteUtSequiaController {
                     .body(resource);
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al generar el reporte: " + e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().body("Error al generar el reporte: ");
         }
     }
 }

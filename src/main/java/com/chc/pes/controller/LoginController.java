@@ -1,5 +1,6 @@
 package com.chc.pes.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import java.util.Collection; // Import Collection
 import java.util.Map;
 
 @RestController
+@Slf4j
 public class LoginController {
 
     private final AuthenticationManager authenticationManager;
@@ -46,7 +48,8 @@ public class LoginController {
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
             // If authentication fails, return an error
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
         }
     }
 }

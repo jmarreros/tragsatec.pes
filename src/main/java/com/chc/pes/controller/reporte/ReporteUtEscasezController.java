@@ -1,6 +1,7 @@
 package com.chc.pes.controller.reporte;
 
 import com.chc.pes.service.reporte.ReporteWordUtEscasezService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/reportes/ut-escasez")
+@Slf4j
 public class ReporteUtEscasezController {
 
     private final ReporteUtEscasezService reporteUtEscasezService;
@@ -41,7 +43,8 @@ public class ReporteUtEscasezController {
             List<IndicadorDataProjection> datos = reporteUtEscasezService.getAllDataIndicadorAnioMes(utId);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores");
         }
     }
 
@@ -51,7 +54,8 @@ public class ReporteUtEscasezController {
             List<IndicadorFechaDataProjection> datos = reporteUtEscasezService.getAllDataFecha(anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha");
         }
     }
 
@@ -63,7 +67,8 @@ public class ReporteUtEscasezController {
             List<IndicadorDemarcacionFechaDataProjection> datos = reporteUtEscasezService.getAllDataFechaDemarcacion(demarcacionId, anio);
             return ResponseEntity.ok(datos);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha y demarcación");
         }
     }
 
@@ -75,7 +80,8 @@ public class ReporteUtEscasezController {
             List<IndicadorUTFechaDataProjection> datos = reporteUtEscasezService.getTotalDataUTFecha(utId, anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores totales por fecha y UT");
         }
     }
 
@@ -87,11 +93,12 @@ public class ReporteUtEscasezController {
             List<IndicadorUTFechaDataProjection> datos = reporteUtEscasezService.getUTEstacionFecha(utId, anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha, UT y estación");
         }
     }
 
-    @GetMapping("/reporte-pdf/{tipo}/{anio}/{mes}")
+    @GetMapping("/reporte-word/{tipo}/{anio}/{mes}")
     public ResponseEntity<?> generarReportePDF(
             @PathVariable Integer anio,
             @PathVariable Integer mes,
@@ -125,7 +132,8 @@ public class ReporteUtEscasezController {
                     .body(resource);
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al generar el reporte: " + e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().body("Error al generar el reporte");
         }
     }
 }

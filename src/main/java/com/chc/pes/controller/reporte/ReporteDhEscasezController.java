@@ -1,5 +1,6 @@
 package com.chc.pes.controller.reporte;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/reportes/dh-escasez")
+@Slf4j
 public class ReporteDhEscasezController {
 
     private final ReporteDhEscasezService reporteDhEscasezService;
@@ -29,7 +31,8 @@ public class ReporteDhEscasezController {
             List<IndicadorDataProjection> datos = reporteDhEscasezService.getAllDataIndicadorAnioMes(demarcacionId);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores");
         }
     }
 
@@ -39,7 +42,8 @@ public class ReporteDhEscasezController {
             List<IndicadorFechaDataProjection> datos = reporteDhEscasezService.getAllDataFecha(anio);
             return ResponseEntity.ok(datos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha");
         }
     }
 }

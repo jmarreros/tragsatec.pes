@@ -1,5 +1,6 @@
 package com.chc.pes.controller.reporte;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/reportes/dh-sequia")
+@Slf4j
 public class ReporteDhSequiaController {
 
     private final ReporteDhSequiaService reporteDhSequiaService;
@@ -28,7 +30,8 @@ public class ReporteDhSequiaController {
             List<IndicadorDataProjection> datos = reporteDhSequiaService.getAllDataIndicadorAnioMes(demarcacionId, tipoPrep);
             return ResponseEntity.ok(datos);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores");
         }
     }
 
@@ -40,7 +43,8 @@ public class ReporteDhSequiaController {
             List<IndicadorFechaDataProjection> datos = reporteDhSequiaService.getAllDataFecha(anio, tipoPrep);
             return ResponseEntity.ok(datos);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body("Error al obtener los indicadores por fecha");
         }
     }
 }
