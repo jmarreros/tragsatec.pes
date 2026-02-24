@@ -44,8 +44,8 @@ dependencies {
     implementation("org.apache.xmlgraphics:batik-codec:1.18")
     implementation("org.jfree:jfreechart:1.5.6")
 
-    implementation 'org.docx4j:docx4j-JAXB-ReferenceImpl:8.3.10'
-    implementation 'org.docx4j:docx4j-export-fo:8.3.10'
+//    implementation 'org.docx4j:docx4j-JAXB-ReferenceImpl:8.3.10'
+//    implementation 'org.docx4j:docx4j-export-fo:8.3.10'
 
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
