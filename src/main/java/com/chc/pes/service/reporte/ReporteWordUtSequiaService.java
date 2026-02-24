@@ -11,10 +11,8 @@ import com.chc.pes.persistence.repository.estructura.PesUtEstacionRepository;
 import com.chc.pes.persistence.repository.general.UnidadTerritorialRepository;
 import com.chc.pes.service.general.DemarcacionService;
 import com.chc.pes.util.DateUtils;
-import com.chc.pes.util.DocumentPDFUtils;
 import com.chc.pes.util.DocumentWordUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -48,20 +46,11 @@ public class ReporteWordUtSequiaService {
     public String downloadReportePDF(Integer anioPropuesto, Integer mes, String tipo) {
         DocumentWordUtils.crearDirectorioSiNoExiste(temporalDir);
 
-        // Primero generamos el reporte en Word, luego lo convertimos a PDF -- Archivo Word fue solicitado inicialmente
+        // Primero generamos el reporte en Word, luego lo convertimos a PDF --
+        // Archivo Word fue solicitado inicialmente
         generarReporteWord(anioPropuesto, mes, tipo);
+        return temporalDir + "/Reporte_UTS_" + tipo + ".docx";
 
-       // String pdfPath = temporalDir + "/Reporte_UTS_" + tipo + ".pdf";
-        String docxPath = temporalDir + "/Reporte_UTS_" + tipo + ".docx";
-/*
-        DocumentPDFUtils documentPDFUtils = new DocumentPDFUtils();
-        try {
-            documentPDFUtils.convertDocxToPdf(docxPath, pdfPath);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al convertir el documento a PDF: " + e.getMessage(), e);
-        }
- */
-        return docxPath;
     }
 
     public void generarReporteWord(Integer anioPropuesto, Integer mes, String tipo) {
@@ -70,7 +59,7 @@ public class ReporteWordUtSequiaService {
 
         // Establecer el año real hidrológico si es necesario
         Integer anioHidrologico = anioPropuesto;
-        if ( mes < 10 ) {
+        if (mes < 10) {
             anioHidrologico = anioPropuesto - 1;
         }
 
@@ -84,7 +73,8 @@ public class ReporteWordUtSequiaService {
             Integer demarcacionId = demarcacionInfo.getId();
             String demarcacionCodigo = demarcacionInfo.getCodigo();
 
-            // Obtenemos los datos de escenario para las UT de la demarcación para mes/año específicos
+            // Obtenemos los datos de escenario para las UT de la demarcación
+            // para mes/año específicos
             List<IndicadorUTEscenarioProjection> listUTEscenario = indicadorUtSequiaRepository.findByAnioMesDemarcacionUTEscenario(anioPropuesto, mes, demarcacionId);
 
             // Procesar y reemplazar los SVG en el documento
@@ -92,26 +82,24 @@ public class ReporteWordUtSequiaService {
 
             // Insertar la imagen principal en el documento
             DocumentWordUtils.insertaImagenPrincipal(document, imgUTSs);
-            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE SEQUIA");
+            DocumentWordUtils.insertarLeyendaImagen(document, "ESCENARIOS DE SEQUÍA");
 
             // Crear un párrafo vacío después de la imagen
             document.createParagraph();
 
             // Crear tabla de datos UT principal en el documento
-            List<IndicadorDemarcacionFechaDataProjection> datos = datosDemarcacionUTSequia(anioHidrologico, tipo);
-            DocumentWordUtils.crearTablaUT(document, datos);
-
-            DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE SEQUIA POR UTE ");
+            List<IndicadorDemarcacionFechaDataProjection> datos = datosDemarcacionUTSequia(anioHidrologico, mes, tipo);
+            DocumentWordUtils.crearTablaUT(document, datos, anioHidrologico);
 
 
-
-
+            if (datos != null && !datos.isEmpty())
+                DocumentWordUtils.insertarLeyendaImagen(document, "INDICADORES DE SEQUÍA POR UTE ");
 
             List<UnidadTerritorialProjection> uTsPorDemarcacionSequia = getUTsPorDemarcacionSequia(demarcacionId);
             int uts = uTsPorDemarcacionSequia.size();
 
             // Recorremos todas las Unidades Territoriales de la demarcación
-            for (int i = 0; i < uts ; i++) {
+            for (int i = 0; i < uts; i++) {
 
                 UnidadTerritorialProjection utList = uTsPorDemarcacionSequia.get(i);
 
@@ -120,40 +108,39 @@ public class ReporteWordUtSequiaService {
 
                 List<EstacionPesUtProjection> estacionesPesUt = pesUtEstacionRepository.findEstacionesPesIdWithCoeficienteByTipoAndUT('S', utList.getId());
 
-                // Buscar la imagen correspondiente a la UTE y escenario actual del mes
+                // Buscar la imagen correspondiente a la UTE y escenario actual
+                // del mes
                 String pathImgUtActual = DocumentWordUtils.nombreImagenUTActual(reportDir, 'S', listUTEscenario, utList);
                 String tituloPeriodoActual = DateUtils.obtenerNombreMesCapitalizado(mes) + " - " + anioPropuesto;
 
-                // Crear la sección de contenido 1x2, tabla de estaciones UT e imagen de escenario
-                DocumentWordUtils.crearContenidoSimple1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual,i);
+                // Crear la sección de contenido 1x2, tabla de estaciones UT e
+                // imagen de escenario
+                DocumentWordUtils.crearContenidoSimple1x2(document, estacionesPesUt, pathImgUtActual, tituloPeriodoActual, i);
 
                 // Obtener detalles de las estaciones por UT y año
-                List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico);
-                List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico);
+                List<IndicadorUTFechaDataProjection> datosUTFecha = obtenerDatosUTFecha(utList.getId(), anioHidrologico, mes);
+                List<IndicadorUTFechaDataProjection> totalesUTFecha = obtenerTotalesUTFecha(utList.getId(), anioHidrologico, mes);
+
                 String escenario = DocumentWordUtils.getCurrentUTEscenario(utList.getId(), listUTEscenario);
                 Double valorIndicador = DocumentWordUtils.getCurrentUTIndicadorTotalMes(utList.getId(), mes, totalesUTFecha);
-                DocumentWordUtils.insertarLeyendaTabla(document, 'S', anioPropuesto, mes ,  valorIndicador, escenario);
+                DocumentWordUtils.insertarLeyendaTabla(document, 'S', anioPropuesto, mes, valorIndicador, escenario);
                 DocumentWordUtils.crearTablaDatosEstacionesUT(document, datosUTFecha, totalesUTFecha, utList.getNombre());
 
                 // Comentario UT inferior
-                DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
+                if (valorIndicador != null)
+                    DocumentWordUtils.insertarComentarioUt(document, utList.getComentario());
 
                 // Gráfico
                 List<Map<String, Object>> datosGrafico = DocumentWordUtils.prepararDatosTotalesParaGrafico(totalesUTFecha);
-                DocumentWordUtils.generarGraficoLineas('S', temporalDir, utList.getCodigo(), datosGrafico);
 
 
                 // Insertar el gráfico en la nueva página
-                String rutaGrafico = temporalDir + "/grafico_UTS_" + utList.getCodigo() + ".png";
+                String rutaGrafico = DocumentWordUtils.generarGraficoLineas('S', temporalDir, utList.getCodigo(), anioHidrologico, datosGrafico);
                 DocumentWordUtils.insertarGraficoUT(document, rutaGrafico);
 
-              
-
-                // Forzar actualización de la tabla de contenidos
+                // Finaliza documento
                 DocumentWordUtils.finalizarDocumento(document);
             }
-            
-            
 
             try (FileOutputStream out = new FileOutputStream(archivoFinal)) {
                 document.write(out);
@@ -163,12 +150,22 @@ public class ReporteWordUtSequiaService {
         }
     }
 
-    private List<IndicadorUTFechaDataProjection> obtenerDatosUTFecha(Integer utId, Integer anio) {
-        return reporteUtSequiaService.getUTEstacionFecha(utId, anio);
+    private List<IndicadorUTFechaDataProjection> filtrarIndicadoresUTEFecha(List<IndicadorUTFechaDataProjection> indicadores, int anio, int mes) {
+        int anioFinal = mes < 10 ? anio + 1 : anio;
+        return indicadores.stream().filter(i -> i.getAnio() < anioFinal || (i.getAnio() == anioFinal && i.getMes() <= mes)).toList();
     }
 
-    private List<IndicadorUTFechaDataProjection> obtenerTotalesUTFecha(Integer utId, Integer anio) {
-        return reporteUtSequiaService.getTotalDataUTFecha(utId, anio);
+    private List<IndicadorDemarcacionFechaDataProjection> filtrarIndicadoresDemarcacionFecha(List<IndicadorDemarcacionFechaDataProjection> indicadores, int anio, int mes) {
+        int anioFinal = mes < 10 ? anio + 1 : anio;
+        return indicadores.stream().filter(i -> i.getAnio() < anioFinal || (i.getAnio() == anioFinal && i.getMes() <= mes)).toList();
+    }
+
+    private List<IndicadorUTFechaDataProjection> obtenerDatosUTFecha(Integer utId, Integer anio, Integer mes) {
+        return filtrarIndicadoresUTEFecha(reporteUtSequiaService.getUTEstacionFecha(utId, anio), anio, mes);
+    }
+
+    private List<IndicadorUTFechaDataProjection> obtenerTotalesUTFecha(Integer utId, Integer anio, Integer mes) {
+        return filtrarIndicadoresUTEFecha(reporteUtSequiaService.getTotalDataUTFecha(utId, anio), anio, mes);
     }
 
     private List<UnidadTerritorialProjection> getUTsPorDemarcacionSequia(Integer demarcacionId) {
@@ -177,21 +174,16 @@ public class ReporteWordUtSequiaService {
 
     private DemarcacionProjection getDemarcacionInfo(String ubicacion) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('S');
-        return demarcacionesEscasez.stream()
-                .filter(d -> d.getNombre().toLowerCase().contains(ubicacion))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + ubicacion));
+        return demarcacionesEscasez.stream().filter(d -> d.getNombre().toLowerCase().contains(ubicacion)).findFirst().orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + ubicacion));
     }
 
-    private List<IndicadorDemarcacionFechaDataProjection> datosDemarcacionUTSequia(Integer anio, String tipo) {
+    private List<IndicadorDemarcacionFechaDataProjection> datosDemarcacionUTSequia(Integer anio, Integer mes, String tipo) {
         List<DemarcacionProjection> demarcacionesEscasez = demarcacionService.findDemarcacionesByTipo('S');
-        // Buscar en la lista de demarcaciones en el campo de nombre que tenga el texto: "oriental" u "occidental" según el tipo
-        DemarcacionProjection demarcacionTipo = demarcacionesEscasez.stream()
-                .filter(d -> d.getNombre().toLowerCase().contains(tipo))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + tipo));
+        // Buscar en la lista de demarcaciones en el campo de nombre que tenga
+        // el texto: "oriental" u "occidental" según el tipo
+        DemarcacionProjection demarcacionTipo = demarcacionesEscasez.stream().filter(d -> d.getNombre().toLowerCase().contains(tipo)).findFirst().orElseThrow(() -> new RuntimeException("No se encontró la demarcación de tipo: " + tipo));
         Integer demarcacionId = demarcacionTipo.getId();
 
-        return reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio, "prep3");
+        return filtrarIndicadoresDemarcacionFecha(reporteUtSequiaService.getAllDataFechaDemarcacion(demarcacionId, anio, "prep3"), anio, mes);
     }
 }

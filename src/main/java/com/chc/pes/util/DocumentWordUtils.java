@@ -30,6 +30,8 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import javax.imageio.ImageIO;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigInteger;
@@ -45,6 +47,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.poi.wp.usermodel.Paragraph;
 import org.openxmlformats.schemas.officeDocument.x2006.sharedTypes.STOnOff;
@@ -190,74 +193,98 @@ public class DocumentWordUtils {
         }).collect(Collectors.toList());
     }
 
-    // Generación de archivo de gráfico
-    public static void generarGraficoLineas(Character tipoGrafico, String temporalDir, String utCodigo, List<Map<String, Object>> datosGrafico) throws IOException {
+    private static void addLeyenda(XYSeriesCollection dataset, XYLineAndShapeRenderer renderer, Shape legendShape, Object... datos) {
+        // datos = nombre1, color1, nombre2, color2, ...
+        for (int i = 0; i < datos.length; i += 2) {
+            String nombre = (String) datos[i];
+            Color color = (Color) datos[i + 1];
+
+            XYSeries serie = new XYSeries(nombre);
+            dataset.addSeries(serie);
+
+            int index = dataset.getSeriesCount() - 1;
+
+            renderer.setSeriesPaint(index, color);
+            renderer.setSeriesLinesVisible(index, false);
+            renderer.setSeriesShapesVisible(index, true);
+            renderer.setSeriesShapesFilled(index, true);
+            renderer.setSeriesShape(index, legendShape);
+        }
+    }
+
+    public static String generarGraficoLineas(char tipoGrafico, String temporalDir, String utCodigo, Integer anioHidrologico, List<Map<String, Object>> datosGrafico) throws IOException {
+
         String nombreGrafico = temporalDir + "/grafico_UT" + tipoGrafico + "_" + utCodigo + ".png";
+        new File(nombreGrafico).delete();
 
-        // Si existe el archivo eliminarlo
-        File archivoExistente = new File(nombreGrafico);
-        if (archivoExistente.exists()) {
-            archivoExistente.delete();
-        }
+        /*
+         * ========================= 1. Construir año hidrológico completo
+         * =========================
+         */
 
-        // Si no hay datos, no se puede generar el gráfico.
-        if (datosGrafico == null || datosGrafico.isEmpty()) {
-            return;
-        }
-
-        // 1. Determinar el año hidrológico
-        Map<String, Object> primerDato = datosGrafico.get(0);
-        int anioDato = (Integer) primerDato.get("anio");
-        int mesDato = (Integer) primerDato.get("mes");
-        int anioHidrologico = (mesDato < 10) ? anioDato - 1 : anioDato;
-
-        // 2. Crear datos para el año hidrológico completo
-        List<Map<String, Object>> datosCompletos = new ArrayList<>();
         Map<String, Double> valoresPorPeriodo = datosGrafico.stream().collect(Collectors.toMap(d -> (String) d.get("periodo"), d -> ((Number) d.get("valor")).doubleValue()));
+
+        List<String> periodos = new ArrayList<>();
+        List<Double> valores = new ArrayList<>();
 
         for (int i = 0; i < 12; i++) {
             int mes = (10 + i - 1) % 12 + 1;
             int anio = anioHidrologico + ((10 + i - 1) / 12);
             String periodo = DateUtils.ObtenerPeriodo(anio, mes);
 
-            Map<String, Object> punto = new HashMap<>();
-            punto.put("periodo", periodo);
-            punto.put("valor", valoresPorPeriodo.get(periodo));
-            datosCompletos.add(punto);
+            periodos.add(periodo);
+            valores.add(valoresPorPeriodo.get(periodo));
         }
 
-        // 3. Crear la serie de datos principal
-        XYSeries seriesPrincipal = new XYSeries("Indicador");
-        for (int i = 0; i < datosCompletos.size(); i++) {
-            Map<String, Object> dato = datosCompletos.get(i);
-            Double valor = (Double) dato.get("valor");
-            seriesPrincipal.add(i, valor);
+        /*
+         * ========================= 2. Dataset =========================
+         */
+
+        XYSeries serie = new XYSeries("Indicador");
+        for (int i = 0; i < valores.size(); i++) {
+            if (valores.get(i) != null) {
+                serie.add(i + 1, valores.get(i)); // X empieza en 1
+            }
         }
 
-        XYSeriesCollection dataset = new XYSeriesCollection(seriesPrincipal);
+        XYSeriesCollection dataset = new XYSeriesCollection(serie);
 
-        // Crear el gráfico
-        JFreeChart chart = ChartFactory.createXYLineChart("", "Año Hidrológico", "Valor del Indicador", dataset, PlotOrientation.VERTICAL, true, false, false);
+        /*
+         * ========================= 3. Gráfico base =========================
+         */
 
-        // Personalizar el gráfico
+        JFreeChart chart = ChartFactory.createXYLineChart("", "Año hidrológico", "Valor del indicador", dataset, PlotOrientation.VERTICAL, true, false, false);
+
         XYPlot plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.WHITE);
         plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
         plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
 
-        // Configurar ejes
+        /*
+         * ========================= 4. Eje Y =========================
+         */
+
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setRange(0.0, 1.0);
         rangeAxis.setTickUnit(new NumberTickUnit(0.25));
 
+        /*
+         * ========================= 5. Eje X (etiquetas limpias)
+         * =========================
+         */
+
         NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();
+        domainAxis.setRange(0.5, valores.size() + 0.5);
         domainAxis.setTickUnit(new NumberTickUnit(1));
+        domainAxis.setLowerMargin(0);
+        domainAxis.setUpperMargin(0);
+
         domainAxis.setNumberFormatOverride(new NumberFormat() {
             @Override
             public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
-                int index = (int) number;
-                if (index >= 0 && index < datosCompletos.size()) {
-                    return toAppendTo.append(datosCompletos.get(index).get("periodo"));
+                int index = (int) number - 1;
+                if (index >= 0 && index < periodos.size()) {
+                    return toAppendTo.append(periodos.get(index));
                 }
                 return toAppendTo;
             }
@@ -273,72 +300,56 @@ public class DocumentWordUtils {
             }
         });
 
-        // Configurar el renderer principal
-        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        /*
+         * ========================= 6. Renderer (puntos SIEMPRE visibles)
+         * =========================
+         */
+
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, true);
         renderer.setSeriesPaint(0, Color.BLACK);
-        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
-        renderer.setSeriesShapesVisible(0, false);
+        renderer.setSeriesStroke(0, new BasicStroke(2f));
+        renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
+
         plot.setRenderer(renderer);
 
-        // Definir una forma cuadrada y más grande para la leyenda
-        java.awt.Shape legendShape = new java.awt.geom.Rectangle2D.Double(-5, -5, 10, 10);
+        /*
+         * ========================= 7. Zonas y leyenda
+         * =========================
+         */
 
-        // Añadir zonas de colores y leyendas
+        Shape legendShape = new Rectangle2D.Double(-5, -5, 10, 10);
+
         if (tipoGrafico == 'E') {
             chart.setTitle("Evolución del Indicador de Escasez de la Unidad Territorial " + utCodigo);
-            plot.addRangeMarker(createZonaMarker(0.0, 0.15, new Color(255, 182, 193))); // Emergencia
-            plot.addRangeMarker(createZonaMarker(0.15, 0.30, new Color(255, 200, 124))); // Alerta
-            plot.addRangeMarker(createZonaMarker(0.30, 0.50, new Color(255, 235, 156))); // Pre
-                                                                                         // Alerta
-            plot.addRangeMarker(createZonaMarker(0.50, 1.0, new Color(169, 223, 191))); // Normalidad
 
-            dataset.addSeries(new XYSeries("Normalidad"));
-            dataset.addSeries(new XYSeries("Pre Alerta"));
-            dataset.addSeries(new XYSeries("Alerta"));
-            dataset.addSeries(new XYSeries("Emergencia"));
+            plot.addRangeMarker(createZonaMarker(0.0, 0.15, new Color(255, 182, 193)));
+            plot.addRangeMarker(createZonaMarker(0.15, 0.30, new Color(255, 200, 124)));
+            plot.addRangeMarker(createZonaMarker(0.30, 0.50, new Color(255, 235, 156)));
+            plot.addRangeMarker(createZonaMarker(0.50, 1.0, new Color(169, 223, 191)));
 
-            renderer.setSeriesPaint(1, new Color(169, 223, 191));
-            renderer.setSeriesPaint(2, new Color(255, 235, 156));
-            renderer.setSeriesPaint(3, new Color(255, 200, 124));
-            renderer.setSeriesPaint(4, new Color(255, 182, 193));
-
-            for (int i = 1; i <= 4; i++) {
-                renderer.setSeriesLinesVisible(i, false);
-                renderer.setSeriesShapesVisible(i, true);
-                renderer.setSeriesShapesFilled(i, true);
-                renderer.setSeriesShape(i, legendShape); // Aplicar forma
-                                                         // cuadrada
-            }
+            addLeyenda(dataset, renderer, legendShape, "Normalidad", new Color(169, 223, 191), "Pre Alerta", new Color(255, 235, 156), "Alerta", new Color(255, 200, 124), "Emergencia", new Color(255, 182, 193));
 
         } else if (tipoGrafico == 'S') {
             chart.setTitle("Evolución del Indicador de Sequía de la Unidad Territorial " + utCodigo);
-            plot.addRangeMarker(createZonaMarker(0.0, 0.30, new Color(255, 182, 193))); // Emergencia
-            plot.addRangeMarker(createZonaMarker(0.30, 1.0, new Color(169, 223, 191))); // Normalidad
 
-            dataset.addSeries(new XYSeries("Normalidad"));
-            dataset.addSeries(new XYSeries("Emergencia"));
+            plot.addRangeMarker(createZonaMarker(0.0, 0.30, new Color(255, 182, 193)));
+            plot.addRangeMarker(createZonaMarker(0.30, 1.0, new Color(169, 223, 191)));
 
-            renderer.setSeriesPaint(1, new Color(169, 223, 191));
-            renderer.setSeriesPaint(2, new Color(255, 182, 193));
-
-            for (int i = 1; i <= 2; i++) {
-                renderer.setSeriesLinesVisible(i, false);
-                renderer.setSeriesShapesVisible(i, true);
-                renderer.setSeriesShapesFilled(i, true);
-                renderer.setSeriesShape(i, legendShape); // Aplicar forma
-                                                         // cuadrada
-            }
+            addLeyenda(dataset, renderer, legendShape, "Normalidad", new Color(169, 223, 191), "Sequía prolongada", new Color(255, 182, 193));
         }
+        Font fontActual = chart.getTitle().getFont();
+        chart.getTitle().setFont(fontActual.deriveFont(Font.PLAIN));
 
-        // Crear directorio y guardar
-        File directorio = new File(temporalDir);
-        if (!directorio.exists()) {
-            directorio.mkdirs();
-        }
+        /*
+         * ========================= 8. Guardar =========================
+         */
 
-        File outputFile = new File(nombreGrafico);
-        ChartUtils.saveChartAsPNG(outputFile, chart, 1200, 400);
+        File dir = new File(temporalDir);
+        if (!dir.exists())
+            dir.mkdirs();
 
+        ChartUtils.saveChartAsPNG(new File(nombreGrafico), chart, 1200, 400);
+        return nombreGrafico;
     }
 
     private static org.jfree.chart.plot.IntervalMarker createZonaMarker(double start, double end, Color color) {
@@ -373,9 +384,9 @@ public class DocumentWordUtils {
 
     // Cambio de colores SVG en archivo y generación de PNG
     public static String procesarSVGFile(Character tipoReporte, // 'E' o 'S'
-                                                                // (Escasez o
-                                                                // Sequia),
-            String reportDir, String temporalDir, List<IndicadorUTEscenarioProjection> listUTEscenario, String demarcacionCodigo) throws IOException {
+                                         // (Escasez o
+                                         // Sequia),
+                                         String reportDir, String temporalDir, List<IndicadorUTEscenarioProjection> listUTEscenario, String demarcacionCodigo) throws IOException {
 
         // Ruta de archivos
         String fileSvg = reportDir + "/svg/" + demarcacionCodigo + "_UT" + tipoReporte + ".svg";
@@ -462,39 +473,63 @@ public class DocumentWordUtils {
         run.setColor("000000");
     }
 
-    public static void insertarLeyendaTabla(XWPFDocument document, char tipoTabla, Integer anio, Integer mes, Double valor, String escenario) {
-        String ut = "UTS";
-        if (tipoTabla == 'E') {
-            ut = "UTE";
+    private static void addFormattedText(XWPFParagraph paragraph, String pattern, int fontSize, Object... args) {
+        int argIndex = 0;
+        int i = 0;
+
+        while (i < pattern.length()) {
+            int idx = pattern.indexOf("%s", i);
+
+            if (idx == -1) {
+                // Texto normal restante
+                XWPFRun run = paragraph.createRun();
+                run.setFontSize(fontSize);
+                run.setText(pattern.substring(i));
+                break;
+            }
+
+            // Texto normal antes del %s
+            if (idx > i) {
+                XWPFRun run = paragraph.createRun();
+                run.setFontSize(fontSize);
+                run.setText(pattern.substring(i, idx));
+            }
+
+            // Texto del %s en negrita
+            XWPFRun boldRun = paragraph.createRun();
+            boldRun.setBold(true);
+            boldRun.setFontSize(fontSize);
+            boldRun.setText(String.valueOf(args[argIndex++]));
+
+            i = idx + 2; // saltar "%s"
         }
+    }
+
+    public static void insertarLeyendaTabla(XWPFDocument document, char tipoTabla, Integer anio, Integer mes, Double valor, String escenario) {
+        String ut = (tipoTabla == 'E') ? "UTE" : "UTS";
 
         String nombreMes = (mes != null) ? DateUtils.obtenerNombreMesCapitalizado(mes) : "-";
         String anioStr = (anio != null) ? String.valueOf(anio) : "-";
-        java.text.DecimalFormat df = new java.text.DecimalFormat("0.00");
-        String valorStr = (valor != null) ? df.format(valor) : "-";
+        DecimalFormat df = new DecimalFormat("0.000");
         String escenarioStr = (escenario != null && !escenario.isBlank()) ? escenario.toUpperCase(new Locale("es", "ES")) : "-";
-
-        String templateLeyenda = "En el mes de <mes> de <anio>, el indicador <ut> alcanza un valor de <valor> (ver tabla y gráfico).\nLa <ut> se encuentra en escenario de <escenario> (ver imagen superior).";
-        String texto = templateLeyenda.replace("<mes>", nombreMes).replace("<anio>", anioStr).replace("<ut>", ut).replace("<valor>", valorStr).replace("<escenario>", escenarioStr);
 
         XWPFParagraph caption = document.createParagraph();
         caption.setAlignment(ParagraphAlignment.CENTER);
         caption.setSpacingAfter(200);
-        caption.setSpacingBefore(0);
-        XWPFRun run = caption.createRun();
-        run.setFontSize(11.0);
-        run.setColor("000000");
 
-        // Respetar saltos de línea en la plantilla
-        String[] lines = texto.split("\\r?\\n");
-        if (lines.length > 0) {
-            run.setText(lines[0], 0);
-            for (int i = 1; i < lines.length; i++) {
-                run.addBreak();
-                run.setText(lines[i]);
-            }
+        int fontSize = 11;
+
+        if (valor != null) {
+
+            addFormattedText(caption, "En el mes de %s de %s, el indicador %s alcanza un valor de %s (ver tabla y gráfico).", fontSize, nombreMes, anioStr, ut, df.format(valor));
+
+            caption.createRun().addBreak();
+
+            addFormattedText(caption, "La %s se encuentra en escenario de %s (ver imagen superior).", fontSize, ut, escenarioStr);
+
         } else {
-            run.setText(texto, 0);
+
+            addFormattedText(caption, "En el mes de %s de %s, no existen datos para calcular el indicador de la %s.", fontSize, nombreMes, anioStr, ut);
         }
     }
 
@@ -525,7 +560,7 @@ public class DocumentWordUtils {
     }
 
     // Creación de tabla principal
-    public static void crearTablaUT(XWPFDocument document, List<IndicadorDemarcacionFechaDataProjection> datos) {
+    public static void crearTablaUT(XWPFDocument document, List<IndicadorDemarcacionFechaDataProjection> datos, Integer anioHidrologico) {
         if (datos == null || datos.isEmpty()) {
             return;
         }
@@ -534,21 +569,28 @@ public class DocumentWordUtils {
         java.util.Map<String, java.util.Map<String, IndicadorDemarcacionFechaDataProjection>> datosPorUT = new java.util.LinkedHashMap<>();
         java.util.Map<String, Integer> ordenMeses = new java.util.HashMap<>();
 
+        for (int i = 10; i <= 12; i++) {
+            String label = DateUtils.ObtenerPeriodo(anioHidrologico, i);
+            int orden = anioHidrologico * 100 + i;
+            ordenMeses.putIfAbsent(label, orden);
+        }
+        for (int i = 1; i <= 9; i++) {
+            String label = DateUtils.ObtenerPeriodo(anioHidrologico + 1, i);
+            int orden = (anioHidrologico + 1) * 100 + i;
+            ordenMeses.putIfAbsent(label, orden);
+        }
         for (IndicadorDemarcacionFechaDataProjection d : datos) {
             String ut = d.getUtNombre();
             String label = DateUtils.ObtenerPeriodo(d.getAnio(), d.getMes());
-            int orden = d.getAnio() * 100 + d.getMes();
 
-            ordenMeses.putIfAbsent(label, orden);
             datosPorUT.computeIfAbsent(ut, k -> new java.util.HashMap<>()).put(label, d);
         }
 
         java.util.List<String> mesesOrdenados = ordenMeses.entrySet().stream().sorted(java.util.Map.Entry.comparingByValue()).map(java.util.Map.Entry::getKey).toList();
 
         int filas = datosPorUT.size() + 1;
-        int cols = mesesOrdenados.size() + 1;
 
-        XWPFTable table = crearTablaConBordes(document, filas, cols);
+        XWPFTable table = crearTablaConBordes(document, filas, 13);
 
         // Cabecera
         XWPFTableRow headerRow = table.getRow(0);
@@ -744,7 +786,7 @@ public class DocumentWordUtils {
                         hMerge.setVal(STMerge.RESTART); // La que "sobrevive"
                     } else {
                         hMerge.setVal(STMerge.CONTINUE); // Las que se
-                                                         // "fusionan"
+                        // "fusionan"
                         limpiarCelda(cell);
                     }
                 }
@@ -757,10 +799,10 @@ public class DocumentWordUtils {
 
                     if (i == 1) {
                         vMerge.setVal(STMerge.RESTART); // La que "sobrevive"
-                                                        // (en la segunda fila)
+                        // (en la segunda fila)
                     } else {
                         vMerge.setVal(STMerge.CONTINUE); // El resto de filas
-                                                         // hacia abajo
+                        // hacia abajo
                         limpiarCelda(cell);
                     }
                 }
@@ -778,11 +820,11 @@ public class DocumentWordUtils {
 
     private static void configurarAnchoPorcentaje(XWPFTableCell cell, int colIndex) {
         int pct = switch (colIndex) {
-        case 0 -> 20;
-        case 1 -> 20;
-        case 2 -> 10;
-        case 3 -> 50;
-        default -> 0;
+            case 0 -> 20;
+            case 1 -> 20;
+            case 2 -> 10;
+            case 3 -> 50;
+            default -> 0;
         };
         CTTcPr tcPr = cell.getCTTc().isSetTcPr() ? cell.getCTTc().getTcPr() : cell.getCTTc().addNewTcPr();
         CTTblWidth tcW = tcPr.isSetTcW() ? tcPr.getTcW() : tcPr.addNewTcW();
@@ -967,21 +1009,21 @@ public class DocumentWordUtils {
 
         // 3. Agrupar datos por estación
         Map<String, List<IndicadorUTFechaDataProjection>> datosPorEstacion = (datosEstaciones != null) ? datosEstaciones.stream().sorted(Comparator.comparing(IndicadorUTFechaDataProjection::getNombre)) // 1.
-                                                                                                                                                                                                          // Ordenamos
-                                                                                                                                                                                                          // por
-                                                                                                                                                                                                          // nombre
+                // Ordenamos
+                // por
+                // nombre
                 .collect(Collectors.groupingBy(IndicadorUTFechaDataProjection::getNombre, LinkedHashMap::new, // 2.
-                                                                                                              // Mantenemos
-                                                                                                              // el
-                                                                                                              // orden
-                                                                                                              // de
-                                                                                                              // inserción
+                        // Mantenemos
+                        // el
+                        // orden
+                        // de
+                        // inserción
                         Collectors.toList()))
                 : new LinkedHashMap<>();
         // 4. Crear la tabla
         int filas = 1 + (datosPorEstacion.size() * 2) + 1; // Cabecera + 2 por
-                                                           // cada estación +
-                                                           // total
+        // cada estación +
+        // total
         int cols = 2 + mesesOrdenados.size(); // Nombre, Tipo + periodos
         XWPFTable table = crearTablaConBordes(document, filas, cols);
 
@@ -1032,8 +1074,8 @@ public class DocumentWordUtils {
             // Celdas de datos por período
             for (int i = 0; i < mesesOrdenados.size(); i++) {
                 String periodo = mesesOrdenados.get(i).replace("\n", "-"); // Revertir
-                                                                           // para
-                                                                           // búsqueda
+                // para
+                // búsqueda
                 IndicadorUTFechaDataProjection dato = valoresPorPeriodo.get(periodo);
                 String indicadorStr = "-";
                 String valorStr = "-";
@@ -1122,15 +1164,19 @@ public class DocumentWordUtils {
 
     // Auxiliares para obtener datos actuales
     public static String getCurrentUTEscenario(Integer utId, List<IndicadorUTEscenarioProjection> listUTEscenario) {
-        return listUTEscenario.stream().filter(e -> e.getId().intValue() == utId).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse("normalidad");
+        if (listUTEscenario == null || listUTEscenario.isEmpty())
+            return "-";
+        return listUTEscenario.stream().filter(e -> e.getId().intValue() == utId).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse("-");
     }
 
     public static Double getCurrentUTIndicadorTotalMes(Integer utId, Integer mes, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
+        if (totalesUTFecha == null || totalesUTFecha.isEmpty())
+            return null;
         return totalesUTFecha.stream().filter(e -> e.getId().intValue() == utId && e.getMes().intValue() == mes.intValue()).map(IndicadorUTFechaDataProjection::getIndicador).findFirst().orElse(0.0);
     }
 
     public static String nombreImagenUTActual(String reportDir, char tipoReporte, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
-        String escenarioUt = listUTEscenario.stream().filter(e -> e.getId().intValue() == utList.getId()).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse("normalidad");
+        String escenarioUt = listUTEscenario.stream().filter(e -> e.getId().intValue() == utList.getId()).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse("desconocido");
 
         String directory = reportDir + "/png/ut" + Character.toLowerCase(tipoReporte) + "/";
         String nombreImagen = utList.getCodigoDh() + "-" + escenarioUt + ".png";
@@ -1147,7 +1193,7 @@ public class DocumentWordUtils {
 
     public static void finalizarDocumento(XWPFDocument document) {
         // 0 . Asegurar que los campos estén actualizados
-        document.enforceUpdateFields();
+        //document.enforceUpdateFields();
 
     }
 
