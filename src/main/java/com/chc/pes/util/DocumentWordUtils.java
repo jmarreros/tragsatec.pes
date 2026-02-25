@@ -69,6 +69,8 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
 // Clase utilitaria para operaciones relacionadas con documentos de Word
 public class DocumentWordUtils {
 
+    private static final String DESCONOCIDO = "desconocido";
+
     private static final String COLOR_FONDO_CABECERA = "5B9BD5";
     private static final String COLOR_FONDO_DATO = "D9E1F2";
     private static final String COLOR_BLANCO = "FFFFFF";
@@ -508,10 +510,13 @@ public class DocumentWordUtils {
     public static void insertarLeyendaTabla(XWPFDocument document, char tipoTabla, Integer anio, Integer mes, Double valor, String escenario) {
         String ut = (tipoTabla == 'E') ? "UTE" : "UTS";
 
+
         String nombreMes = (mes != null) ? DateUtils.obtenerNombreMesCapitalizado(mes) : "-";
         String anioStr = (anio != null) ? String.valueOf(anio) : "-";
         DecimalFormat df = new DecimalFormat("0.000");
         String escenarioStr = (escenario != null && !escenario.isBlank()) ? escenario.toUpperCase(new Locale("es", "ES")) : "-";
+        if (escenarioStr.equalsIgnoreCase("EMERGENCIA") && tipoTabla == 'S')
+            escenarioStr = "SEQUÍA PROLONGADA";
 
         XWPFParagraph caption = document.createParagraph();
         caption.setAlignment(ParagraphAlignment.CENTER);
@@ -1164,24 +1169,27 @@ public class DocumentWordUtils {
 
     // Auxiliares para obtener datos actuales
     public static String getCurrentUTEscenario(Integer utId, List<IndicadorUTEscenarioProjection> listUTEscenario) {
-        if (listUTEscenario == null || listUTEscenario.isEmpty())
-            return "-";
-        return listUTEscenario.stream().filter(e -> e.getId().intValue() == utId).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse("-");
+        if (utId == null || listUTEscenario == null || listUTEscenario.isEmpty())
+            return DESCONOCIDO;
+
+        return listUTEscenario.stream().filter(e -> Long.valueOf(utId).equals(e.getId())).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse(DESCONOCIDO);
     }
+
 
     public static Double getCurrentUTIndicadorTotalMes(Integer utId, Integer mes, List<IndicadorUTFechaDataProjection> totalesUTFecha) {
-        if (totalesUTFecha == null || totalesUTFecha.isEmpty())
+
+        if (utId == null || mes == null || totalesUTFecha == null || totalesUTFecha.isEmpty()) {
             return null;
-        return totalesUTFecha.stream().filter(e -> e.getId().intValue() == utId && e.getMes().intValue() == mes.intValue()).map(IndicadorUTFechaDataProjection::getIndicador).findFirst().orElse(0.0);
+        }
+
+        return totalesUTFecha.stream().filter(e -> utId.equals(e.getId()) && mes.equals(e.getMes())).map(IndicadorUTFechaDataProjection::getIndicador).findFirst().orElse(null);
     }
 
-    public static String nombreImagenUTActual(String reportDir, char tipoReporte, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection utList) {
-        String escenarioUt = listUTEscenario.stream().filter(e -> e.getId().intValue() == utList.getId()).map(IndicadorUTEscenarioProjection::getEscenarioFinal).findFirst().orElse("desconocido");
+    public static String nombreImagenUTActual(String reportDir, char tipoReporte, List<IndicadorUTEscenarioProjection> listUTEscenario, UnidadTerritorialProjection ut) {
 
-        String directory = reportDir + "/png/ut" + Character.toLowerCase(tipoReporte) + "/";
-        String nombreImagen = utList.getCodigoDh() + "-" + escenarioUt + ".png";
+        String escenarioUt = getCurrentUTEscenario(ut.getId(), listUTEscenario);
 
-        return directory + nombreImagen;
+        return reportDir + "/png/ut" + Character.toLowerCase(tipoReporte) + "/" + ut.getCodigoDh() + "-" + escenarioUt + ".png";
     }
 
     public static void crearDirectorioSiNoExiste(String temporalDirectory) {
